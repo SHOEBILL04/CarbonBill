@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <ProjectReference Include="..\CarbonBill.SharedKernel\CarbonBill.SharedKernel.csproj" />
+    <ProjectReference Include="..\CarbonBill.Modules.IdentityTenancy\CarbonBill.Modules.IdentityTenancy.csproj" />
+    <ProjectReference Include="..\CarbonBill.Modules.Audit\CarbonBill.Modules.Audit.csproj" />
+    <ProjectReference Include="..\CarbonBill.Modules.Onboarding\CarbonBill.Modules.Onboarding.csproj" />
+    <ProjectReference Include="..\CarbonBill.Modules.Documents\CarbonBill.Modules.Documents.csproj" />
+    <ProjectReference Include="..\CarbonBill.Modules.Extraction\CarbonBill.Modules.Extraction.csproj" />
+    <ProjectReference Include="..\CarbonBill.Modules.Review\CarbonBill.Modules.Review.csproj" />
+    <ProjectReference Include="..\CarbonBill.Modules.ActivityUnits\CarbonBill.Modules.ActivityUnits.csproj" />
+    <ProjectReference Include="..\CarbonBill.Modules.FactorRegistry\CarbonBill.Modules.FactorRegistry.csproj" />
+    <ProjectReference Include="..\CarbonBill.Modules.Calculation\CarbonBill.Modules.Calculation.csproj" />
+    <ProjectReference Include="..\CarbonBill.Modules.GapDetection\CarbonBill.Modules.GapDetection.csproj" />
+    <ProjectReference Include="..\CarbonBill.Modules.Flags\CarbonBill.Modules.Flags.csproj" />
+    <ProjectReference Include="..\CarbonBill.Modules.Recommendations\CarbonBill.Modules.Recommendations.csproj" />
+    <ProjectReference Include="..\CarbonBill.Modules.Reporting\CarbonBill.Modules.Reporting.csproj" />
+    <ProjectReference Include="..\CarbonBill.Modules.Notifications\CarbonBill.Modules.Notifications.csproj" />
+    <ProjectReference Include="..\CarbonBill.Modules.PlatformAdmin\CarbonBill.Modules.PlatformAdmin.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Hangfire.AspNetCore" Version="1.8.25" />
+    <PackageReference Include="Hangfire.Storage.SQLite" Version="0.4.2" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.14" />
+    <PackageReference Include="Polly" Version="8.4.2" />
+    <PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+  </ItemGroup>
+
+</Project>

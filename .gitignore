@@ -1,0 +1,30 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+.idea/
+.vscode/
+
+## SQLite & Local Data
+*.db
+*.db-shm
+*.db-wal
+/data/
+
+## Node / Web
+node_modules/
+dist/
+dist-ssr/
+*.local
+.pnpm-debug.log*
+.yarn-debug.log*
+.npm/
+
+## Temp & OS
+.DS_Store
+Thumbs.db
+scratch/

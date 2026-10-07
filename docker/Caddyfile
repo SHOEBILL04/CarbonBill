@@ -1,0 +1,26 @@
+# Caddyfile configuration for CarbonBill
+{$DOMAIN:localhost} {
+    encode gzip zstd
+
+    # API and Hangfire endpoints
+    handle /api/* {
+        reverse_proxy api:5000
+    }
+
+    handle /hangfire* {
+        reverse_proxy api:5000
+    }
+
+    handle /swagger* {
+        reverse_proxy api:5000
+    }
+
+    handle /healthz {
+        reverse_proxy api:5000
+    }
+
+    # Root and static files
+    handle {
+        reverse_proxy api:5000
+    }
+}

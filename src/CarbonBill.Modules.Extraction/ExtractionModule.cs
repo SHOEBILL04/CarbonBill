@@ -1,0 +1,42 @@
+using CarbonBill.SharedKernel.Domain;
+using CarbonBill.SharedKernel.Tenancy;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace CarbonBill.Modules.Extraction;
+
+public class ExtractionRun : BaseEntity, ITenantScopedEntity
+{
+    public Guid OrgId { get; set; }
+    public Guid DocumentId { get; set; }
+    public int TierUsed { get; set; } // 1 = Tesseract, 2 = Azure DI, 3 = LLM
+    public string Status { get; set; } = "Completed";
+    public float OverallConfidence { get; set; }
+    public string? RawOutputJson { get; set; }
+    public DateTime ProcessedAtUtc { get; set; } = DateTime.UtcNow;
+    public List<ExtractedField> Fields { get; set; } = [];
+}
+
+public class ExtractedField : BaseEntity, ITenantScopedEntity
+{
+    public Guid OrgId { get; set; }
+    public Guid ExtractionRunId { get; set; }
+    public ExtractionRun ExtractionRun { get; set; } = null!;
+    public Guid DocumentId { get; set; }
+    public string FieldName { get; set; } = string.Empty;
+    public string RawValue { get; set; } = string.Empty;
+    public string? NormalizedValue { get; set; }
+    public string? CorrectedValue { get; set; }
+    public float Confidence { get; set; }
+    public int SourceTier { get; set; }
+    public string? BoundingBoxJson { get; set; }
+}
+
+public static class ExtractionModuleExtensions
+{
+    public static IServiceCollection AddExtractionModule(this IServiceCollection services, IConfiguration configuration)
+    {
+        // Module shell DI registration
+        return services;
+    }
+}
