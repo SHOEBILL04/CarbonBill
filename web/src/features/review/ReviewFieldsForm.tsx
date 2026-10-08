@@ -1,0 +1,251 @@
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  Check,
+  AlertTriangle,
+  RotateCcw,
+  Sparkles,
+  ShieldCheck,
+  Calendar,
+  DollarSign,
+  Copy,
+  Keyboard,
+} from 'lucide-react';
+import { ReviewField, ReviewQueueItem, ConfirmRequest } from './reviewApi';
+import { formatBdt, toBanglaDigits } from '../../shared/formatters';
+
+interface ReviewFieldsFormProps {
+  document: ReviewQueueItem;
+  activeField: ReviewField | null;
+  onSelectField: (field: ReviewField) => void;
+  onConfirm: (payload: ConfirmRequest) => Promise<void>;
+  onRejectRetake: (reason: string) => Promise<void>;
+  onNextDocument: () => void;
+}
+
+export function ReviewFieldsForm({
+  document,
+  activeField,
+  onSelectField,
+  onConfirm,
+  onRejectRetake,
+  onNextDocument,
+}: ReviewFieldsFormProps) {
+  const [corrections, setCorrections] = useState<Record<string, string>>({});
+  const [isEstimated, setIsEstimated] = useState<boolean>(document.isEstimated);
+  const [duplicateResolutionId, setDuplicateResolutionId] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
+  const firstLowConfidenceInputRef = useRef<HTMLInputElement>(null);
+
+  // Initialize corrections and auto-focus low-confidence field
+  useEffect(() => {
+    const initial: Record<string, string> = {};
+    document.fields.forEach((f) => {
+      initial[f.fieldName] = f.correctedValue || f.normalizedValue || f.rawValue;
+    });
+    setCorrections(initial);
+    setIsEstimated(document.isEstimated);
+
+    // Auto-focus lowest confidence field
+    const lowest = [...document.fields].sort((a, b) => a.confidence - b.confidence)[0];
+    if (lowest && lowest.confidence < 0.85) {
+      onSelectField(lowest);
+      setTimeout(() => {
+        firstLowConfidenceInputRef.current?.focus();
+      }, 100);
+    }
+  }, [document]);
+
+  function handleFieldChange(fieldName: string, value: string) {
+    setCorrections((prev) => ({ ...prev, [fieldName]: value }));
+  }
+
+  async function handleConfirmSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      const qtyNum = parseFloat(corrections['Quantity'] || '0');
+      const amountNum = parseFloat(corrections['AmountBdt'] || '0');
+
+      const payload: ConfirmRequest = {
+        activityType: document.docType,
+        overrideQuantity: qtyNum > 0 ? qtyNum : undefined,
+        overrideUnit: corrections['Unit'],
+        overrideAmountBdt: amountNum > 0 ? amountNum : undefined,
+        overridePeriod: corrections['BillingPeriod'],
+        isEstimated,
+        resolveDuplicateWithDocId: duplicateResolutionId || undefined,
+      };
+
+      await onConfirm(payload);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  const confidencePct = Math.round(document.overallConfidence * 100);
+  const isHighConfidence = document.overallConfidence >= 0.9;
+  const isMediumConfidence = document.overallConfidence >= 0.75 && document.overallConfidence < 0.9;
+
+  return (
+    <form onSubmit={handleConfirmSubmit} className="flex flex-col h-full bg-white rounded-2xl border border-slate-200 shadow-md p-6">
+      {/* Header Info */}
+      <div className="flex items-start justify-between border-b border-slate-100 pb-4 mb-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="px-2.5 py-0.5 text-xs font-black rounded-full bg-slate-100 text-slate-800 uppercase tracking-wider">
+              {document.docType || 'ডকুমেন্ট'}
+            </span>
+            <span
+              className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-bold rounded-full ${
+                isHighConfidence
+                  ? 'bg-emerald-100 text-emerald-800'
+                  : isMediumConfidence
+                  ? 'bg-amber-100 text-amber-800'
+                  : 'bg-rose-100 text-rose-800'
+              }`}
+            >
+              <Sparkles size={12} />
+              আত্মবিশ্বাস: {toBanglaDigits(confidencePct)}%
+            </span>
+          </div>
+          <h2 className="text-base font-black text-slate-900 mt-1 truncate">
+            {corrections['Vendor'] || document.fileName}
+          </h2>
+        </div>
+
+        {/* Keyboard Quick Guide */}
+        <div className="hidden lg:flex items-center gap-1.5 text-[11px] text-slate-400 bg-slate-50 border border-slate-200 px-2 py-1 rounded-lg">
+          <Keyboard size={13} />
+          <span>Enter = অনুমোদন | N = পরবর্তী</span>
+        </div>
+      </div>
+
+      {/* Field List */}
+      <div className="flex-1 overflow-y-auto space-y-3.5 pr-1">
+        {document.fields.map((field, idx) => {
+          const val = corrections[field.fieldName] ?? '';
+          const isLow = field.confidence < 0.85;
+          const isFocused = activeField?.id === field.id;
+
+          return (
+            <div
+              key={field.id}
+              onClick={() => onSelectField(field)}
+              className={`p-3 rounded-xl border-2 transition cursor-pointer ${
+                isFocused
+                  ? 'border-emerald-600 bg-emerald-50/30 shadow-xs'
+                  : isLow
+                  ? 'border-amber-300 bg-amber-50/20'
+                  : 'border-slate-200 hover:border-slate-300'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-xs font-black text-slate-700 uppercase tracking-wider">
+                  {translateField(field.fieldName)}
+                </span>
+
+                <div className="flex items-center gap-1.5">
+                  <span
+                    className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                      isLow ? 'bg-amber-200 text-amber-900' : 'bg-slate-100 text-slate-600'
+                    }`}
+                  >
+                    {toBanglaDigits(Math.round(field.confidence * 100))}%
+                  </span>
+                  {field.sourceTier === 3 && (
+                    <span className="text-[10px] font-bold bg-purple-100 text-purple-800 px-1 rounded">
+                      LLM
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <input
+                ref={isLow && idx === 0 ? firstLowConfidenceInputRef : null}
+                type="text"
+                value={val}
+                onFocus={() => onSelectField(field)}
+                onChange={(e) => handleFieldChange(field.fieldName, e.target.value)}
+                className="w-full px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-semibold text-slate-900 focus:outline-hidden focus:border-emerald-600 bg-white"
+              />
+
+              {field.correctedValue && (
+                <p className="text-[10px] text-emerald-700 font-medium mt-1">
+                  মূল ও সি আর: <span className="font-mono">{field.rawValue}</span>
+                </p>
+              )}
+            </div>
+          );
+        })}
+
+        {/* Missing Month Estimation Checkbox */}
+        <div className="pt-2 border-t border-slate-100">
+          <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={isEstimated}
+              onChange={(e) => setIsEstimated(e.target.checked)}
+              className="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4"
+            />
+            অনুপস্থিত মাসের আনুমানিক হিসাব (Is Estimated Data)
+          </label>
+        </div>
+      </div>
+
+      {/* Action Footer */}
+      <div className="pt-4 border-t border-slate-200 mt-4 space-y-2">
+        <div className="flex items-center gap-2">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="flex-1 py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-black text-sm rounded-xl shadow-md transition flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            <ShieldCheck size={18} />
+            {isSubmitting ? 'অনুমোদন হচ্ছে...' : 'অনুমোদন করুন (Enter)'}
+          </button>
+
+          <button
+            type="button"
+            onClick={onNextDocument}
+            className="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm rounded-xl transition"
+          >
+            পরবর্তী (N)
+          </button>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => onRejectRetake('ছবি অস্পষ্ট বা কাটা পড়েছে')}
+          className="w-full py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs rounded-lg transition flex items-center justify-center gap-1.5"
+        >
+          <RotateCcw size={14} />
+          ফ্লোরে পুনরায় তোলার অনুরোধ পাঠান (Retake Request)
+        </button>
+      </div>
+    </form>
+  );
+}
+
+function translateField(fieldName: string): string {
+  switch (fieldName) {
+    case 'Vendor':
+      return 'সরবরাহকারী প্রতিষ্ঠান (Vendor)';
+    case 'BillNumber':
+      return 'বিল / চালান নম্বর (Bill No)';
+    case 'BillingPeriod':
+      return 'বিলিং পিরিয়ড / মাস (Period)';
+    case 'Quantity':
+      return 'ব্যবহারের পরিমাণ (Quantity)';
+    case 'Unit':
+      return 'একক (Unit)';
+    case 'AmountBdt':
+      return 'মোট প্রদেয় টাকা (Amount BDT)';
+    case 'MeterNumber':
+      return 'মিটার নম্বর (Meter No)';
+    case 'PowerFactorPenalty':
+      return 'পাওয়ার ফ্যাক্টর জরিমানা (Penalty)';
+    default:
+      return fieldName;
+  }
+}

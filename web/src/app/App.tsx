@@ -7,6 +7,7 @@ import DashboardView from '../routes/main/DashboardView';
 
 // Code-split floor route for ultra-fast loading on low-end Android mobile devices
 const FloorStaffView = lazy(() => import('../routes/floor/FloorStaffView'));
+const ReviewWorkspace = lazy(() => import('../features/review/ReviewWorkspace'));
 
 export default function App() {
   const { t, i18n } = useTranslation();
@@ -15,17 +16,21 @@ export default function App() {
 
   useEffect(() => {
     const storedUser = getStoredUser();
+    const params = new URLSearchParams(window.location.search);
     if (storedUser) {
       setUser(storedUser);
       if (storedUser.activeRole === 'FloorStaff') {
         setView('floor');
+      } else if (params.get('mode') === 'review') {
+        setView('review');
       } else {
         setView('dashboard');
       }
     } else {
-      const params = new URLSearchParams(window.location.search);
       if (params.get('mode') === 'floor') {
         setView('floor');
+      } else if (params.get('mode') === 'review') {
+        setView('review');
       } else {
         setView('login');
       }
@@ -61,6 +66,16 @@ export default function App() {
           </Suspense>
         )}
 
+        {view === 'review' && (
+          <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center p-8 text-center text-sm font-semibold text-slate-500">
+              পর্যালোচনা ওয়ার্কস্পেস লোড হচ্ছে... (Loading Review Workspace...)
+            </div>
+          }>
+            <ReviewWorkspace onBack={() => setView('dashboard')} />
+          </Suspense>
+        )}
+
         {view === 'login' && (
           <LoginView
             onLoginSuccess={handleLoginSuccess}
@@ -72,6 +87,7 @@ export default function App() {
           <DashboardView
             user={user}
             onGoToFloor={() => setView('floor')}
+            onGoToReview={() => setView('review')}
             onLogout={handleLogout}
           />
         )}
