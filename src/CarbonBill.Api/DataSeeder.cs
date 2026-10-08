@@ -54,20 +54,38 @@ public static class DataSeeder
             adminDb
         };
 
+        // Check existing tables to prevent duplicate CREATE TABLE execution errors
+        using var connection = identityDb.Database.GetDbConnection();
+        await connection.OpenAsync();
+        var existingTables = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        using (var cmd = connection.CreateCommand())
+        {
+            cmd.CommandText = "SELECT name FROM sqlite_master WHERE type='table';";
+            using var reader = await cmd.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                existingTables.Add(reader.GetString(0));
+            }
+        }
+
         foreach (var ctx in contexts)
         {
-            var creator = Microsoft.EntityFrameworkCore.Infrastructure.AccessorExtensions.GetService<Microsoft.EntityFrameworkCore.Storage.IRelationalDatabaseCreator>(ctx.Database);
-            if (!await creator.ExistsAsync())
+            var hasUncreatedTables = ctx.Model.GetEntityTypes()
+                .Select(t => t.GetTableName())
+                .Where(n => n != null)
+                .Any(n => !existingTables.Contains(n!));
+
+            if (hasUncreatedTables)
             {
-                await creator.CreateAsync();
-            }
-            try
-            {
-                await creator.CreateTablesAsync();
-            }
-            catch
-            {
-                // Tables already exist in shared SQLite database
+                var creator = Microsoft.EntityFrameworkCore.Infrastructure.AccessorExtensions.GetService<Microsoft.EntityFrameworkCore.Storage.IRelationalDatabaseCreator>(ctx.Database);
+                try
+                {
+                    await creator.CreateTablesAsync();
+                }
+                catch
+                {
+                    // Catch fallback
+                }
             }
         }
 
