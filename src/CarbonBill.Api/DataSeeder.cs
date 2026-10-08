@@ -1,5 +1,6 @@
 using CarbonBill.Modules.Audit.Persistence;
 using CarbonBill.Modules.Documents.Persistence;
+using CarbonBill.Modules.Extraction.Persistence;
 using CarbonBill.Modules.IdentityTenancy.Domain;
 using CarbonBill.Modules.IdentityTenancy.Persistence;
 using CarbonBill.Modules.IdentityTenancy.Services;
@@ -18,12 +19,14 @@ public static class DataSeeder
         var identityDb = scope.ServiceProvider.GetRequiredService<IdentityTenancyDbContext>();
         var auditDb = scope.ServiceProvider.GetRequiredService<AuditDbContext>();
         var documentsDb = scope.ServiceProvider.GetRequiredService<DocumentsDbContext>();
+        var extractionDb = scope.ServiceProvider.GetRequiredService<ExtractionDbContext>();
         var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
 
         logger.LogInformation("Ensuring SQLite database and tables are created...");
         await identityDb.Database.EnsureCreatedAsync();
         await auditDb.Database.EnsureCreatedAsync();
         await documentsDb.Database.EnsureCreatedAsync();
+        await extractionDb.Database.EnsureCreatedAsync();
 
         if (await identityDb.Organizations.AnyAsync())
         {

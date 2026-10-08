@@ -1,0 +1,76 @@
+using CarbonBill.Modules.Extraction.Services.Classification;
+using CarbonBill.Modules.Extraction.Services.Normalization;
+using Xunit;
+
+namespace CarbonBill.UnitTests;
+
+public class ExtractionAndNormalizationTests
+{
+    [Theory]
+    [InlineData("১২৩৪৫৬৭৮৯০", "1234567890")]
+    [InlineData("মোট বিদ্যুৎ খরচ: ৫৪২০ টাকা", "মোট বিদ্যুৎ খরচ: 5420 টাকা")]
+    [InlineData("মিটার নং- ৯৮৭৬৫৪৩২১০", "মিটার নং- 9876543210")]
+    [InlineData("১২,৩৫০.৭৫", "12,350.75")]
+    [InlineData("", "")]
+    [InlineData(null, "")]
+    public void NormalizeDigits_ConvertsBanglaNumeralsToLatinDigits(string? input, string expected)
+    {
+        var result = BanglaNormalizer.NormalizeDigits(input);
+        Assert.Equal(expected, result);
+    }
+
+    [Theory]
+    [InlineData("লিটার", "litre")]
+    [InlineData("লিঃ", "litre")]
+    [InlineData("ltr", "litre")]
+    [InlineData("কেডব্লিউএইচ", "kWh")]
+    [InlineData("কিলোওয়াট", "kWh")]
+    [InlineData("ইউনিট", "kWh")]
+    [InlineData("kwh", "kWh")]
+    [InlineData("কেজি", "kg")]
+    [InlineData("ঘনমিটার", "m3")]
+    [InlineData("cu.m", "m3")]
+    public void NormalizeUnit_MapsToCanonicalUnits(string input, string expected)
+    {
+        var result = BanglaNormalizer.NormalizeUnit(input);
+        Assert.Equal(expected, result);
+    }
+
+    [Theory]
+    [InlineData("মোট ৫,৪৫০.৭৫ লিটার", 5450.75)]
+    [InlineData("বিল: ১২৫০ টাকা", 1250.0)]
+    [InlineData("৮৭৬.৫ কেডব্লিউএইচ", 876.5)]
+    [InlineData("কোন সংখ্যা নেই", null)]
+    public void ExtractNumericValue_ParsesBanglaAndLatinFloats(string input, double? expectedDouble)
+    {
+        var result = BanglaNormalizer.ExtractNumericValue(input);
+        if (expectedDouble.HasValue)
+        {
+            Assert.NotNull(result);
+            Assert.Equal((decimal)expectedDouble.Value, result!.Value);
+        }
+        else
+        {
+            Assert.Null(result);
+        }
+    }
+
+    [Theory]
+    [InlineData("DESCO Monthly Electricity Bill for June 2026. Sanctioned load 500KW", "desco_june.pdf", DocumentTypes.ElectricityBill)]
+    [InlineData("DPDC LT-Industrial Power Bill with Power Factor Penalty", "dpdc_slip.png", DocumentTypes.ElectricityBill)]
+    [InlineData("PADMA OIL COMPANY LIMITED - Diesel Delivery Challan for Generator", "padma_oil.jpg", DocumentTypes.DieselSlip)]
+    [InlineData("মেঘনা পেট্রোলিয়াম ডিজেল স্লিপ চালান নং ১২৩৪৫", "challan.jpg", DocumentTypes.DieselSlip)]
+    [InlineData("TITAS GAS TRANSMISSION AND DISTRIBUTION CO - RMS Monthly Consumption m3", "titas_gas.pdf", DocumentTypes.GasBill)]
+    [InlineData("গ্যাস বিল তিতাস বিতরণ কোম্পানি", "bill.pdf", DocumentTypes.GasBill)]
+    [InlineData("Inter-district truck cargo delivery challan freight transport", "transport.pdf", DocumentTypes.ShippingChallan)]
+    [InlineData("Random miscellaneous meeting notes without power keywords", "notes.txt", DocumentTypes.Unknown)]
+    public void DocumentClassifier_CorrectlyIdentifiesBangladeshiDocumentTypes(string text, string fileName, string expectedType)
+    {
+        var result = DocumentClassifier.Classify(text, fileName);
+        Assert.Equal(expectedType, result.DocumentType);
+        if (expectedType != DocumentTypes.Unknown)
+        {
+            Assert.True(result.Confidence >= 0.85f);
+        }
+    }
+}

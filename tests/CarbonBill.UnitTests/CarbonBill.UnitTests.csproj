@@ -14,5 +14,6 @@
     <ProjectReference Include="..\..\src\CarbonBill.Modules.Calculation\CarbonBill.Modules.Calculation.csproj" />
     <ProjectReference Include="..\..\src\CarbonBill.Modules.Audit\CarbonBill.Modules.Audit.csproj" />
     <ProjectReference Include="..\..\src\CarbonBill.Modules.Documents\CarbonBill.Modules.Documents.csproj" />
+    <ProjectReference Include="..\..\src\CarbonBill.Modules.Extraction\CarbonBill.Modules.Extraction.csproj" />
   </ItemGroup>
 </Project>
