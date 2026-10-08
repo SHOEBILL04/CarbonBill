@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://carbonbill.org/schemas/unit-conversion.json",
+  "title": "UnitConversionRecord",
+  "description": "Schema for canonical unit conversion definitions in CarbonBill",
+  "type": "object",
+  "properties": {
+    "from_unit": {
+      "type": "string",
+      "description": "Source unit symbol or identifier"
+    },
+    "to_unit": {
+      "type": "string",
+      "enum": ["kWh", "litre", "kg", "m3", "tonne-km"],
+      "description": "Canonical target unit"
+    },
+    "factor": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "Multiplier where to_unit = from_unit * factor"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^v[0-9]+(\\.[0-9]+)?$",
+      "description": "Version label for this conversion rule"
+    },
+    "is_exact": {
+      "type": "boolean",
+      "description": "True if based on standard mathematical/SI definition"
+    },
+    "source_needed": {
+      "type": "boolean",
+      "description": "True if an empirical or regional source citation is required"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": ["from_unit", "to_unit", "factor", "version", "is_exact", "source_needed"]
+}

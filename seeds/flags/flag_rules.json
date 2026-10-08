@@ -1,0 +1,179 @@
+[
+  {
+    "flag_code": "MISSING_DOCUMENT",
+    "family": "DataQuality",
+    "name_bn": "অনুপস্থিত চালান বা বিল",
+    "name_en": "Missing Document",
+    "default_severity": "Amber",
+    "trigger_parameters": {
+      "due_day_offset": 0,
+      "escalate_red_after_days": 5
+    },
+    "suggested_action_bn": "অমীমাংসিত মিটার বা জ্বালানি স্লিপটি অবিলম্বে আপলোড করুন।",
+    "suggested_action_en": "Upload the missing meter or fuel slip immediately."
+  },
+  {
+    "flag_code": "LOW_OCR_CONFIDENCE",
+    "family": "DataQuality",
+    "name_bn": "কম ওলসিআর কনফিডেন্স",
+    "name_en": "Low OCR Confidence",
+    "default_severity": "Amber",
+    "trigger_parameters": {
+      "confidence_threshold": 0.70
+    },
+    "suggested_action_bn": "কম কনফিডেন্সের ফিল্ডগুলো রিভিউ স্ক্রিনে যাচাই ও সংশোধন করুন।",
+    "suggested_action_en": "Review and correct low-confidence fields in the review queue."
+  },
+  {
+    "flag_code": "DUPLICATE_SUSPECTED",
+    "family": "DataQuality",
+    "name_bn": "সম্ভাব্য ডুপ্লিকেট চালান",
+    "name_en": "Duplicate Document Suspected",
+    "default_severity": "Amber",
+    "trigger_parameters": {
+      "match_hash": true,
+      "match_vendor_bill_period": true
+    },
+    "suggested_action_bn": "সম্ভাব্য ডুপ্লিকেট চালান সনাক্ত হয়েছে; একটি রেখে বাকিটি বাতিল করুন।",
+    "suggested_action_en": "Suspected duplicate slip detected; retain one and discard the duplicate."
+  },
+  {
+    "flag_code": "IMPLAUSIBLE_VALUE",
+    "family": "DataQuality",
+    "name_bn": "অস্বাভাবিক ডেটা মান",
+    "name_en": "Implausible Value",
+    "default_severity": "Amber",
+    "trigger_parameters": {
+      "iqr_multiplier": 3.0,
+      "min_history_count": 3
+    },
+    "suggested_action_bn": "চালানের পরিমাণের সাথে পূর্বের রেকর্ডের অস্বাভাবিক পার্থক্য দেখা গেছে; মূল চালান যাচাই করুন।",
+    "suggested_action_en": "Implausible quantity detected outside historical range; verify against physical slip."
+  },
+  {
+    "flag_code": "ESTIMATED_SHARE_HIGH",
+    "family": "DataQuality",
+    "name_bn": "উচ্চ অনুমাননির্ভর ডেটা",
+    "name_en": "High Estimated Share",
+    "default_severity": "Amber",
+    "trigger_parameters": {
+      "max_estimated_percentage": 10.0
+    },
+    "suggested_action_bn": "মোট কার্বনের ১০%-এর বেশি অনুমাননির্ভর; প্রকৃত বিল আপলোড করে ডেটার মান বৃদ্ধি করুন।",
+    "suggested_action_en": "Over 10% of footprint is estimated; replace estimates with verified slips."
+  },
+  {
+    "flag_code": "SPIKE_MOM",
+    "family": "Footprint",
+    "name_bn": "মাসিক ব্যবহারে অস্বাভাবিক বৃদ্ধি",
+    "name_en": "Month-on-Month Spike",
+    "default_severity": "Amber",
+    "trigger_parameters": {
+      "amber_median_multiplier": 1.30,
+      "red_median_multiplier": 1.60,
+      "min_history_months": 3
+    },
+    "suggested_action_bn": "জ্বালানি বা বিদ্যুৎ ব্যবহারে অস্বাভাবিক বৃদ্ধি; সংশ্লিষ্ট চালানের তালিকা পরীক্ষা করুন।",
+    "suggested_action_en": "Significant surge in energy use; inspect the contributing documents."
+  },
+  {
+    "flag_code": "HOTSPOT_DETECTED",
+    "family": "Footprint",
+    "name_bn": "কার্বন হটস্পট সনাক্ত",
+    "name_en": "Hotspot Detected",
+    "default_severity": "Info",
+    "trigger_parameters": {
+      "percentage_of_total_threshold": 50.0
+    },
+    "suggested_action_bn": "কার্বন ফুটপ্রিন্টের সিংহভাগ একটি খাত থেকে আসছে; হ্রাসকরণ সুপারিশগুলো দেখুন।",
+    "suggested_action_en": "Single source accounts for >50% of footprint; view reduction recommendations."
+  },
+  {
+    "flag_code": "GENSET_RELIANCE",
+    "family": "Footprint",
+    "name_bn": "জেনারেটরের উপর অতিরিক্ত নির্ভরতা",
+    "name_en": "Generator Reliance High",
+    "default_severity": "Amber",
+    "trigger_parameters": {
+      "genset_kwh_percentage_threshold": 20.0
+    },
+    "suggested_action_bn": "জেনারেটর নির্ভরতা ২০% অতিক্রম করেছে; গ্রিড স্থিতিশীলতা এবং সোলার বিকল্প পর্যালোচনা করুন।",
+    "suggested_action_en": "Genset reliance exceeds 20%; review grid uptime and rooftop solar options."
+  },
+  {
+    "flag_code": "INTENSITY_ABOVE_PEERS",
+    "family": "Footprint",
+    "name_bn": "সহকর্মীদের চেয়ে বেশি নির্গমন তীব্রতা",
+    "name_en": "Intensity Above Peers",
+    "default_severity": "Amber",
+    "trigger_parameters": {
+      "amber_percentile": 75,
+      "red_percentile": 90,
+      "min_peer_count": 10
+    },
+    "suggested_action_bn": "প্রতি ইউনিটে নির্গমন সহকর্মীদের চেয়ে বেশি; জ্বালানি দক্ষতা বৃদ্ধির পদক্ষেপ নিন।",
+    "suggested_action_en": "Emission intensity exceeds peer benchmark; implement ranked efficiency measures."
+  },
+  {
+    "flag_code": "TARGET_DRIFT",
+    "family": "Footprint",
+    "name_bn": "নির্গমন লক্ষ্যমাত্রা থেকে বিচ্যুতি",
+    "name_en": "Target Trajectory Drift",
+    "default_severity": "Amber",
+    "trigger_parameters": {
+      "max_allowed_drift_percentage": 5.0
+    },
+    "suggested_action_bn": "বাৎসরিক নির্গমন লক্ষ্যমাত্রা থেকে বিচ্যুত হচ্ছে; অগ্রাধিকারমূলক পদক্ষেপ গ্রহণ করুন।",
+    "suggested_action_en": "Trajectory exceeds carbon reduction target; review reduction initiatives."
+  },
+  {
+    "flag_code": "REPORT_NOT_READY",
+    "family": "BuyerReadiness",
+    "name_bn": "রিপোর্ট অডিট-উপযোগী নয়",
+    "name_en": "Report Not Ready",
+    "default_severity": "Red",
+    "trigger_parameters": {
+      "min_data_quality_score": 80.0,
+      "require_zero_missing_documents": true
+    },
+    "suggested_action_bn": "অসম্পূর্ণ তথ্যের কারণে রিপোর্ট চূড়ান্ত করার উপযুক্ত নয়; চেকলিস্টের ঘাটতিগুলো পূরণ করুন।",
+    "suggested_action_en": "Report not audit-ready; complete unconfirmed documents and fill gaps."
+  },
+  {
+    "flag_code": "FACTOR_OUTDATED",
+    "family": "BuyerReadiness",
+    "name_bn": "পুরোনো নির্গমন ফ্যাক্টর সেট",
+    "name_en": "Emission Factor Outdated",
+    "default_severity": "Amber",
+    "trigger_parameters": {
+      "max_age_years": 1
+    },
+    "suggested_action_bn": "নির্গমন ফ্যাক্টর হালনাগাদ করা প্রয়োজন; নতুন ফ্যাক্টর সেটে পুনর্গণনার অনুমোদন দিন।",
+    "suggested_action_en": "Emission factor set is outdated; approve recalculation with updated factor set."
+  },
+  {
+    "flag_code": "OVERRIDE_UNAPPROVED",
+    "family": "BuyerReadiness",
+    "name_bn": "অননুমোদিত ফ্যাক্টর পরিবর্তন",
+    "name_en": "Factor Override Unapproved",
+    "default_severity": "Red",
+    "trigger_parameters": {
+      "require_justification": true,
+      "require_approver": true
+    },
+    "suggested_action_bn": "কাস্টম ফ্যাক্টরে অনুমোদন বা যৌক্তিক ব্যাখ্যা নেই; অনুমোদন সম্পন্ন করুন।",
+    "suggested_action_en": "Factor override lacks justification or approver; submit justification note."
+  },
+  {
+    "flag_code": "POWER_FACTOR_PENALTY",
+    "family": "BillSavings",
+    "name_bn": "পাওয়ার ফ্যাক্টর পেনাল্টি সনাক্ত",
+    "name_en": "Power Factor Penalty Detected",
+    "default_severity": "Info",
+    "trigger_parameters": {
+      "min_power_factor": 0.90
+    },
+    "suggested_action_bn": "বিদ্যুৎ বিলে পাওয়ার ফ্যাক্টর পেনাল্টি সনাক্ত হয়েছে; ক্যাপাসিটর ব্যাংক মেরামত বিবেচনা করুন।",
+    "suggested_action_en": "Power factor penalty detected on electricity bill; evaluate capacitor bank correction."
+  }
+]

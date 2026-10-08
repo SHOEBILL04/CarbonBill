@@ -1,0 +1,48 @@
+[
+  { "activity_id": "a001", "period": "2024-01", "category": "Electricity", "kg_co2e": 71300.0, "factor_value": 0.62, "is_estimated": false },
+  { "activity_id": "a002", "period": "2024-01", "category": "Diesel", "kg_co2e": 14472.0, "factor_value": 2.68, "is_estimated": false },
+  { "activity_id": "a003", "period": "2024-01", "category": "NaturalGas", "kg_co2e": 26796.0, "factor_value": 2.03, "is_estimated": false },
+
+  { "activity_id": "a004", "period": "2024-02", "category": "Electricity", "kg_co2e": 73160.0, "factor_value": 0.62, "is_estimated": false },
+  { "activity_id": "a005", "period": "2024-02", "category": "Diesel", "kg_co2e": 13936.0, "factor_value": 2.68, "is_estimated": false },
+  { "activity_id": "a006", "period": "2024-02", "category": "NaturalGas", "kg_co2e": 27405.0, "factor_value": 2.03, "is_estimated": false },
+
+  { "activity_id": "a007", "period": "2024-03", "category": "Electricity", "kg_co2e": 75640.0, "factor_value": 0.62, "is_estimated": false },
+  { "activity_id": "a008", "period": "2024-03", "category": "Diesel", "kg_co2e": 15008.0, "factor_value": 2.68, "is_estimated": false },
+  { "activity_id": "a009", "period": "2024-03", "category": "NaturalGas", "kg_co2e": 28420.0, "factor_value": 2.03, "is_estimated": false },
+
+  { "activity_id": "a010", "period": "2024-04", "category": "Electricity", "kg_co2e": 69440.0, "factor_value": 0.62, "is_estimated": false },
+  { "activity_id": "a011", "period": "2024-04", "category": "Diesel", "kg_co2e": 13668.0, "factor_value": 2.68, "is_estimated": false },
+  { "activity_id": "a012", "period": "2024-04", "category": "NaturalGas", "kg_co2e": 25984.0, "factor_value": 2.03, "is_estimated": false },
+
+  { "activity_id": "a013", "period": "2024-05", "category": "Electricity", "kg_co2e": 77500.0, "factor_value": 0.62, "is_estimated": false },
+  { "activity_id": "a014", "period": "2024-05", "category": "Diesel", "kg_co2e": 14740.0, "factor_value": 2.68, "is_estimated": false },
+  { "activity_id": "a015", "period": "2024-05", "category": "NaturalGas", "kg_co2e": 28826.0, "factor_value": 2.03, "is_estimated": false },
+
+  { "activity_id": "a016", "period": "2024-06", "category": "Electricity", "kg_co2e": 79360.0, "factor_value": 0.62, "is_estimated": false },
+  { "activity_id": "a017", "period": "2024-06", "category": "Diesel", "kg_co2e": 15544.0, "factor_value": 2.68, "is_estimated": false },
+  { "activity_id": "a018", "period": "2024-06", "category": "NaturalGas", "kg_co2e": 29435.0, "factor_value": 2.03, "is_estimated": false },
+
+  { "activity_id": "a019", "period": "2024-07", "category": "Electricity", "kg_co2e": 78120.0, "factor_value": 0.62, "is_estimated": false },
+  { "activity_id": "a020", "period": "2024-07", "category": "Diesel", "kg_co2e": 15276.0, "factor_value": 2.68, "is_estimated": false },
+  { "activity_id": "a021", "period": "2024-07", "category": "NaturalGas", "kg_co2e": 28623.0, "factor_value": 2.03, "is_estimated": false },
+
+  { "activity_id": "a022", "period": "2024-08", "category": "Electricity", "kg_co2e": 65100.0, "factor_value": 0.62, "is_estimated": false },
+  { "activity_id": "a023", "period": "2024-08", "category": "Diesel", "kg_co2e": 49580.0, "factor_value": 2.68, "is_estimated": false },
+  { "activity_id": "a024", "period": "2024-08", "category": "NaturalGas", "kg_co2e": 28217.0, "factor_value": 2.03, "is_estimated": false },
+
+  { "activity_id": "a025", "period": "2024-09", "category": "Electricity", "kg_co2e": 80600.0, "factor_value": 0.62, "is_estimated": false },
+  { "activity_id": "a026", "period": "2024-09", "category": "Diesel", "kg_co2e": 16348.0, "factor_value": 2.68, "is_estimated": false },
+  { "activity_id": "a027", "period": "2024-09", "category": "NaturalGas", "kg_co2e": 30044.0, "factor_value": 2.03, "is_estimated": false },
+
+  { "activity_id": "a028", "period": "2024-10", "category": "Electricity", "kg_co2e": 81840.0, "factor_value": 0.62, "is_estimated": false },
+  { "activity_id": "a029", "period": "2024-10", "category": "Diesel", "kg_co2e": 13936.0, "factor_value": 2.68, "is_estimated": false },
+  { "activity_id": "a030", "period": "2024-10", "category": "NaturalGas", "kg_co2e": 30450.0, "factor_value": 2.03, "is_estimated": false },
+
+  { "activity_id": "a031", "period": "2024-11", "category": "Electricity", "kg_co2e": 78740.0, "factor_value": 0.62, "is_estimated": false },
+  { "activity_id": "a032", "period": "2024-11", "category": "Diesel", "kg_co2e": 14472.0, "factor_value": 2.68, "is_estimated": false },
+  { "activity_id": "a033", "period": "2024-11", "category": "NaturalGas", "kg_co2e": 29232.0, "factor_value": 2.03, "is_estimated": false },
+
+  { "activity_id": "a034", "period": "2024-12", "category": "Electricity", "kg_co2e": 74400.0, "factor_value": 0.62, "is_estimated": true },
+  { "activity_id": "a035", "period": "2024-12", "category": "NaturalGas", "kg_co2e": 28014.0, "factor_value": 2.03, "is_estimated": false }
+]

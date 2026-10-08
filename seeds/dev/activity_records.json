@@ -1,0 +1,48 @@
+[
+  { "id": "a001", "period": "2024-01", "category": "Electricity", "quantity_canonical": 115000.0, "canonical_unit": "kWh", "is_estimated": false },
+  { "id": "a002", "period": "2024-01", "category": "Diesel", "quantity_canonical": 5400.0, "canonical_unit": "litre", "is_estimated": false },
+  { "id": "a003", "period": "2024-01", "category": "NaturalGas", "quantity_canonical": 13200.0, "canonical_unit": "m3", "is_estimated": false },
+
+  { "id": "a004", "period": "2024-02", "category": "Electricity", "quantity_canonical": 118000.0, "canonical_unit": "kWh", "is_estimated": false },
+  { "id": "a005", "period": "2024-02", "category": "Diesel", "quantity_canonical": 5200.0, "canonical_unit": "litre", "is_estimated": false },
+  { "id": "a006", "period": "2024-02", "category": "NaturalGas", "quantity_canonical": 13500.0, "canonical_unit": "m3", "is_estimated": false },
+
+  { "id": "a007", "period": "2024-03", "category": "Electricity", "quantity_canonical": 122000.0, "canonical_unit": "kWh", "is_estimated": false },
+  { "id": "a008", "period": "2024-03", "category": "Diesel", "quantity_canonical": 5600.0, "canonical_unit": "litre", "is_estimated": false },
+  { "id": "a009", "period": "2024-03", "category": "NaturalGas", "quantity_canonical": 14000.0, "canonical_unit": "m3", "is_estimated": false },
+
+  { "id": "a010", "period": "2024-04", "category": "Electricity", "quantity_canonical": 112000.0, "canonical_unit": "kWh", "is_estimated": false },
+  { "id": "a011", "period": "2024-04", "category": "Diesel", "quantity_canonical": 5100.0, "canonical_unit": "litre", "is_estimated": false },
+  { "id": "a012", "period": "2024-04", "category": "NaturalGas", "quantity_canonical": 12800.0, "canonical_unit": "m3", "is_estimated": false },
+
+  { "id": "a013", "period": "2024-05", "category": "Electricity", "quantity_canonical": 125000.0, "canonical_unit": "kWh", "is_estimated": false },
+  { "id": "a014", "period": "2024-05", "category": "Diesel", "quantity_canonical": 5500.0, "canonical_unit": "litre", "is_estimated": false },
+  { "id": "a015", "period": "2024-05", "category": "NaturalGas", "quantity_canonical": 14200.0, "canonical_unit": "m3", "is_estimated": false },
+
+  { "id": "a016", "period": "2024-06", "category": "Electricity", "quantity_canonical": 128000.0, "canonical_unit": "kWh", "is_estimated": false },
+  { "id": "a017", "period": "2024-06", "category": "Diesel", "quantity_canonical": 5800.0, "canonical_unit": "litre", "is_estimated": false },
+  { "id": "a018", "period": "2024-06", "category": "NaturalGas", "quantity_canonical": 14500.0, "canonical_unit": "m3", "is_estimated": false },
+
+  { "id": "a019", "period": "2024-07", "category": "Electricity", "quantity_canonical": 126000.0, "canonical_unit": "kWh", "is_estimated": false },
+  { "id": "a020", "period": "2024-07", "category": "Diesel", "quantity_canonical": 5700.0, "canonical_unit": "litre", "is_estimated": false },
+  { "id": "a021", "period": "2024-07", "category": "NaturalGas", "quantity_canonical": 14100.0, "canonical_unit": "m3", "is_estimated": false },
+
+  { "id": "a022", "period": "2024-08", "category": "Electricity", "quantity_canonical": 105000.0, "canonical_unit": "kWh", "is_estimated": false },
+  { "id": "a023", "period": "2024-08", "category": "Diesel", "quantity_canonical": 18500.0, "canonical_unit": "litre", "is_estimated": false },
+  { "id": "a024", "period": "2024-08", "category": "NaturalGas", "quantity_canonical": 13900.0, "canonical_unit": "m3", "is_estimated": false },
+
+  { "id": "a025", "period": "2024-09", "category": "Electricity", "quantity_canonical": 130000.0, "canonical_unit": "kWh", "is_estimated": false },
+  { "id": "a026", "period": "2024-09", "category": "Diesel", "quantity_canonical": 6100.0, "canonical_unit": "litre", "is_estimated": false },
+  { "id": "a027", "period": "2024-09", "category": "NaturalGas", "quantity_canonical": 14800.0, "canonical_unit": "m3", "is_estimated": false },
+
+  { "id": "a028", "period": "2024-10", "category": "Electricity", "quantity_canonical": 132000.0, "canonical_unit": "kWh", "is_estimated": false },
+  { "id": "a029", "period": "2024-10", "category": "Diesel", "quantity_canonical": 5200.0, "canonical_unit": "litre", "is_estimated": false },
+  { "id": "a030", "period": "2024-10", "category": "NaturalGas", "quantity_canonical": 15000.0, "canonical_unit": "m3", "is_estimated": false },
+
+  { "id": "a031", "period": "2024-11", "category": "Electricity", "quantity_canonical": 127000.0, "canonical_unit": "kWh", "is_estimated": false },
+  { "id": "a032", "period": "2024-11", "category": "Diesel", "quantity_canonical": 5400.0, "canonical_unit": "litre", "is_estimated": false },
+  { "id": "a033", "period": "2024-11", "category": "NaturalGas", "quantity_canonical": 14400.0, "canonical_unit": "m3", "is_estimated": false },
+
+  { "id": "a034", "period": "2024-12", "category": "Electricity", "quantity_canonical": 120000.0, "canonical_unit": "kWh", "is_estimated": true },
+  { "id": "a035", "period": "2024-12", "category": "NaturalGas", "quantity_canonical": 13800.0, "canonical_unit": "m3", "is_estimated": false }
+]

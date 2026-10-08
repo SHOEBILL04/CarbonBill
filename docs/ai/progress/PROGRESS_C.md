@@ -5,7 +5,7 @@
 | Prompt | Description | Status | Branch / PR | Notes |
 |---|---|---|---|---|
 | **P0-1c** | Rules, flags, recommendations, reports & security docs | done | `docs/p0-1c` | Specs 07 through 12, Track C and Progress C |
-| **P0-4** | Seeds, fixtures & dev dataset | todo | - | Unit conversions, factor template, flag rules, measure library, dev dataset |
+| **P0-4** | Seeds, fixtures & dev dataset | done | `feat/c-p0-4-seeds` | Seed schemas, templates, samples, and 14-flag dev dataset |
 | **C1** | Gap detection engine | todo | - | Expected calendar comparison, days -7, -3, 0 escalation |
 | **C2** | Notifications subsystem | todo | - | In-app, Web Push VAPID, email, quiet hours, weekly digest |
 | **C3** | Flags engine & data-quality rules | todo | - | FlagRule schema, deterministic evaluator, top 5 dashboard query |
@@ -19,9 +19,9 @@
 
 ---
 
-**Blocked on:** None.
+**Blocked on:** Await Gate G1 (Contracts frozen, P0-5 tagged).
 
-**Next prompt:** P0-4 (Seeds, fixtures and dev data) following Gate G0.
+**Next prompt:** C1 (Gap detection engine) following Gate G1.
 
 **Open questions logged in 15_DECISIONS.md:**
 - QuestPDF Bangla font glyph rendering spike outcome.

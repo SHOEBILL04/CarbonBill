@@ -1,0 +1,73 @@
+{
+  "dataset_version": "1.0-dev",
+  "organization_id": "11111111-1111-1111-1111-111111111111",
+  "flags_exercised": {
+    "MISSING_DOCUMENT": {
+      "period": "2024-12",
+      "asset": "Cummins Diesel Generator 750 kVA",
+      "explanation": "December 2024 has an active ExpectedDocRule for monthly diesel slips, but no document exists."
+    },
+    "LOW_OCR_CONFIDENCE": {
+      "document_id": "99999999-0000-0000-0000-000000000002",
+      "period": "2024-09",
+      "explanation": "Extracted field confidence is 0.62 (< 0.70 threshold)."
+    },
+    "DUPLICATE_SUSPECTED": {
+      "document_ids": [
+        "99999999-0000-0000-0000-000000000003",
+        "99999999-0000-0000-0000-000000000004"
+      ],
+      "period": "2024-10",
+      "explanation": "Both documents share identical SHA-256 hash and bill slip number DS-2024-1001."
+    },
+    "IMPLAUSIBLE_VALUE": {
+      "document_id": "99999999-0000-0000-0000-000000000005",
+      "period": "2024-11",
+      "explanation": "Fuel quantity 520,000 litres is >10x historical median, exceeding 3x IQR."
+    },
+    "ESTIMATED_SHARE_HIGH": {
+      "period": "2024-12",
+      "explanation": "Electricity activity record a034 is estimated (74,400 kg CO2e), accounting for 72.6% of December emissions (> 10% threshold)."
+    },
+    "SPIKE_MOM": {
+      "period": "2024-08",
+      "category": "Diesel",
+      "explanation": "August diesel consumption of 18,500 L is 3.25x the trailing 3-month median of 5,700 L, triggering Red severity."
+    },
+    "HOTSPOT_DETECTED": {
+      "period": "Annual 2024",
+      "category": "Electricity",
+      "explanation": "Grid electricity accounts for ~63% of annual total emissions (> 50% threshold)."
+    },
+    "GENSET_RELIANCE": {
+      "period": "2024-08",
+      "explanation": "Diesel generation produced equivalent energy exceeding 20% of total factory electricity in August."
+    },
+    "INTENSITY_ABOVE_PEERS": {
+      "period": "2024-08",
+      "metric": "kg_co2e_per_piece",
+      "explanation": "August emissions of 142,897 kg CO2e over 95,000 pieces yields 1.504 kg CO2e/piece, exceeding peer P90 (0.68 kg CO2e/piece)."
+    },
+    "TARGET_DRIFT": {
+      "period": "2024-08",
+      "explanation": "August surge causes year-to-date cumulative emissions to exceed baseline decarbonization target trajectory."
+    },
+    "REPORT_NOT_READY": {
+      "period": "2024-12",
+      "explanation": "December has a missing expected diesel document and unconfirmed draft status."
+    },
+    "FACTOR_OUTDATED": {
+      "scenario": "Test harness evaluates 2024 period using a factor set dated 2022.",
+      "explanation": "Factor set age exceeds 1 year relative to reporting period."
+    },
+    "OVERRIDE_UNAPPROVED": {
+      "scenario": "Unapproved custom factor override entry seeded without approver.",
+      "explanation": "Custom factor override lacks required compliance authorization."
+    },
+    "POWER_FACTOR_PENALTY": {
+      "document_id": "99999999-0000-0000-0000-000000000002",
+      "period": "2024-09",
+      "explanation": "Extracted power factor is 0.82 (< 0.90 threshold) with 42,500 BDT penalty line."
+    }
+  }
+}

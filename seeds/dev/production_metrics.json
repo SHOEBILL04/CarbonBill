@@ -1,0 +1,14 @@
+[
+  { "period": "2024-01", "unit": "piece", "quantity": 125000 },
+  { "period": "2024-02", "unit": "piece", "quantity": 130000 },
+  { "period": "2024-03", "unit": "piece", "quantity": 128000 },
+  { "period": "2024-04", "unit": "piece", "quantity": 115000 },
+  { "period": "2024-05", "unit": "piece", "quantity": 135000 },
+  { "period": "2024-06", "unit": "piece", "quantity": 140000 },
+  { "period": "2024-07", "unit": "piece", "quantity": 138000 },
+  { "period": "2024-08", "unit": "piece", "quantity": 95000 },
+  { "period": "2024-09", "unit": "piece", "quantity": 142000 },
+  { "period": "2024-10", "unit": "piece", "quantity": 145000 },
+  { "period": "2024-11", "unit": "piece", "quantity": 140000 },
+  { "period": "2024-12", "unit": "piece", "quantity": 132000 }
+]

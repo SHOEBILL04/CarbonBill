@@ -1,0 +1,45 @@
+{
+  "site": {
+    "id": "66666666-6666-6666-6666-666666666666",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "name": "Savar Garment Complex Unit 1",
+    "location": "Hemayetpur, Savar, Dhaka",
+    "questionnaire_profile": {
+      "has_boiler": true,
+      "has_genset": true,
+      "roof_area_sqft": 35000,
+      "building_ownership": "Owned",
+      "budget_band_bdt": "1000000-3000000"
+    }
+  },
+  "assets": [
+    {
+      "id": "77777777-1111-0000-0000-000000000001",
+      "site_id": "66666666-6666-6666-6666-666666666666",
+      "org_id": "11111111-1111-1111-1111-111111111111",
+      "type": "meter",
+      "name": "Main REB HT Substation Meter 1"
+    },
+    {
+      "id": "77777777-1111-0000-0000-000000000002",
+      "site_id": "66666666-6666-6666-6666-666666666666",
+      "org_id": "11111111-1111-1111-1111-111111111111",
+      "type": "meter",
+      "name": "Washing & Dyeing Section Meter 2"
+    },
+    {
+      "id": "77777777-2222-0000-0000-000000000001",
+      "site_id": "66666666-6666-6666-6666-666666666666",
+      "org_id": "11111111-1111-1111-1111-111111111111",
+      "type": "genset",
+      "name": "Cummins Diesel Generator 750 kVA"
+    },
+    {
+      "id": "77777777-3333-0000-0000-000000000001",
+      "site_id": "66666666-6666-6666-6666-666666666666",
+      "org_id": "11111111-1111-1111-1111-111111111111",
+      "type": "boiler",
+      "name": "Steam Boiler 4 Ton (Natural Gas)"
+    }
+  ]
+}
