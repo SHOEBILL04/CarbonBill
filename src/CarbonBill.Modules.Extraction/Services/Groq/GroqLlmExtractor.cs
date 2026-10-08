@@ -30,6 +30,7 @@ public interface IGroqLlmExtractor
         string rawOcrText,
         string fileName,
         string contentType,
+        bool hasConsent = true,
         CancellationToken ct = default);
 }
 
@@ -51,8 +52,15 @@ public class GroqLlmExtractor(
         string rawOcrText,
         string fileName,
         string contentType,
+        bool hasConsent = true,
         CancellationToken ct = default)
     {
+        if (!hasConsent)
+        {
+            logger.LogInformation("Tenant consent for Tier 3 AI processing not granted. Using rule-based fallback.");
+            return FallbackRuleBasedExtraction(rawOcrText);
+        }
+
         if (string.IsNullOrWhiteSpace(_apiKey))
         {
             logger.LogWarning("Groq API key not configured. Using rule-based semantic parser fallback.");

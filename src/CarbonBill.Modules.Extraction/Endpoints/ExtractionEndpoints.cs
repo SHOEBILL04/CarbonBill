@@ -86,7 +86,8 @@ public static class ExtractionEndpoints
                 stream,
                 file.FileName,
                 file.ContentType,
-                ct);
+                hasTier3Consent: true,
+                ct: ct);
 
             if (!result.IsSuccess)
             {

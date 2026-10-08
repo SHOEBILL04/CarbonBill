@@ -7,8 +7,8 @@
 | **P0-1b** | Domain, data model, API & flow docs | done | `docs/p0-1b` | Glossary, schema, contracts, sequence flows |
 | **P0-3** | React PWA scaffold & app shell | done | `feat/b-p0-3-web-scaffold` | Workbox, IndexedDB, formatters, floor chunk 11.07 KB gzipped |
 | **B1** | Documents backend & storage | done | `feat/b-b1-documents-backend` | Magic-bytes, SHA-256 deduplication, state machine, manual fallback |
-| **B2** | Extraction pipeline Tier 1 | todo | - | Option C Dual OCR (PaddleOCR + Tesseract), normalizer |
-| **B3** | OCR Tiers 2 & 3, golden harness | todo | - | Groq gpt-oss-120b intelligence, golden OCR harness |
+| **B2** | Extraction pipeline Tier 1 | done | `feat/b-b2-extraction-dual-ocr` | Option C Dual OCR (PaddleOCR + Tesseract), BanglaNormalizer, Classifier |
+| **B3** | OCR Tiers 2 & 3, golden harness | done | `feat/b-b3-golden-harness` | Groq gpt-oss-120b semantic parser, consent gating, Golden Harness runner |
 | **B4** | Review backend & confirm flow | todo | - | Review queue, corrections, sampling auto-confirm |
 | **B5** | Floor staff capture PWA | todo | - | 2-tap Bangla UI, offline queue, receipt confirmation |
 | **B6** | Review UI workspace | todo | - | Side-by-side viewer, bbox highlight, keyboard flow |
@@ -20,7 +20,7 @@
 
 **Blocked on:** None.
 
-**Next prompt:** B2 (Extraction pipeline Tier 1: Option C Dual OCR).
+**Next prompt:** B4 (Review backend & confirm flow).
 
 **Open questions logged in 15_DECISIONS.md:**
 - Tier 3 Vision LLM customer privacy and consent requirements.

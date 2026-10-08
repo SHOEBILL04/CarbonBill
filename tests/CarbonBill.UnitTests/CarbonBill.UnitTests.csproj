@@ -16,4 +16,10 @@
     <ProjectReference Include="..\..\src\CarbonBill.Modules.Documents\CarbonBill.Modules.Documents.csproj" />
     <ProjectReference Include="..\..\src\CarbonBill.Modules.Extraction\CarbonBill.Modules.Extraction.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\CarbonBill.OcrGolden\*.cs" Link="OcrGolden\%(FileName)%(Extension)" />
+    <None Include="..\CarbonBill.OcrGolden\Dataset\*.json" Link="OcrGolden\Dataset\%(FileName)%(Extension)">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

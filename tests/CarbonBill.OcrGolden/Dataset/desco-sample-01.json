@@ -1,0 +1,14 @@
+{
+  "id": "GOLDEN-001",
+  "fileName": "desco_mirpur_june_2026.pdf",
+  "category": "Electricity",
+  "rawTextFixture": "DHAKA ELECTRIC SUPPLY COMPANY LIMITED (DESCO)\nBill No: DESCO-2026-98124\nBilling Period: 2026-06\nConsumer: Radiant Knitwear Ltd\nMeter No: 8819201\nSanctioned Load: 450 KW\nTotal Consumption: ৫৪,২০০ kWh (ইউনিট)\nNet Payable Amount: ৫,৬৯,১০০.০০ BDT\nPower Factor Penalty: ০.০০",
+  "expectedVendor": "DESCO",
+  "expectedBillNumber": "DESCO-2026-98124",
+  "expectedBillingPeriod": "2026-06",
+  "expectedQuantity": 54200.00,
+  "expectedUnit": "kWh",
+  "expectedAmountBdt": 569100.00,
+  "expectedMeterNumber": "8819201",
+  "expectedPenaltyBdt": 0.00
+}

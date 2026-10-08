@@ -27,6 +27,7 @@ public interface IExtractionService
         Stream documentStream,
         string fileName,
         string contentType,
+        bool hasTier3Consent = true,
         CancellationToken ct = default);
 
     Task<ExtractionRun?> GetExtractionRunForDocumentAsync(
@@ -47,6 +48,7 @@ public class ExtractionService(
         Stream documentStream,
         string fileName,
         string contentType,
+        bool hasTier3Consent = true,
         CancellationToken ct = default)
     {
         var orgId = tenantContext.CurrentOrgId;
@@ -63,8 +65,8 @@ public class ExtractionService(
         // 2. Classify Document Type
         var classification = DocumentClassifier.Classify(rawOcrText, fileName);
 
-        // 3. Groq LLM Semantic Intelligence (openai/gpt-oss-120b)
-        var groqResult = await groqExtractor.ExtractAsync(rawOcrText, fileName, contentType, ct);
+        // 3. Groq LLM Semantic Intelligence (openai/gpt-oss-120b) with consent gating
+        var groqResult = await groqExtractor.ExtractAsync(rawOcrText, fileName, contentType, hasTier3Consent, ct);
 
         // 4. Save ExtractionRun and ExtractedFields
         var extractionRunId = Guid.NewGuid();
