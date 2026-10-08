@@ -20,6 +20,7 @@ public static class DataSeeder
         var auditDb = scope.ServiceProvider.GetRequiredService<AuditDbContext>();
         var documentsDb = scope.ServiceProvider.GetRequiredService<DocumentsDbContext>();
         var extractionDb = scope.ServiceProvider.GetRequiredService<ExtractionDbContext>();
+        var reviewDb = scope.ServiceProvider.GetRequiredService<CarbonBill.Modules.Review.Persistence.ReviewDbContext>();
         var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
 
         logger.LogInformation("Ensuring SQLite database and tables are created...");
@@ -27,6 +28,7 @@ public static class DataSeeder
         await auditDb.Database.EnsureCreatedAsync();
         await documentsDb.Database.EnsureCreatedAsync();
         await extractionDb.Database.EnsureCreatedAsync();
+        await reviewDb.Database.EnsureCreatedAsync();
 
         if (await identityDb.Organizations.AnyAsync())
         {

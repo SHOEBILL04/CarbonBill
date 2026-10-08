@@ -261,5 +261,6 @@ app.MapGet("/", () => Results.Ok(new
 app.MapAuthEndpoints();
 app.MapDocumentsModuleEndpoints();
 app.MapExtractionModuleEndpoints();
+app.MapReviewModuleEndpoints();
 
 app.Run();
