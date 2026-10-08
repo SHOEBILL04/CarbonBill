@@ -5,10 +5,10 @@
 | Prompt | Description | Status | Branch / PR | Notes |
 |---|---|---|---|---|
 | **P0-1b** | Domain, data model, API & flow docs | done | `docs/p0-1b` | Glossary, schema, contracts, sequence flows |
-| **P0-3** | React PWA scaffold & app shell | todo | - | Workbox, IndexedDB, i18n, floor chunk <200 KB |
+| **P0-3** | React PWA scaffold & app shell | done | `feat/b-p0-3-web-scaffold` | Workbox, IndexedDB, formatters, floor chunk 11.07 KB gzipped |
 | **B1** | Documents backend & storage | todo | - | R2 storage, SHA-256 deduplication, manual fallback |
-| **B2** | Extraction pipeline Tier 1 | todo | - | Tesseract ben+eng, normalizer, utility templates |
-| **B3** | OCR Tiers 2 & 3, golden harness | todo | - | Azure DI F0, consented LLM, golden OCR harness |
+| **B2** | Extraction pipeline Tier 1 | todo | - | Option C Dual OCR (PaddleOCR + Tesseract), normalizer |
+| **B3** | OCR Tiers 2 & 3, golden harness | todo | - | Groq gpt-oss-120b intelligence, golden OCR harness |
 | **B4** | Review backend & confirm flow | todo | - | Review queue, corrections, sampling auto-confirm |
 | **B5** | Floor staff capture PWA | todo | - | 2-tap Bangla UI, offline queue, receipt confirmation |
 | **B6** | Review UI workspace | todo | - | Side-by-side viewer, bbox highlight, keyboard flow |
@@ -20,7 +20,7 @@
 
 **Blocked on:** None.
 
-**Next prompt:** P0-3 (React PWA scaffold and shell) following Gate G0.
+**Next prompt:** B1 (Documents backend & storage).
 
 **Open questions logged in 15_DECISIONS.md:**
 - Tier 3 Vision LLM customer privacy and consent requirements.
