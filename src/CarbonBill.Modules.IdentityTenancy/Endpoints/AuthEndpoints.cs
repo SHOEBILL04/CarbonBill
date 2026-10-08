@@ -28,6 +28,7 @@ public record UserMembershipDto(Guid OrgId, string OrgName, string Role);
 public record RefreshTokenRequest(string? RefreshToken = null);
 public record CreateInviteApiRequest(Guid OrgId, string Role, string Pin, int ValidityDays = 7, int MaxUses = 1);
 public record CreateInviteApiResponse(string Token, string Role, DateTime ExpiresAtUtc, string QrPayload);
+public record SwitchOrgRequest(Guid TargetOrgId);
 
 public static class AuthEndpoints
 {
@@ -315,6 +316,77 @@ public static class AuthEndpoints
                     m.IsActive
                 })
             });
+        });
+
+        group.MapPost("/switch-org", async (
+            [FromBody] SwitchOrgRequest request,
+            ITenantContext tenantContext,
+            IdentityTenancyDbContext dbContext,
+            ITokenService tokenService,
+            HttpResponse httpResponse,
+            CancellationToken ct) =>
+        {
+            if (!tenantContext.IsAuthenticated || !tenantContext.CurrentUserId.HasValue)
+            {
+                return Results.Unauthorized();
+            }
+
+            var user = await dbContext.Users
+                .Include(u => u.Memberships)
+                .ThenInclude(m => m.Organization)
+                .FirstOrDefaultAsync(u => u.Id == tenantContext.CurrentUserId.Value && u.IsActive, ct);
+
+            if (user == null)
+            {
+                return Results.Unauthorized();
+            }
+
+            var targetMembership = user.Memberships.FirstOrDefault(m => m.OrgId == request.TargetOrgId && m.IsActive);
+            if (targetMembership == null)
+            {
+                return Results.Problem(
+                    detail: "User does not have an active membership in the requested organization.",
+                    statusCode: StatusCodes.Status403Forbidden,
+                    title: "Switch Organization Denied");
+            }
+
+            var tokens = tokenService.GenerateTokens(user, targetMembership);
+            var hashedRefreshToken = tokenService.HashRefreshToken(tokens.RefreshToken);
+
+            dbContext.RefreshTokens.Add(new RefreshToken
+            {
+                UserId = user.Id,
+                TokenHash = hashedRefreshToken,
+                ExpiresAtUtc = DateTime.UtcNow.AddDays(7)
+            });
+            await dbContext.SaveChangesAsync(ct);
+
+            httpResponse.Cookies.Append("carbonbill_refresh", tokens.RefreshToken, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.UtcNow.AddDays(7)
+            });
+
+            var membershipsDto = user.Memberships
+                .Where(m => m.IsActive)
+                .Select(m => new UserMembershipDto(m.OrgId, m.Organization?.Name ?? "Unknown", m.Role))
+                .ToList();
+
+            var response = new LoginResponse(
+                AccessToken: tokens.AccessToken,
+                RefreshToken: tokens.RefreshToken,
+                ExpiresAtUtc: tokens.ExpiresAtUtc,
+                UserId: user.Id,
+                Email: user.Email,
+                FullName: user.FullName,
+                ActiveOrgId: targetMembership.OrgId,
+                ActiveOrgName: targetMembership.Organization?.Name ?? "",
+                ActiveRole: targetMembership.Role,
+                Memberships: membershipsDto);
+
+            return Results.Ok(response);
         });
 
         return endpoints;
