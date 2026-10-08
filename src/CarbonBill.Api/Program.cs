@@ -259,5 +259,6 @@ app.MapGet("/", () => Results.Ok(new
 
 // Map Module Minimal APIs
 app.MapAuthEndpoints();
+app.MapDocumentsModuleEndpoints();
 
 app.Run();
