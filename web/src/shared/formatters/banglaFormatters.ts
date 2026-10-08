@@ -102,3 +102,5 @@ export function formatBanglaDate(dateInput: Date | string, options: { includeDay
 
   return parts.join(' ');
 }
+
+export const formatBanglaNumber = toBanglaDigits;
