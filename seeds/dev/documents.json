@@ -1,0 +1,108 @@
+[
+  {
+    "id": "99999999-0000-0000-0000-000000000001",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source": "phone",
+    "captured_at": "2024-08-05T09:30:00Z",
+    "period": "2024-08",
+    "doc_type": "diesel_slip",
+    "status": "Confirmed",
+    "tier_used": 1,
+    "is_estimated": false,
+    "storage_path": "tenants/11111111/documents/2024-08-diesel-slip.webp",
+    "extracted_fields": {
+      "slip_number": "DS-2024-0812",
+      "quantity": 18500.0,
+      "unit": "litre",
+      "amount_bdt": 2016500.0,
+      "confidence": 0.94
+    },
+    "notes": "Month 8 diesel spike (18,500 L vs normal ~6,000 L) triggers SPIKE_MOM and GENSET_RELIANCE"
+  },
+  {
+    "id": "99999999-0000-0000-0000-000000000002",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "sha256": "4b227777d4dd1fc61c6f884f48641d02b4d121d3fd328cb08b5531fcacdabf8a",
+    "source": "web",
+    "captured_at": "2024-09-08T11:00:00Z",
+    "period": "2024-09",
+    "doc_type": "electricity_bill",
+    "status": "NeedsReview",
+    "tier_used": 2,
+    "is_estimated": false,
+    "storage_path": "tenants/11111111/documents/2024-09-reb-bill.webp",
+    "extracted_fields": {
+      "meter_number": "REB-HT-9921",
+      "total_kwh": 92500.0,
+      "amount_bdt": 878750.0,
+      "power_factor": 0.82,
+      "power_factor_penalty_bdt": 42500.0,
+      "confidence": 0.62
+    },
+    "notes": "Triggers LOW_OCR_CONFIDENCE (confidence 0.62 < 0.70) and POWER_FACTOR_PENALTY (PF 0.82 < 0.90)"
+  },
+  {
+    "id": "99999999-0000-0000-0000-000000000003",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "sha256": "ef2d127de37b942baad06145e54b0c619a1f22327b2ebbcfbec78f5564afe39d",
+    "source": "phone",
+    "captured_at": "2024-10-02T14:15:00Z",
+    "period": "2024-10",
+    "doc_type": "diesel_slip",
+    "status": "Confirmed",
+    "tier_used": 1,
+    "is_estimated": false,
+    "storage_path": "tenants/11111111/documents/2024-10-diesel-slip.webp",
+    "extracted_fields": {
+      "slip_number": "DS-2024-1001",
+      "quantity": 5200.0,
+      "unit": "litre",
+      "amount_bdt": 566800.0,
+      "confidence": 0.96
+    },
+    "notes": "Original challan for October"
+  },
+  {
+    "id": "99999999-0000-0000-0000-000000000004",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "sha256": "ef2d127de37b942baad06145e54b0c619a1f22327b2ebbcfbec78f5564afe39d",
+    "source": "web",
+    "captured_at": "2024-10-04T16:20:00Z",
+    "period": "2024-10",
+    "doc_type": "diesel_slip",
+    "status": "NeedsReview",
+    "tier_used": 1,
+    "is_estimated": false,
+    "storage_path": "tenants/11111111/documents/2024-10-diesel-slip-dup.webp",
+    "extracted_fields": {
+      "slip_number": "DS-2024-1001",
+      "quantity": 5200.0,
+      "unit": "litre",
+      "amount_bdt": 566800.0,
+      "confidence": 0.95
+    },
+    "notes": "Exact duplicate hash and slip number triggers DUPLICATE_SUSPECTED"
+  },
+  {
+    "id": "99999999-0000-0000-0000-000000000005",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "sha256": "7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b",
+    "source": "phone",
+    "captured_at": "2024-11-06T10:00:00Z",
+    "period": "2024-11",
+    "doc_type": "diesel_slip",
+    "status": "NeedsReview",
+    "tier_used": 1,
+    "is_estimated": false,
+    "storage_path": "tenants/11111111/documents/2024-11-diesel-slip-err.webp",
+    "extracted_fields": {
+      "slip_number": "DS-2024-1105",
+      "quantity": 520000.0,
+      "unit": "litre",
+      "amount_bdt": 56680000.0,
+      "confidence": 0.91
+    },
+    "notes": "Typo quantity 520,000 L (outside 3x IQR historical ~5,500 L) triggers IMPLAUSIBLE_VALUE"
+  }
+]

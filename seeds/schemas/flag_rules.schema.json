@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://carbonbill.org/schemas/flag-rules.json",
+  "title": "FlagRulesCollection",
+  "description": "Collection of Carbon Flag rules and tunable parameters",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "flag_code": { "type": "string" },
+      "family": {
+        "type": "string",
+        "enum": ["DataQuality", "Footprint", "BuyerReadiness", "BillSavings"]
+      },
+      "name_bn": { "type": "string" },
+      "name_en": { "type": "string" },
+      "default_severity": {
+        "type": "string",
+        "enum": ["Info", "Amber", "Red"]
+      },
+      "trigger_parameters": { "type": "object" },
+      "suggested_action_bn": { "type": "string" },
+      "suggested_action_en": { "type": "string" }
+    },
+    "required": [
+      "flag_code",
+      "family",
+      "name_bn",
+      "name_en",
+      "default_severity",
+      "trigger_parameters",
+      "suggested_action_bn",
+      "suggested_action_en"
+    ]
+  }
+}

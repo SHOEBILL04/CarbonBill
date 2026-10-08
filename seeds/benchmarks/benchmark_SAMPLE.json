@@ -1,0 +1,32 @@
+[
+  {
+    "sector": "RMG",
+    "size_band": "Small (1-500 machines)",
+    "metric": "kg_co2e_per_piece",
+    "unit": "piece",
+    "p25": 0.320000,
+    "p50": 0.420000,
+    "p75": 0.550000,
+    "p90": 0.680000,
+    "n": 15,
+    "min_n_required": 10,
+    "source": "FAKE_BENCHMARK_PILOT_SAMPLE_TEST_ONLY",
+    "year": 2024,
+    "notes": "FAKE test record where n >= 10 allows rendering benchmark curve"
+  },
+  {
+    "sector": "RMG",
+    "size_band": "Large (1500+ machines)",
+    "metric": "kg_co2e_per_piece",
+    "unit": "piece",
+    "p25": 0.280000,
+    "p50": 0.380000,
+    "p75": 0.480000,
+    "p90": 0.600000,
+    "n": 4,
+    "min_n_required": 10,
+    "source": "FAKE_BENCHMARK_THIN_SAMPLE_TEST_ONLY",
+    "year": 2024,
+    "notes": "FAKE test record where n < 10 forces 'no benchmark yet' display"
+  }
+]

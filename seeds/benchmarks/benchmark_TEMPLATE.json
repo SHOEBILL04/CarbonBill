@@ -1,0 +1,47 @@
+[
+  {
+    "sector": "RMG",
+    "size_band": "Small (1-500 machines)",
+    "metric": "kg_co2e_per_piece",
+    "unit": "piece",
+    "p25": null,
+    "p50": null,
+    "p75": null,
+    "p90": null,
+    "n": 0,
+    "min_n_required": 10,
+    "source": "Pending Opt-in Pilot Dataset",
+    "year": 2024,
+    "notes": "TEMPLATE row: Display 'no benchmark yet' until n >= 10 verified factories"
+  },
+  {
+    "sector": "RMG",
+    "size_band": "Medium (501-1500 machines)",
+    "metric": "kg_co2e_per_piece",
+    "unit": "piece",
+    "p25": null,
+    "p50": null,
+    "p75": null,
+    "p90": null,
+    "n": 0,
+    "min_n_required": 10,
+    "source": "Pending Opt-in Pilot Dataset",
+    "year": 2024,
+    "notes": "TEMPLATE row: Display 'no benchmark yet' until n >= 10 verified factories"
+  },
+  {
+    "sector": "TextileDyeing",
+    "size_band": "Medium (10-30 tonnes/day)",
+    "metric": "kg_co2e_per_kg_fabric",
+    "unit": "kg_fabric",
+    "p25": null,
+    "p50": null,
+    "p75": null,
+    "p90": null,
+    "n": 0,
+    "min_n_required": 10,
+    "source": "Pending Opt-in Pilot Dataset",
+    "year": 2024,
+    "notes": "TEMPLATE row: Display 'no benchmark yet' until n >= 10 verified factories"
+  }
+]

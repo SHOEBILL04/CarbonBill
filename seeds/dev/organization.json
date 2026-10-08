@@ -1,0 +1,45 @@
+{
+  "organization": {
+    "id": "11111111-1111-1111-1111-111111111111",
+    "name": "Apex Apparels Limited",
+    "sector": "RMG",
+    "billing_tier": "Pilot",
+    "consent_ai_tier3": false,
+    "created_at": "2024-01-01T00:00:00Z"
+  },
+  "users": [
+    {
+      "id": "22222222-2222-2222-2222-222222222222",
+      "full_name": "Jahid Hossain",
+      "role": "FloorStaff",
+      "email": null,
+      "phone_number": "+8801711000001",
+      "pin_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "preferred_language": "bn"
+    },
+    {
+      "id": "33333333-3333-3333-3333-333333333333",
+      "full_name": "Rahim Ahmed",
+      "role": "Accountant",
+      "email": "rahim@apexapparels.com",
+      "phone_number": "+8801711000002",
+      "preferred_language": "en"
+    },
+    {
+      "id": "44444444-4444-4444-4444-444444444444",
+      "full_name": "Nusrat Jahan",
+      "role": "Compliance",
+      "email": "nusrat@apexapparels.com",
+      "phone_number": "+8801711000003",
+      "preferred_language": "en"
+    },
+    {
+      "id": "55555555-5555-5555-5555-555555555555",
+      "full_name": "Kabir Chowdhury",
+      "role": "Owner",
+      "email": "kabir@apexapparels.com",
+      "phone_number": "+8801711000004",
+      "preferred_language": "bn"
+    }
+  ]
+}

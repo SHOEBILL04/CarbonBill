@@ -1,0 +1,10 @@
+set_name,gwp_basis,source,year,region,version,valid_from,valid_to,activity_type,canonical_unit,factor_value,source_needed,notes
+FAKE_TEST_FACTOR_SET_2024,AR5,FAKE_TEST_SOURCE_DO_NOT_USE_IN_PROD,2024,BD,v1.0-fake,2024-01-01,2024-12-31,grid_electricity,kWh,0.620000,false,FAKE test factor for unit test calculation only
+FAKE_TEST_FACTOR_SET_2024,AR5,FAKE_TEST_SOURCE_DO_NOT_USE_IN_PROD,2024,BD,v1.0-fake,2024-01-01,2024-12-31,diesel_generator,litre,2.680000,false,FAKE test factor for unit test calculation only
+FAKE_TEST_FACTOR_SET_2024,AR5,FAKE_TEST_SOURCE_DO_NOT_USE_IN_PROD,2024,BD,v1.0-fake,2024-01-01,2024-12-31,diesel_vehicle,litre,2.680000,false,FAKE test factor for unit test calculation only
+FAKE_TEST_FACTOR_SET_2024,AR5,FAKE_TEST_SOURCE_DO_NOT_USE_IN_PROD,2024,BD,v1.0-fake,2024-01-01,2024-12-31,petrol_vehicle,litre,2.310000,false,FAKE test factor for unit test calculation only
+FAKE_TEST_FACTOR_SET_2024,AR5,FAKE_TEST_SOURCE_DO_NOT_USE_IN_PROD,2024,BD,v1.0-fake,2024-01-01,2024-12-31,octane_vehicle,litre,2.350000,false,FAKE test factor for unit test calculation only
+FAKE_TEST_FACTOR_SET_2024,AR5,FAKE_TEST_SOURCE_DO_NOT_USE_IN_PROD,2024,BD,v1.0-fake,2024-01-01,2024-12-31,natural_gas_boiler,m3,2.030000,false,FAKE test factor for unit test calculation only
+FAKE_TEST_FACTOR_SET_2024,AR5,FAKE_TEST_SOURCE_DO_NOT_USE_IN_PROD,2024,BD,v1.0-fake,2024-01-01,2024-12-31,lpg_boiler,kg,2.980000,false,FAKE test factor for unit test calculation only
+FAKE_TEST_FACTOR_SET_2024,AR5,FAKE_TEST_SOURCE_DO_NOT_USE_IN_PROD,2024,BD,v1.0-fake,2024-01-01,2024-12-31,freight_truck_rigid,tonne-km,0.185000,false,FAKE test factor for unit test calculation only
+FAKE_TEST_FACTOR_SET_2024,AR5,FAKE_TEST_SOURCE_DO_NOT_USE_IN_PROD,2024,BD,v1.0-fake,2024-01-01,2024-12-31,freight_container_ship,tonne-km,0.016000,false,FAKE test factor for unit test calculation only

@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://carbonbill.org/schemas/measure-library.json",
+  "title": "MeasureLibraryCollection",
+  "description": "Schema for decarbonization energy-efficiency measures",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "measure_code": { "type": "string" },
+      "name_bn": { "type": "string" },
+      "name_en": { "type": "string" },
+      "category": { "type": "string" },
+      "applicable_sectors": {
+        "type": "array",
+        "items": { "type": "string" }
+      },
+      "applicability_rules": { "type": "object" },
+      "saving_low": { "type": ["number", "null"] },
+      "saving_typical": { "type": ["number", "null"] },
+      "saving_high": { "type": ["number", "null"] },
+      "capex_low": { "type": ["number", "null"] },
+      "capex_high": { "type": ["number", "null"] },
+      "capex_unit": { "type": "string" },
+      "lifetime_years": { "type": ["integer", "null"] },
+      "evidence_grade": { "type": ["string", "null"], "enum": ["A", "B", "C", null] },
+      "source_code": { "type": "string" },
+      "local_notes": { "type": "string" }
+    },
+    "required": [
+      "measure_code",
+      "name_bn",
+      "name_en",
+      "category",
+      "applicable_sectors",
+      "applicability_rules",
+      "source_code"
+    ]
+  }
+}

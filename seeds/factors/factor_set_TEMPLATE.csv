@@ -1,0 +1,10 @@
+set_name,gwp_basis,source,year,region,version,valid_from,valid_to,activity_type,canonical_unit,factor_value,source_needed,notes
+Bangladesh National Grid & Industrial Fuel Set,AR5,IGES Grid Emission Factor Dataset,2023,BD,v1.0,2024-01-01,2024-12-31,grid_electricity,kWh,,true,Official combined margin factor for Bangladesh grid electricity
+Bangladesh National Grid & Industrial Fuel Set,AR5,IPCC EFDB Stationary Combustion,2023,BD,v1.0,2024-01-01,2024-12-31,diesel_generator,litre,,true,Diesel combustion in stationary industrial generators
+Bangladesh National Grid & Industrial Fuel Set,AR5,IPCC EFDB Mobile Combustion,2023,BD,v1.0,2024-01-01,2024-12-31,diesel_vehicle,litre,,true,Diesel fuel used in company transport vehicles
+Bangladesh National Grid & Industrial Fuel Set,AR5,IPCC EFDB Mobile Combustion,2023,BD,v1.0,2024-01-01,2024-12-31,petrol_vehicle,litre,,true,Motor gasoline used in factory delivery vans
+Bangladesh National Grid & Industrial Fuel Set,AR5,IPCC EFDB Mobile Combustion,2023,BD,v1.0,2024-01-01,2024-12-31,octane_vehicle,litre,,true,Octane used in corporate passenger vehicles
+Bangladesh National Grid & Industrial Fuel Set,AR5,IPCC EFDB Stationary Combustion,2023,BD,v1.0,2024-01-01,2024-12-31,natural_gas_boiler,m3,,true,Natural gas consumed in factory steam boilers
+Bangladesh National Grid & Industrial Fuel Set,AR5,IPCC EFDB Stationary Combustion,2023,BD,v1.0,2024-01-01,2024-12-31,lpg_boiler,kg,,true,Liquefied petroleum gas used in boilers and canteen
+Bangladesh National Grid & Industrial Fuel Set,AR5,UK DEFRA Freight Transport Factors,2023,BD,v1.0,2024-01-01,2024-12-31,freight_truck_rigid,tonne-km,,true,Heavy goods road freight shipping challans
+Bangladesh National Grid & Industrial Fuel Set,AR5,UK DEFRA Freight Transport Factors,2023,BD,v1.0,2024-01-01,2024-12-31,freight_container_ship,tonne-km,,true,Ocean container vessel transport to export sea ports

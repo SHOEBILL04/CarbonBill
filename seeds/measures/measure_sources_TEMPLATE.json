@@ -1,0 +1,42 @@
+[
+  {
+    "source_code": "IFC_PACT_2018",
+    "title": "Partnership for Cleaner Textile (PaCT) Resource Efficiency in Bangladesh",
+    "institution": "International Finance Corporation (World Bank Group)",
+    "year": 2018,
+    "license_terms": "Public report citation permitted with attribution",
+    "candidate_status": "VERIFY: Check latest 2023 update and permitted reuse"
+  },
+  {
+    "source_code": "CASCALE_HIGG_FEM_2023",
+    "title": "Facility Environmental Module (FEM) Technical Guidance",
+    "institution": "Cascale (formerly Sustainable Apparel Coalition)",
+    "year": 2023,
+    "license_terms": "Industry guidance document; check citation terms",
+    "candidate_status": "VERIFY: Check membership or public citation license"
+  },
+  {
+    "source_code": "SREDA_SOLAR_GUIDELINES_2022",
+    "title": "Rooftop Solar PV Net Metering Guidelines",
+    "institution": "Sustainable and Renewable Energy Development Authority (Bangladesh)",
+    "year": 2022,
+    "license_terms": "Government of Bangladesh public domain regulatory document",
+    "candidate_status": "VERIFY: Check current feed-in tariff and net-metering caps"
+  },
+  {
+    "source_code": "IDCOL_GREEN_FINANCE_2023",
+    "title": "Energy Efficiency & Green Financing Scheme Guidelines",
+    "institution": "Infrastructure Development Company Limited (Bangladesh)",
+    "year": 2023,
+    "license_terms": "Public institutional brochure and lending terms",
+    "candidate_status": "VERIFY: Check latest concessionary interest rates"
+  },
+  {
+    "source_code": "GLOBAL_SOLAR_ATLAS_2023",
+    "title": "Photovoltaic Electricity Potential in Bangladesh",
+    "institution": "World Bank Group / Solargis",
+    "year": 2023,
+    "license_terms": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+    "candidate_status": "VERIFY: Confirmed open data for Dhaka/Gazipur regional solar yield"
+  }
+]

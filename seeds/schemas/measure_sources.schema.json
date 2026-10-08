@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://carbonbill.org/schemas/measure-sources.json",
+  "title": "MeasureSourcesCollection",
+  "description": "Schema for empirical research sources supporting measures",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "source_code": { "type": "string" },
+      "title": { "type": "string" },
+      "institution": { "type": "string" },
+      "year": { "type": "integer" },
+      "license_terms": { "type": "string" },
+      "candidate_status": { "type": "string" }
+    },
+    "required": [
+      "source_code",
+      "title",
+      "institution",
+      "year",
+      "license_terms"
+    ]
+  }
+}
