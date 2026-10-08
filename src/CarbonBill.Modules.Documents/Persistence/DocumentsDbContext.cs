@@ -45,8 +45,8 @@ public class DocumentsDbContext(
             // Strict Global Query Filter for Tenancy Isolation
             entity.HasQueryFilter(e =>
                 _tenantContext.IsPlatformAdmin ||
-                !_tenantContext.CurrentOrgId.HasValue ||
-                e.OrgId == _tenantContext.CurrentOrgId.Value);
+                _tenantContext.CurrentOrgId == null ||
+                e.OrgId == _tenantContext.CurrentOrgId);
         });
 
         modelBuilder.Entity<DocumentPage>(entity =>
@@ -55,6 +55,11 @@ public class DocumentsDbContext(
             entity.HasKey(e => e.Id);
             entity.Property(e => e.StoragePath).IsRequired().HasMaxLength(500);
             entity.HasIndex(e => e.DocumentId);
+
+            entity.HasQueryFilter(e =>
+                _tenantContext.IsPlatformAdmin ||
+                _tenantContext.CurrentOrgId == null ||
+                e.Document.OrgId == _tenantContext.CurrentOrgId);
         });
     }
 }

@@ -39,8 +39,8 @@ public class OnboardingDbContext : DbContext
             entity.HasQueryFilter(e =>
                 _tenantContext == null ||
                 _tenantContext.IsPlatformAdmin ||
-                !_tenantContext.CurrentOrgId.HasValue ||
-                e.OrgId == _tenantContext.CurrentOrgId.Value);
+                _tenantContext.CurrentOrgId == null ||
+                e.OrgId == _tenantContext.CurrentOrgId);
         });
 
         modelBuilder.Entity<Asset>(entity =>
@@ -57,8 +57,8 @@ public class OnboardingDbContext : DbContext
             entity.HasQueryFilter(e =>
                 _tenantContext == null ||
                 _tenantContext.IsPlatformAdmin ||
-                !_tenantContext.CurrentOrgId.HasValue ||
-                e.OrgId == _tenantContext.CurrentOrgId.Value);
+                _tenantContext.CurrentOrgId == null ||
+                e.OrgId == _tenantContext.CurrentOrgId);
         });
 
         modelBuilder.Entity<ExpectedDocRule>(entity =>
@@ -70,8 +70,8 @@ public class OnboardingDbContext : DbContext
             entity.HasQueryFilter(e =>
                 _tenantContext == null ||
                 _tenantContext.IsPlatformAdmin ||
-                !_tenantContext.CurrentOrgId.HasValue ||
-                e.OrgId == _tenantContext.CurrentOrgId.Value);
+                _tenantContext.CurrentOrgId == null ||
+                e.OrgId == _tenantContext.CurrentOrgId);
         });
 
         modelBuilder.Entity<FacilityProfile>(entity =>
@@ -83,8 +83,8 @@ public class OnboardingDbContext : DbContext
             entity.HasQueryFilter(e =>
                 _tenantContext == null ||
                 _tenantContext.IsPlatformAdmin ||
-                !_tenantContext.CurrentOrgId.HasValue ||
-                e.OrgId == _tenantContext.CurrentOrgId.Value);
+                _tenantContext.CurrentOrgId == null ||
+                e.OrgId == _tenantContext.CurrentOrgId);
         });
     }
 }

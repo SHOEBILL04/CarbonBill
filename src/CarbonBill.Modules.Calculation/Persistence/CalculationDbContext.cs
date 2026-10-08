@@ -38,8 +38,8 @@ public class CalculationDbContext : DbContext
             entity.HasQueryFilter(e =>
                 _tenantContext == null ||
                 _tenantContext.IsPlatformAdmin ||
-                !_tenantContext.CurrentOrgId.HasValue ||
-                e.OrgId == _tenantContext.CurrentOrgId.Value);
+                _tenantContext.CurrentOrgId == null ||
+                e.OrgId == _tenantContext.CurrentOrgId);
         });
 
         modelBuilder.Entity<RecalculationProposal>(entity =>
@@ -55,8 +55,8 @@ public class CalculationDbContext : DbContext
             entity.HasQueryFilter(e =>
                 _tenantContext == null ||
                 _tenantContext.IsPlatformAdmin ||
-                !_tenantContext.CurrentOrgId.HasValue ||
-                e.OrgId == _tenantContext.CurrentOrgId.Value);
+                _tenantContext.CurrentOrgId == null ||
+                e.OrgId == _tenantContext.CurrentOrgId);
         });
     }
 }

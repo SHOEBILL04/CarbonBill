@@ -39,17 +39,37 @@ public static class DataSeeder
         var adminDb = scope.ServiceProvider.GetRequiredService<PlatformAdminDbContext>();
         var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
 
-        logger.LogInformation("Ensuring SQLite database and tables are created...");
-        await identityDb.Database.EnsureCreatedAsync();
-        await auditDb.Database.EnsureCreatedAsync();
-        await documentsDb.Database.EnsureCreatedAsync();
-        await extractionDb.Database.EnsureCreatedAsync();
-        await reviewDb.Database.EnsureCreatedAsync();
-        await onboardingDb.Database.EnsureCreatedAsync();
-        await factorDb.Database.EnsureCreatedAsync();
-        await unitsDb.Database.EnsureCreatedAsync();
-        await calcDb.Database.EnsureCreatedAsync();
-        await adminDb.Database.EnsureCreatedAsync();
+        logger.LogInformation("Ensuring SQLite database and tables are created across all modules...");
+        var contexts = new DbContext[]
+        {
+            identityDb,
+            auditDb,
+            documentsDb,
+            extractionDb,
+            reviewDb,
+            onboardingDb,
+            factorDb,
+            unitsDb,
+            calcDb,
+            adminDb
+        };
+
+        foreach (var ctx in contexts)
+        {
+            var creator = Microsoft.EntityFrameworkCore.Infrastructure.AccessorExtensions.GetService<Microsoft.EntityFrameworkCore.Storage.IRelationalDatabaseCreator>(ctx.Database);
+            if (!await creator.ExistsAsync())
+            {
+                await creator.CreateAsync();
+            }
+            try
+            {
+                await creator.CreateTablesAsync();
+            }
+            catch
+            {
+                // Tables already exist in shared SQLite database
+            }
+        }
 
         // 1. Seed Factor Sets & Emission Factors if missing
         if (!await factorDb.FactorSets.AnyAsync())
