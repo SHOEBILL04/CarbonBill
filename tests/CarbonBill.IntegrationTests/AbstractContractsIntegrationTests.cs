@@ -177,7 +177,7 @@ public class AbstractContractsIntegrationTests : IDisposable
         });
     }
 
-    private static void InitializeDatabaseTables(IServiceProvider sp)
+    private static void InitializeDatabaseTables(IServiceProvider sp, SqliteConnection connection)
     {
         using var scope = sp.CreateScope();
         var contexts = new DbContext[]
@@ -200,13 +200,21 @@ public class AbstractContractsIntegrationTests : IDisposable
 
         foreach (var db in contexts)
         {
-            try
+            var script = db.GetService<IRelationalDatabaseCreator>().GenerateCreateScript();
+            var statements = script.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            using var cmd = connection.CreateCommand();
+            foreach (var statement in statements)
             {
-                db.GetService<IRelationalDatabaseCreator>().CreateTables();
-            }
-            catch (SqliteException ex) when (ex.SqliteErrorCode == 1 || ex.Message.Contains("already exists"))
-            {
-                // Table already created by preceding context in shared SQLite in-memory DB
+                if (string.IsNullOrWhiteSpace(statement)) continue;
+                try
+                {
+                    cmd.CommandText = statement;
+                    cmd.ExecuteNonQuery();
+                }
+                catch (SqliteException ex) when (ex.SqliteErrorCode == 1 || ex.Message.Contains("already exists"))
+                {
+                    // Table or index already created
+                }
             }
         }
     }
@@ -285,7 +293,7 @@ public class AbstractContractsIntegrationTests : IDisposable
     public async Task AbstractContracts_RealPipeline_UnitConversion_Emissions_Audit()
     {
         var sp = BuildServiceProvider(useFakes: false);
-        InitializeDatabaseTables(sp);
+        InitializeDatabaseTables(sp, _connection);
 
         var orgId = Guid.NewGuid();
         var userId = Guid.NewGuid();
@@ -377,7 +385,7 @@ public class AbstractContractsIntegrationTests : IDisposable
     public async Task AbstractContracts_RealFlags_And_InsightsService()
     {
         var sp = BuildServiceProvider(useFakes: false);
-        InitializeDatabaseTables(sp);
+        InitializeDatabaseTables(sp, _connection);
 
         var orgId = Guid.NewGuid();
         var userId = Guid.NewGuid();

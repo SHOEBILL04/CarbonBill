@@ -15,7 +15,7 @@
 | **A6** | Platform Admin & isolation tests | done | `feat/a-a6-admin-isolation`| Dataset versioning, tenant overview metrics, 100% tenant table isolation test suite |
 | **A7** | Frontend (auth, onboarding, admin)| done | `feat/a-a7-frontend` | React web features for auth, onboarding wizard, admin dashboard, consultant workspace |
 | **I1** | Real module wiring (swap fakes) | done | `feat/a-i1-real-wiring` | Host integration with `UseFakes=false`, full DI abstract contract test suite passing |
-| **I4** | Security hardening & audit | todo | - | OWASP ASVS checklist, adversarial IDOR sweep |
+| **I4** | Security hardening & audit | done | `feat/a-i4-security-audit` | OWASP ASVS verification, adversarial IDOR sweep, tamper-resistant audit trail |
 | **I7** | Consultant workspace | todo | - | Multi-tenant consultant workspace |
 | **I8** | Pilot deployment & backups | todo | - | VPS Docker Compose behind Caddy, backup restore drill |
 
@@ -23,7 +23,7 @@
 
 **Blocked on:** None.
 
-**Next prompt:** I4 (Security hardening & audit / adversarial IDOR sweep & tenant isolation).
+**Next prompt:** I7 (Consultant multi-organization workspace and factor override workflow).
 
 **Open questions logged in 15_DECISIONS.md:**
 - None currently blocking Track A.

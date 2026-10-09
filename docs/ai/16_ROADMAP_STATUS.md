@@ -57,7 +57,7 @@ This document tracks execution progress across all phases defined in the CarbonB
 - [x] **I1:** Wire real module implementations in host (`UseFakes=false`), execute full abstract contract test suite.
 - [ ] **I2:** Automated end-to-end integration test (Playwright & C# test runner: upload -> OCR -> review -> calculate -> report).
 - [ ] **I3:** Role dashboards and buyer PDF verification with real data and reconciliation tests.
-- [ ] **I4:** Security hardening, OWASP ASVS checklist pass, adversarial tenant-isolation penetration test.
+- [x] **I4:** Security hardening, OWASP ASVS checklist pass, adversarial tenant-isolation penetration test.
 - [ ] **I5:** Golden OCR benchmark report on 150 physical bills; offline torture tests (airplane mode, network degradation).
 - [ ] **I6:** Observability metrics via OpenTelemetry into Grafana Cloud; flag volume tuning against pilot datasets.
 - [ ] **I7:** Consultant multi-tenant workspace with cross-factory flag inspection and factor override workflows.
