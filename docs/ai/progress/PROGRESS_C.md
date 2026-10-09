@@ -12,16 +12,16 @@
 | **C4** | Footprint flags, intensity & benchmarks | done | `feat/c-c4-insights-footprint-flags` | Insights module (ProductionMetric, BenchmarkSet), verified vs incl-estimate intensity, honest peer gating (N >= 10), 9 evaluators (MoM spike, hotspot, genset reliance, intensity above peers, target drift, report not ready, factor outdated, override unapproved, power factor penalty), GET /dashboard/intensity & POST/GET /insights/production-metrics |
 | **C5** | Measure Library & recommendations engine | done | `feat/c-c5-recommendations-engine` | Measure & MeasureSource entities, versioned dataset loader with strict source validation & range ordering, 8-step pipeline (profile, eligibility, impact, financial BDT & negative cost/t, realism & audit filter, ranking composite, bilingual explanation cards, closed-loop status update & bill delta), GET /recommendations, PUT /recommendations/{id}/status, POST /profile/facility |
 | **C6** | Reporting backend (PDF, Excel, Auditor link) | done | `feat/c-c6-reporting-backend` | QuestPDF bilingual GHG report (en/bn), ClosedXML multi-sheet export, SHA-256 ReportSnapshot hash & immutability, expiring share links, price redaction masking, click-to-source auditor trace, dashboard summary and trend endpoints |
-| **C7** | Frontend (dashboard, flags, recommendations, reports, auditor) | todo | - | Role dashboards, flag feed, recommendation cards, auditor trace view |
+| **C7** | Frontend (dashboard, flags, recommendations, reports, auditor) | done | `feat/c-c7-frontend` | Role dashboards (Owner, Accountant, Compliance, Consultant), Chart.js trend with hatched estimated segments, Scope breakdown, intensity vs benchmark with honest n<10 gating, Carbon Flags feed with snooze/dismiss modals, Measure Library cards with Low/Typical/High ranges in BDT, MACC chart, reports readiness checklist, sign-off approval, share link modal with price redaction, auditor read-only portal with click-to-source traceability |
 | **I3** | Role dashboards & buyer PDF on real data | todo | - | Real data reconciliation and golden PDF verification |
 | **I6** | Observability & flag tuning | todo | - | OpenTelemetry business metrics and pilot threshold tuning guide |
 | **I10**| Pilot data & expert review | todo | - | Dataset validation checklist and expert sign-off register |
 
 ---
 
-**Blocked on:** None.
+**Blocked on:** None. All Track C Phase 1 deliverables (C1–C7) complete.
 
-**Next prompt:** C7 (Frontend - dashboard, flags, recommendations, reports, auditor).
+**Next prompt:** I3 (Role dashboards & buyer PDF on real data — Phase 2 Integration).
 
 **Open questions logged in 15_DECISIONS.md:**
 - QuestPDF Bangla font glyph rendering spike validated under ADR-005.
