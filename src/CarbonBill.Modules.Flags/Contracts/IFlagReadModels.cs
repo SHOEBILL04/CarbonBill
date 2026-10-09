@@ -34,6 +34,14 @@ public record PeriodEmissionSummary(
     decimal TotalCo2eKg,
     decimal EstimatedCo2eKg);
 
+public record FactorOverrideRecord(
+    Guid Id,
+    Guid FactorId,
+    decimal OverrideValue,
+    string Justification,
+    Guid ApprovedByUserId,
+    bool IsActive);
+
 public interface IFlagDocumentReadModel
 {
     Task<IReadOnlyList<ExtractedDocumentRecord>> GetExtractedDocumentsAsync(Guid orgId, string period, CancellationToken ct = default);
@@ -43,4 +51,15 @@ public interface IFlagDocumentReadModel
 public interface IFlagEmissionReadModel
 {
     Task<PeriodEmissionSummary?> GetPeriodEmissionSummaryAsync(Guid orgId, string period, CancellationToken ct = default);
+}
+
+public interface IFactorRegistryReadModel
+{
+    Task<int> GetActiveFactorSetYearAsync(CancellationToken ct = default);
+    Task<IReadOnlyList<FactorOverrideRecord>> GetActiveOverridesAsync(Guid orgId, CancellationToken ct = default);
+}
+
+public interface ITargetReadModel
+{
+    Task<decimal?> GetTargetFootprintAsync(Guid orgId, string period, CancellationToken ct = default);
 }

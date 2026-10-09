@@ -17,6 +17,7 @@ using CarbonBill.Modules.GapDetection;
 using CarbonBill.Modules.GapDetection.Jobs;
 using CarbonBill.Modules.IdentityTenancy;
 using CarbonBill.Modules.IdentityTenancy.Endpoints;
+using CarbonBill.Modules.Insights;
 using CarbonBill.Modules.Notifications;
 using CarbonBill.Modules.Notifications.Jobs;
 using CarbonBill.Modules.Onboarding;
@@ -74,6 +75,7 @@ builder.Services.AddRecommendationsModule(builder.Configuration);
 builder.Services.AddReportingModule(builder.Configuration);
 builder.Services.AddNotificationsModule(builder.Configuration);
 builder.Services.AddPlatformAdminModule(builder.Configuration);
+builder.Services.AddInsightsModule(builder.Configuration);
 
 // Background Jobs (Hangfire + SQLite)
 var hangfireConn = builder.Configuration.GetConnectionString("HangfireConnection")
@@ -285,5 +287,6 @@ app.MapPlatformAdminModuleEndpoints();
 app.MapGapDetectionModuleEndpoints();
 app.MapNotificationsModuleEndpoints();
 app.MapFlagsModuleEndpoints();
+app.MapInsightsModuleEndpoints();
 
 app.Run();

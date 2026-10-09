@@ -41,6 +41,8 @@ public static class DataSeeder
         var notificationsDb = scope.ServiceProvider.GetRequiredService<CarbonBill.Modules.Notifications.Persistence.NotificationsDbContext>();
         var flagsDb = scope.ServiceProvider.GetRequiredService<CarbonBill.Modules.Flags.Persistence.FlagsDbContext>();
         var flagSeedLoader = scope.ServiceProvider.GetRequiredService<CarbonBill.Modules.Flags.Seeds.IFlagRuleSeedLoader>();
+        var insightsDb = scope.ServiceProvider.GetRequiredService<CarbonBill.Modules.Insights.Persistence.InsightsDbContext>();
+        var insightsSeedLoader = scope.ServiceProvider.GetRequiredService<CarbonBill.Modules.Insights.Seeds.IInsightsSeedLoader>();
         var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
 
         logger.LogInformation("Ensuring SQLite database and tables are created across all modules...");
@@ -58,7 +60,8 @@ public static class DataSeeder
             adminDb,
             gapDb,
             notificationsDb,
-            flagsDb
+            flagsDb,
+            insightsDb
         };
 
         // Check existing tables to prevent duplicate CREATE TABLE execution errors
@@ -411,6 +414,9 @@ public static class DataSeeder
 
         // Seed Flags Rules from seeds/flags/flag_rules.json
         await flagSeedLoader.SeedFlagRulesAsync();
+
+        // Seed Insights Benchmark Sets
+        await insightsSeedLoader.SeedDefaultBenchmarksAsync();
 
         logger.LogInformation("Database seeding completed successfully!");
     }

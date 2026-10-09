@@ -33,21 +33,37 @@ public static class FlagsModuleExtensions
                 sp.GetRequiredService<TenantSaveChangesInterceptor>());
         });
 
-        // Fallback fakes for read models until A5/B1 land
+        // Fallback fakes for read models until other modules land
         services.TryAddScoped<IFlagDocumentReadModel, FakeFlagDocumentReadModel>();
         services.TryAddScoped<IFlagEmissionReadModel, FakeFlagEmissionReadModel>();
         services.TryAddScoped<IExpectedDocRuleReader, FakeExpectedDocRuleReader>();
         services.TryAddScoped<IDocumentReadModel, FakeDocumentReadModel>();
+        services.TryAddScoped<IEmissionReadModel, FakeEmissionReadModel>();
+        services.TryAddScoped<IProductionMetricReader, FakeProductionMetricReader>();
+        services.TryAddScoped<IBenchmarkReader, FakeBenchmarkReader>();
+        services.TryAddScoped<IFactorRegistryReadModel, FakeFactorRegistryReadModel>();
+        services.TryAddScoped<ITargetReadModel, FakeTargetReadModel>();
 
         // Seed loader
         services.AddScoped<IFlagRuleSeedLoader, FlagRuleSeedLoader>();
 
-        // Rule evaluators (Data-Quality rules)
+        // Rule evaluators: Data-Quality family
         services.AddScoped<IFlagRuleEvaluator, MissingDocumentRuleEvaluator>();
         services.AddScoped<IFlagRuleEvaluator, LowOcrConfidenceRuleEvaluator>();
         services.AddScoped<IFlagRuleEvaluator, DuplicateSuspectedRuleEvaluator>();
         services.AddScoped<IFlagRuleEvaluator, ImplausibleValueRuleEvaluator>();
         services.AddScoped<IFlagRuleEvaluator, EstimatedShareHighRuleEvaluator>();
+
+        // Rule evaluators: Footprint, Buyer Readiness, and Bill Savings families
+        services.AddScoped<IFlagRuleEvaluator, SpikeMomRuleEvaluator>();
+        services.AddScoped<IFlagRuleEvaluator, HotspotDetectedRuleEvaluator>();
+        services.AddScoped<IFlagRuleEvaluator, GensetRelianceRuleEvaluator>();
+        services.AddScoped<IFlagRuleEvaluator, IntensityAbovePeersRuleEvaluator>();
+        services.AddScoped<IFlagRuleEvaluator, TargetDriftRuleEvaluator>();
+        services.AddScoped<IFlagRuleEvaluator, ReportNotReadyRuleEvaluator>();
+        services.AddScoped<IFlagRuleEvaluator, FactorOutdatedRuleEvaluator>();
+        services.AddScoped<IFlagRuleEvaluator, OverrideUnapprovedRuleEvaluator>();
+        services.AddScoped<IFlagRuleEvaluator, PowerFactorPenaltyRuleEvaluator>();
 
         // Core flag service and interfaces
         services.AddScoped<FlagsService>();
