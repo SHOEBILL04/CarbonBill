@@ -1,24 +1,8 @@
 using CarbonBill.Modules.Onboarding.Persistence;
+using CarbonBill.SharedKernel.Contracts;
 using Microsoft.EntityFrameworkCore;
 
 namespace CarbonBill.Modules.Onboarding.Services;
-
-public record ExpectedDocRuleDto(
-    Guid Id,
-    Guid OrgId,
-    Guid AssetId,
-    string AssetName,
-    string AssetType,
-    string DocType,
-    string Frequency,
-    int DueDayOfMonth,
-    Guid? ResponsibleUserId);
-
-public interface IExpectedDocRuleReader
-{
-    Task<IReadOnlyList<ExpectedDocRuleDto>> GetRulesForOrgAsync(Guid orgId, CancellationToken ct = default);
-    Task<IReadOnlyList<ExpectedDocRuleDto>> GetAllActiveRulesAsync(CancellationToken ct = default);
-}
 
 public class ExpectedDocRuleReader(OnboardingDbContext dbContext) : IExpectedDocRuleReader
 {

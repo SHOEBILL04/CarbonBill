@@ -143,6 +143,63 @@ export default function LoginView({ onLoginSuccess, onGoToFloor }: LoginViewProp
           </button>
         </div>
 
+        {/* Quick Demo Accounts Helper */}
+        <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              ⚡ Demo Accounts
+            </span>
+            <span className="text-[10px] text-slate-400">Click to fill</span>
+          </div>
+          <div className="grid grid-cols-2 gap-1.5 text-left">
+            {[
+              { role: 'Owner', name: 'Kabir Ahmed', email: 'owner@apex.local', pass: 'Pass1234!' },
+              { role: 'Accountant', name: 'Rahim Mia', email: 'accountant@apex.local', pass: 'Pass1234!' },
+              { role: 'Compliance', name: 'Nusrat Jahan', email: 'compliance@apex.local', pass: 'Pass1234!' },
+              { role: 'Floor Staff', name: 'Jahid Hasan', email: 'floor@apex.local', pass: 'Pass1234!' },
+              { role: 'Consultant', name: 'Farhana Rahman', email: 'consultant@greenadvisory.local', pass: 'Pass1234!' },
+              { role: 'Admin', name: 'Platform Admin', email: 'admin@carbonbill.local', pass: 'Admin1234!' }
+            ].map(acc => (
+              <button
+                key={acc.email}
+                type="button"
+                onClick={() => {
+                  setTab('password');
+                  setEmail(acc.email);
+                  setPassword(acc.pass);
+                  setError(null);
+                }}
+                className={`p-2 rounded-xl text-left border transition-all text-xs ${
+                  email === acc.email && tab === 'password'
+                    ? 'bg-teal-50 border-teal-500 ring-1 ring-teal-500'
+                    : 'bg-white border-slate-200 hover:border-teal-300'
+                }`}
+              >
+                <div className="font-bold text-slate-800 text-[11px] leading-tight">{acc.role}</div>
+                <div className="text-[10px] text-slate-500 truncate">{acc.name}</div>
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setTab('pin');
+              setToken('apex-floor-demo');
+              setPin('1234');
+              setFullName('Jahid Hasan');
+              setPhone('01700000000');
+              setError(null);
+            }}
+            className={`w-full py-1.5 px-2 rounded-xl text-center border text-[11px] font-medium transition-all ${
+              tab === 'pin'
+                ? 'bg-amber-50 border-amber-500 text-amber-900 ring-1 ring-amber-500'
+                : 'bg-white border-slate-200 text-slate-600 hover:border-amber-300'
+            }`}
+          >
+            🔑 QR / PIN Invite: <span className="font-mono font-bold">apex-floor-demo</span> (PIN: 1234)
+          </button>
+        </div>
+
         {error && (
           <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl">
             {error}
