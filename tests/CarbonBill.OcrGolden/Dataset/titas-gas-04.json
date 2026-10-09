@@ -1,0 +1,14 @@
+{
+  "id": "GOLDEN-004",
+  "fileName": "titas_gas_rms_bill_2026_06.pdf",
+  "category": "Gas",
+  "rawTextFixture": "TITAS GAS TRANSMISSION AND DISTRIBUTION COMPANY LTD\nGas Bill for Industrial RMS Customer\nBill No: TG-901823\nBilling Period: 2026-06\nCustomer Code: IND-TITAS-4410\nTotal Gas Volume: ১২,৩০০ m3 (ঘনমিটার)\nNet Payable Amount: ৩,৬৮,০০০.০০ Taka",
+  "expectedVendor": "Titas Gas",
+  "expectedBillNumber": "TG-901823",
+  "expectedBillingPeriod": "2026-06",
+  "expectedQuantity": 12300.00,
+  "expectedUnit": "m3",
+  "expectedAmountBdt": 368000.00,
+  "expectedMeterNumber": null,
+  "expectedPenaltyBdt": null
+}

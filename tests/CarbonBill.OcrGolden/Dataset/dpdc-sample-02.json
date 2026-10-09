@@ -1,0 +1,14 @@
+{
+  "id": "GOLDEN-002",
+  "fileName": "dpdc_narayanganj_may_2026.pdf",
+  "category": "Electricity",
+  "rawTextFixture": "DHAKA POWER DISTRIBUTION COMPANY (DPDC)\nBill Number: DPDC-88192\nPeriod: 2026-05\nMeter No: 5410982\nIndustrial Tariff E\nEnergy Consumed: ৩৮,৭৫০ kWh\nPower Factor Penalty: ১২,৪০০.০০ BDT\nTotal Net Bill: ৪,৮৪,৩৭৫.০০ Taka",
+  "expectedVendor": "DPDC",
+  "expectedBillNumber": "DPDC-88192",
+  "expectedBillingPeriod": "2026-05",
+  "expectedQuantity": 38750.00,
+  "expectedUnit": "kWh",
+  "expectedAmountBdt": 484375.00,
+  "expectedMeterNumber": "5410982",
+  "expectedPenaltyBdt": 12400.00
+}

@@ -1,0 +1,14 @@
+{
+  "id": "GOLDEN-003",
+  "fileName": "padma_oil_diesel_slip_june_2026.jpg",
+  "category": "Diesel",
+  "rawTextFixture": "PADMA OIL COMPANY LIMITED\nFuel Delivery Challan\nChallan No: POCL-44912\nDate: 2026-06-14 (Billing Period 2026-06)\nDelivered to: Generator 2 (Radiant Factory)\nProduct: High Speed Diesel (HSD)\nQuantity: ৩,৫০০ লিটার (litres)\nRate: 108.00 BDT/L\nTotal Amount: ৩,৭৮,০০০.০০ BDT",
+  "expectedVendor": "Padma Oil",
+  "expectedBillNumber": "POCL-44912",
+  "expectedBillingPeriod": "2026-06",
+  "expectedQuantity": 3500.00,
+  "expectedUnit": "litre",
+  "expectedAmountBdt": 378000.00,
+  "expectedMeterNumber": null,
+  "expectedPenaltyBdt": null
+}

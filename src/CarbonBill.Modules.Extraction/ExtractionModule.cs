@@ -1,5 +1,11 @@
+using CarbonBill.Modules.Extraction.Persistence;
+using CarbonBill.Modules.Extraction.Services;
+using CarbonBill.Modules.Extraction.Services.Groq;
+using CarbonBill.Modules.Extraction.Services.Providers;
 using CarbonBill.SharedKernel.Domain;
+using CarbonBill.SharedKernel.Persistence;
 using CarbonBill.SharedKernel.Tenancy;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -36,7 +42,27 @@ public static class ExtractionModuleExtensions
 {
     public static IServiceCollection AddExtractionModule(this IServiceCollection services, IConfiguration configuration)
     {
-        // Module shell DI registration
+        var connectionString = configuration.GetConnectionString("DefaultConnection") 
+            ?? "Data Source=carbonbill.db;Cache=Shared";
+
+        services.AddDbContext<ExtractionDbContext>((sp, options) =>
+        {
+            options.UseSqlite(connectionString);
+            options.AddInterceptors(
+                sp.GetRequiredService<SqlitePragmaInterceptor>(),
+                sp.GetRequiredService<TenantSaveChangesInterceptor>());
+        });
+
+        services.AddHttpClient<IGroqLlmExtractor, GroqLlmExtractor>();
+        services.AddSingleton<IDualOcrEngine, DualOcrEngine>();
+        services.AddScoped<IExtractionService, ExtractionService>();
+
         return services;
+    }
+
+    public static Microsoft.AspNetCore.Routing.IEndpointRouteBuilder MapExtractionModuleEndpoints(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints)
+    {
+        CarbonBill.Modules.Extraction.Endpoints.ExtractionEndpoints.MapExtractionEndpoints(endpoints);
+        return endpoints;
     }
 }
