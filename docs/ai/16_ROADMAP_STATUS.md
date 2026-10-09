@@ -60,7 +60,7 @@ This document tracks execution progress across all phases defined in the CarbonB
 - [x] **I4:** Security hardening, OWASP ASVS checklist pass, adversarial tenant-isolation penetration test.
 - [ ] **I5:** Golden OCR benchmark report on 150 physical bills; offline torture tests (airplane mode, network degradation).
 - [ ] **I6:** Observability metrics via OpenTelemetry into Grafana Cloud; flag volume tuning against pilot datasets.
-- [ ] **I7:** Consultant multi-tenant workspace with cross-factory flag inspection and factor override workflows.
+- [x] **I7:** Consultant multi-tenant workspace with cross-factory flag inspection and factor override workflows.
 
 ---
 

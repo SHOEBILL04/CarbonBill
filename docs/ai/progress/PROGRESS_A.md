@@ -16,14 +16,14 @@
 | **A7** | Frontend (auth, onboarding, admin)| done | `feat/a-a7-frontend` | React web features for auth, onboarding wizard, admin dashboard, consultant workspace |
 | **I1** | Real module wiring (swap fakes) | done | `feat/a-i1-real-wiring` | Host integration with `UseFakes=false`, full DI abstract contract test suite passing |
 | **I4** | Security hardening & audit | done | `feat/a-i4-security-audit` | OWASP ASVS verification, adversarial IDOR sweep, tamper-resistant audit trail |
-| **I7** | Consultant workspace | todo | - | Multi-tenant consultant workspace |
+| **I7** | Consultant workspace | done | `feat/a-i7-consultant-workspace` | Multi-tenant consultant switching, factor override workflow with justifications |
 | **I8** | Pilot deployment & backups | todo | - | VPS Docker Compose behind Caddy, backup restore drill |
 
 ---
 
 **Blocked on:** None.
 
-**Next prompt:** I7 (Consultant multi-organization workspace and factor override workflow).
+**Next prompt:** I8 (Pilot deployment automation with Caddy TLS and backup restore verification).
 
 **Open questions logged in 15_DECISIONS.md:**
 - None currently blocking Track A.
