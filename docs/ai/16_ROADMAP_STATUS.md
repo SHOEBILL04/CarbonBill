@@ -54,7 +54,7 @@ This document tracks execution progress across all phases defined in the CarbonB
 
 ## Phase 2: Integration & Differentiators
 
-- [ ] **I1:** Wire real module implementations in host (`UseFakes=false`), execute full abstract contract test suite.
+- [x] **I1:** Wire real module implementations in host (`UseFakes=false`), execute full abstract contract test suite.
 - [ ] **I2:** Automated end-to-end integration test (Playwright & C# test runner: upload -> OCR -> review -> calculate -> report).
 - [ ] **I3:** Role dashboards and buyer PDF verification with real data and reconciliation tests.
 - [ ] **I4:** Security hardening, OWASP ASVS checklist pass, adversarial tenant-isolation penetration test.

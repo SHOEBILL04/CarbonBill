@@ -14,16 +14,16 @@
 | **A5** | Activity & Calculation | done | `feat/a-a5-calculation` | `IActivityWriter` pipeline, decimal(18,6) GHG formula, audit logging, read models |
 | **A6** | Platform Admin & isolation tests | done | `feat/a-a6-admin-isolation`| Dataset versioning, tenant overview metrics, 100% tenant table isolation test suite |
 | **A7** | Frontend (auth, onboarding, admin)| done | `feat/a-a7-frontend` | React web features for auth, onboarding wizard, admin dashboard, consultant workspace |
-| **I1** | Real module wiring (swap fakes) | todo | - | Host integration with `UseFakes=false` |
+| **I1** | Real module wiring (swap fakes) | done | `feat/a-i1-real-wiring` | Host integration with `UseFakes=false`, full DI abstract contract test suite passing |
 | **I4** | Security hardening & audit | todo | - | OWASP ASVS checklist, adversarial IDOR sweep |
 | **I7** | Consultant workspace | todo | - | Multi-tenant consultant workspace |
 | **I8** | Pilot deployment & backups | todo | - | VPS Docker Compose behind Caddy, backup restore drill |
 
 ---
 
-**Blocked on:** None. All Track A Core Prompts (P0-1a, P0-2, P0-5, A1, A2, A3, A4, A5, A6, A7) Completed!
+**Blocked on:** None.
 
-**Next prompt:** Phase 2 Integration & Hardening (I1, I4, I7, I8).
+**Next prompt:** I4 (Security hardening & audit / adversarial IDOR sweep & tenant isolation).
 
 **Open questions logged in 15_DECISIONS.md:**
 - None currently blocking Track A.
