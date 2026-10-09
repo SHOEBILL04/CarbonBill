@@ -1,0 +1,14 @@
+{
+  "id": "GOLDEN-005",
+  "fileName": "chattogram_port_truck_challan_2026.pdf",
+  "category": "Transport",
+  "rawTextFixture": "SONAR BANGLA FREIGHT LOGISTICS\nInter-District Cargo Delivery Challan\nChallan No: TRK-77120\nDate: 2026-06-20 (Period 2026-06)\nRoute: Dhaka EPZ to Chattogram Port (260 km)\nTruck No: Dhaka Metro TA-14-9921\nCargo Weight: ১৮,৫০০ kg\nFreight Charge: ৪২,৫০০.০০ BDT",
+  "expectedVendor": "Sonar Bangla Freight",
+  "expectedBillNumber": "TRK-77120",
+  "expectedBillingPeriod": "2026-06",
+  "expectedQuantity": 18500.00,
+  "expectedUnit": "kg",
+  "expectedAmountBdt": 42500.00,
+  "expectedMeterNumber": null,
+  "expectedPenaltyBdt": null
+}

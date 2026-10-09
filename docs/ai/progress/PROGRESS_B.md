@@ -5,22 +5,22 @@
 | Prompt | Description | Status | Branch / PR | Notes |
 |---|---|---|---|---|
 | **P0-1b** | Domain, data model, API & flow docs | done | `docs/p0-1b` | Glossary, schema, contracts, sequence flows |
-| **P0-3** | React PWA scaffold & app shell | todo | - | Workbox, IndexedDB, i18n, floor chunk <200 KB |
-| **B1** | Documents backend & storage | todo | - | R2 storage, SHA-256 deduplication, manual fallback |
-| **B2** | Extraction pipeline Tier 1 | todo | - | Tesseract ben+eng, normalizer, utility templates |
-| **B3** | OCR Tiers 2 & 3, golden harness | todo | - | Azure DI F0, consented LLM, golden OCR harness |
-| **B4** | Review backend & confirm flow | todo | - | Review queue, corrections, sampling auto-confirm |
-| **B5** | Floor staff capture PWA | todo | - | 2-tap Bangla UI, offline queue, receipt confirmation |
-| **B6** | Review UI workspace | todo | - | Side-by-side viewer, bbox highlight, keyboard flow |
+| **P0-3** | React PWA scaffold & app shell | done | `feat/b-p0-3-web-scaffold` | Workbox, IndexedDB, formatters, floor chunk 11.07 KB gzipped |
+| **B1** | Documents backend & storage | done | `feat/b-b1-documents-backend` | Magic-bytes, SHA-256 deduplication, state machine, manual fallback |
+| **B2** | Extraction pipeline Tier 1 | done | `feat/b-b2-extraction-dual-ocr` | Option C Dual OCR (PaddleOCR + Tesseract), BanglaNormalizer, Classifier |
+| **B3** | OCR Tiers 2 & 3, golden harness | done | `feat/b-b3-golden-harness` | Groq gpt-oss-120b semantic parser, consent gating, Golden Harness runner |
+| **B4** | Review backend & confirm flow | done | `feat/b-b4-review-backend` | Review queue, corrections, atomic confirmation, duplicate resolution, audit log |
+| **B5** | Floor staff capture PWA | done | `feat/b-b5-capture-pwa` | 2-tap Bangla UI, offline IndexedDB queue, 12.5KB gzipped floor chunk, EXIF GPS stripped, manual fallback |
+| **B6** | Review UI workspace | done | `feat/b-b6-review-ui` | Split-screen viewer, bbox highlight, auto-focus lowest conf, keyboard flow (Enter/N), bulk confirm |
 | **I2** | End-to-end pipeline integration test| todo | - | Automated Playwright upload -> OCR -> confirm |
 | **I5** | Golden OCR set & offline torture | todo | - | 150 bills accuracy report, offline stress test |
 | **I9** | Usability tests | todo | - | 5 users per persona, floor task <20 s |
 
 ---
 
-**Blocked on:** None.
+**Blocked on:** None. All Track B Core Prompts (P0-1b, P0-3, B1, B2, B3, B4, B5, B6) Completed!
 
-**Next prompt:** P0-3 (React PWA scaffold and shell) following Gate G0.
+**Next prompt:** Phase 2 Integration Tests (I2, I5, I9).
 
 **Open questions logged in 15_DECISIONS.md:**
 - Tier 3 Vision LLM customer privacy and consent requirements.

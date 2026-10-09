@@ -13,6 +13,7 @@ using CarbonBill.Modules.Extraction;
 using CarbonBill.Modules.FactorRegistry;
 using CarbonBill.Modules.Flags;
 using CarbonBill.Modules.GapDetection;
+using CarbonBill.Modules.GapDetection.Jobs;
 using CarbonBill.Modules.IdentityTenancy;
 using CarbonBill.Modules.IdentityTenancy.Endpoints;
 using CarbonBill.Modules.Notifications;
@@ -236,11 +237,11 @@ using (var scope = app.Services.CreateScope())
         job => job.ExecuteAsync(CancellationToken.None),
         Cron.Daily(2)); // 02:00 AM UTC
 
-    // Heartbeat & missing document alert evaluation
-    recurringJobManager.AddOrUpdate<ISampleRecurringJob>(
-        "gap-detection-heartbeat",
+    // Nightly gap detection alert evaluation
+    recurringJobManager.AddOrUpdate<INightlyGapDetectionJob>(
+        "gap-detection-nightly",
         job => job.ExecuteAsync(CancellationToken.None),
-        Cron.Hourly());
+        Cron.Daily());
 }
 
 // Health checks
@@ -259,5 +260,14 @@ app.MapGet("/", () => Results.Ok(new
 
 // Map Module Minimal APIs
 app.MapAuthEndpoints();
+app.MapOnboardingModuleEndpoints();
+app.MapActivityUnitsModuleEndpoints();
+app.MapFactorRegistryModuleEndpoints();
+app.MapCalculationModuleEndpoints();
+app.MapDocumentsModuleEndpoints();
+app.MapExtractionModuleEndpoints();
+app.MapReviewModuleEndpoints();
+app.MapPlatformAdminModuleEndpoints();
+app.MapGapDetectionModuleEndpoints();
 
 app.Run();
