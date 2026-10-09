@@ -17,6 +17,7 @@ using CarbonBill.Modules.GapDetection.Jobs;
 using CarbonBill.Modules.IdentityTenancy;
 using CarbonBill.Modules.IdentityTenancy.Endpoints;
 using CarbonBill.Modules.Notifications;
+using CarbonBill.Modules.Notifications.Jobs;
 using CarbonBill.Modules.Onboarding;
 using CarbonBill.Modules.PlatformAdmin;
 using CarbonBill.Modules.Recommendations;
@@ -242,6 +243,12 @@ using (var scope = app.Services.CreateScope())
         "gap-detection-nightly",
         job => job.ExecuteAsync(CancellationToken.None),
         Cron.Daily());
+
+    // Weekly consolidated notifications digest (Mondays 08:00 UTC)
+    recurringJobManager.AddOrUpdate<IWeeklyDigestJob>(
+        "notifications-weekly-digest",
+        job => job.ExecuteAsync(CancellationToken.None),
+        Cron.Weekly(DayOfWeek.Monday, 8));
 }
 
 // Health checks
@@ -269,5 +276,6 @@ app.MapExtractionModuleEndpoints();
 app.MapReviewModuleEndpoints();
 app.MapPlatformAdminModuleEndpoints();
 app.MapGapDetectionModuleEndpoints();
+app.MapNotificationsModuleEndpoints();
 
 app.Run();
