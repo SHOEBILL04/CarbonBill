@@ -259,5 +259,13 @@ app.MapGet("/", () => Results.Ok(new
 
 // Map Module Minimal APIs
 app.MapAuthEndpoints();
+app.MapOnboardingModuleEndpoints();
+app.MapActivityUnitsModuleEndpoints();
+app.MapFactorRegistryModuleEndpoints();
+app.MapCalculationModuleEndpoints();
+app.MapDocumentsModuleEndpoints();
+app.MapExtractionModuleEndpoints();
+app.MapReviewModuleEndpoints();
+app.MapPlatformAdminModuleEndpoints();
 
 app.Run();

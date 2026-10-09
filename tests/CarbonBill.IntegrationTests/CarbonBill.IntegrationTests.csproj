@@ -11,6 +11,10 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\CarbonBill.SharedKernel\CarbonBill.SharedKernel.csproj" />
     <ProjectReference Include="..\..\src\CarbonBill.Modules.IdentityTenancy\CarbonBill.Modules.IdentityTenancy.csproj" />
+    <ProjectReference Include="..\..\src\CarbonBill.Modules.Onboarding\CarbonBill.Modules.Onboarding.csproj" />
+    <ProjectReference Include="..\..\src\CarbonBill.Modules.ActivityUnits\CarbonBill.Modules.ActivityUnits.csproj" />
+    <ProjectReference Include="..\..\src\CarbonBill.Modules.FactorRegistry\CarbonBill.Modules.FactorRegistry.csproj" />
+    <ProjectReference Include="..\..\src\CarbonBill.Modules.Calculation\CarbonBill.Modules.Calculation.csproj" />
     <ProjectReference Include="..\..\src\CarbonBill.Modules.Audit\CarbonBill.Modules.Audit.csproj" />
     <ProjectReference Include="..\..\src\CarbonBill.Api\CarbonBill.Api.csproj" />
   </ItemGroup>

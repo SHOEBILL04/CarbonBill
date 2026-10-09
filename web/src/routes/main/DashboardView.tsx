@@ -6,10 +6,11 @@ import { Leaf, AlertCircle, TrendingDown, FileText, CheckCircle, ShieldCheck, Lo
 interface DashboardViewProps {
   user: AuthUser;
   onGoToFloor: () => void;
+  onGoToReview?: () => void;
   onLogout: () => void;
 }
 
-export default function DashboardView({ user, onGoToFloor, onLogout }: DashboardViewProps) {
+export default function DashboardView({ user, onGoToFloor, onGoToReview, onLogout }: DashboardViewProps) {
   const { t, i18n } = useTranslation();
 
   return (
@@ -37,10 +38,19 @@ export default function DashboardView({ user, onGoToFloor, onLogout }: Dashboard
 
             <button
               onClick={onGoToFloor}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-teal-50 text-teal-700 border border-teal-200 text-xs font-bold rounded-xl"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-teal-50 text-teal-700 border border-teal-200 text-xs font-bold rounded-xl hover:bg-teal-100 transition"
             >
               📷 ফ্লোর মোড
             </button>
+
+            {onGoToReview && (
+              <button
+                onClick={onGoToReview}
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-bold rounded-xl hover:bg-indigo-100 transition"
+              >
+                📋 পর্যালোচনা কিউ
+              </button>
+            )}
 
             <div className="flex items-center gap-2 border-l pl-3">
               <div className="text-right">

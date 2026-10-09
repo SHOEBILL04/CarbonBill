@@ -11,7 +11,20 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\CarbonBill.SharedKernel\CarbonBill.SharedKernel.csproj" />
     <ProjectReference Include="..\..\src\CarbonBill.Modules.IdentityTenancy\CarbonBill.Modules.IdentityTenancy.csproj" />
+    <ProjectReference Include="..\..\src\CarbonBill.Modules.Onboarding\CarbonBill.Modules.Onboarding.csproj" />
+    <ProjectReference Include="..\..\src\CarbonBill.Modules.ActivityUnits\CarbonBill.Modules.ActivityUnits.csproj" />
+    <ProjectReference Include="..\..\src\CarbonBill.Modules.FactorRegistry\CarbonBill.Modules.FactorRegistry.csproj" />
     <ProjectReference Include="..\..\src\CarbonBill.Modules.Calculation\CarbonBill.Modules.Calculation.csproj" />
     <ProjectReference Include="..\..\src\CarbonBill.Modules.Audit\CarbonBill.Modules.Audit.csproj" />
+    <ProjectReference Include="..\..\src\CarbonBill.Modules.Documents\CarbonBill.Modules.Documents.csproj" />
+    <ProjectReference Include="..\..\src\CarbonBill.Modules.Extraction\CarbonBill.Modules.Extraction.csproj" />
+    <ProjectReference Include="..\..\src\CarbonBill.Modules.Review\CarbonBill.Modules.Review.csproj" />
+    <ProjectReference Include="..\..\src\CarbonBill.Modules.PlatformAdmin\CarbonBill.Modules.PlatformAdmin.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\CarbonBill.OcrGolden\*.cs" Link="OcrGolden\%(FileName)%(Extension)" />
+    <None Include="..\CarbonBill.OcrGolden\Dataset\*.json" Link="OcrGolden\Dataset\%(FileName)%(Extension)">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>
