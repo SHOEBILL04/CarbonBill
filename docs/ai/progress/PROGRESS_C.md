@@ -8,7 +8,7 @@
 | **P0-4** | Seeds, fixtures & dev dataset | done | `feat/c-p0-4-seeds` | Seed schemas, templates, samples, and 14-flag dev dataset |
 | **C1** | Gap detection engine | done | `feat/c-c1-gap-detection` | MissingAlert entity, nightly Hangfire job & DocumentUploaded handler, Day -7/-3/0 escalation, bilingual plain requests, auto-resolve |
 | **C2** | Notifications subsystem | done | `feat/c-c2-notifications` | In-app, Web Push VAPID, Brevo/Resend/Logging email with Polly backoff, bilingual bn/en templates, Bangla numerals, top 5 weekly digest, alert collapse, snooze with reason, event subscriptions |
-| **C3** | Flags engine & data-quality rules | todo | - | FlagRule schema, deterministic evaluator, top 5 dashboard query |
+| **C3** | Flags engine & data-quality rules | done | `feat/c-c3-flags` | FlagRule (runtime tunable, seed loader), Flag entity, IFlagRuleEvaluator for 5 data-quality rules, auto-resolve lifecycle, 30-day dismissal expiry, IFlagRaiser & IFlagReader, top 5 dashboard query, nightly Hangfire job, DocumentConfirmed & EmissionCalculated event handlers |
 | **C4** | Footprint flags, intensity & benchmarks | todo | - | MoM spike, genset reliance, intensity denominator, peer benchmark gating |
 | **C5** | Measure Library & recommendations engine | todo | - | 8-step pipeline, BDT savings & payback, closed-loop savings verification |
 | **C6** | Reporting backend (PDF, Excel, Auditor link) | todo | - | QuestPDF GHG report, ClosedXML export, ReportSnapshot hash, share links |
@@ -21,7 +21,7 @@
 
 **Blocked on:** None.
 
-**Next prompt:** C3 (Carbon Flags engine & data-quality rules).
+**Next prompt:** C4 (Footprint flags, intensity & benchmarks).
 
 **Open questions logged in 15_DECISIONS.md:**
 - QuestPDF Bangla font glyph rendering spike outcome.

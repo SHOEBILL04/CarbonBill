@@ -12,6 +12,7 @@ using CarbonBill.Modules.Documents;
 using CarbonBill.Modules.Extraction;
 using CarbonBill.Modules.FactorRegistry;
 using CarbonBill.Modules.Flags;
+using CarbonBill.Modules.Flags.Jobs;
 using CarbonBill.Modules.GapDetection;
 using CarbonBill.Modules.GapDetection.Jobs;
 using CarbonBill.Modules.IdentityTenancy;
@@ -249,6 +250,12 @@ using (var scope = app.Services.CreateScope())
         "notifications-weekly-digest",
         job => job.ExecuteAsync(CancellationToken.None),
         Cron.Weekly(DayOfWeek.Monday, 8));
+
+    // Nightly carbon flags evaluation and dismissal expiration
+    recurringJobManager.AddOrUpdate<INightlyFlagEvaluationJob>(
+        "flags-evaluation-nightly",
+        job => job.ExecuteAsync(CancellationToken.None),
+        Cron.Daily(3)); // 03:00 AM UTC
 }
 
 // Health checks
@@ -277,5 +284,6 @@ app.MapReviewModuleEndpoints();
 app.MapPlatformAdminModuleEndpoints();
 app.MapGapDetectionModuleEndpoints();
 app.MapNotificationsModuleEndpoints();
+app.MapFlagsModuleEndpoints();
 
 app.Run();
