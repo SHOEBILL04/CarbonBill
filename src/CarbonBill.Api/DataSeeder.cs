@@ -45,6 +45,7 @@ public static class DataSeeder
         var insightsSeedLoader = scope.ServiceProvider.GetRequiredService<CarbonBill.Modules.Insights.Seeds.IInsightsSeedLoader>();
         var recommendationsDb = scope.ServiceProvider.GetRequiredService<CarbonBill.Modules.Recommendations.Persistence.RecommendationsDbContext>();
         var recommendationsSeedLoader = scope.ServiceProvider.GetRequiredService<CarbonBill.Modules.Recommendations.Seeds.IRecommendationsSeedLoader>();
+        var reportingDb = scope.ServiceProvider.GetRequiredService<CarbonBill.Modules.Reporting.Persistence.ReportingDbContext>();
         var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
 
         logger.LogInformation("Ensuring SQLite database and tables are created across all modules...");
@@ -64,7 +65,8 @@ public static class DataSeeder
             notificationsDb,
             flagsDb,
             insightsDb,
-            recommendationsDb
+            recommendationsDb,
+            reportingDb
         };
 
         // Check existing tables to prevent duplicate CREATE TABLE execution errors

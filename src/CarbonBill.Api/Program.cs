@@ -289,5 +289,6 @@ app.MapNotificationsModuleEndpoints();
 app.MapFlagsModuleEndpoints();
 app.MapInsightsModuleEndpoints();
 app.MapRecommendationsModuleEndpoints();
+app.MapReportingModuleEndpoints();
 
 app.Run();
