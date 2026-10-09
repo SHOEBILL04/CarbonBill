@@ -24,6 +24,7 @@
     <ProjectReference Include="..\..\src\CarbonBill.Modules.Notifications\CarbonBill.Modules.Notifications.csproj" />
     <ProjectReference Include="..\..\src\CarbonBill.Modules.Flags\CarbonBill.Modules.Flags.csproj" />
     <ProjectReference Include="..\..\src\CarbonBill.Modules.Insights\CarbonBill.Modules.Insights.csproj" />
+    <ProjectReference Include="..\..\src\CarbonBill.Modules.Recommendations\CarbonBill.Modules.Recommendations.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\CarbonBill.OcrGolden\*.cs" Link="OcrGolden\%(FileName)%(Extension)" />

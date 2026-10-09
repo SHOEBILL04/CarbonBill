@@ -288,5 +288,6 @@ app.MapGapDetectionModuleEndpoints();
 app.MapNotificationsModuleEndpoints();
 app.MapFlagsModuleEndpoints();
 app.MapInsightsModuleEndpoints();
+app.MapRecommendationsModuleEndpoints();
 
 app.Run();

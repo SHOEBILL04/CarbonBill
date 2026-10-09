@@ -43,6 +43,8 @@ public static class DataSeeder
         var flagSeedLoader = scope.ServiceProvider.GetRequiredService<CarbonBill.Modules.Flags.Seeds.IFlagRuleSeedLoader>();
         var insightsDb = scope.ServiceProvider.GetRequiredService<CarbonBill.Modules.Insights.Persistence.InsightsDbContext>();
         var insightsSeedLoader = scope.ServiceProvider.GetRequiredService<CarbonBill.Modules.Insights.Seeds.IInsightsSeedLoader>();
+        var recommendationsDb = scope.ServiceProvider.GetRequiredService<CarbonBill.Modules.Recommendations.Persistence.RecommendationsDbContext>();
+        var recommendationsSeedLoader = scope.ServiceProvider.GetRequiredService<CarbonBill.Modules.Recommendations.Seeds.IRecommendationsSeedLoader>();
         var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
 
         logger.LogInformation("Ensuring SQLite database and tables are created across all modules...");
@@ -61,7 +63,8 @@ public static class DataSeeder
             gapDb,
             notificationsDb,
             flagsDb,
-            insightsDb
+            insightsDb,
+            recommendationsDb
         };
 
         // Check existing tables to prevent duplicate CREATE TABLE execution errors
@@ -417,6 +420,9 @@ public static class DataSeeder
 
         // Seed Insights Benchmark Sets
         await insightsSeedLoader.SeedDefaultBenchmarksAsync();
+
+        // Seed Recommendations Measures and Sources
+        await recommendationsSeedLoader.SeedDefaultMeasuresAsync();
 
         logger.LogInformation("Database seeding completed successfully!");
     }
