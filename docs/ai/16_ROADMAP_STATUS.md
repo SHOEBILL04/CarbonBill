@@ -66,7 +66,7 @@ This document tracks execution progress across all phases defined in the CarbonB
 
 ## Phase 3: Pilot & Growth
 
-- [ ] **I8:** Pilot VPS deployment (Singapore region) running Docker Compose behind Caddy with automated backups.
+- [x] **I8:** Pilot VPS deployment (Singapore region) running Docker Compose behind Caddy with automated backups.
 - [ ] **I9:** Formal usability testing with 5 participants per persona (floor staff submission task < 20 seconds).
 - [ ] **I10:** Pilot data review and domain expert sign-off on factor tables and Measure Library citations.
 - [ ] **Future Enhancements:**

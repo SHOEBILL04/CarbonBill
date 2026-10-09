@@ -17,13 +17,13 @@
 | **I1** | Real module wiring (swap fakes) | done | `feat/a-i1-real-wiring` | Host integration with `UseFakes=false`, full DI abstract contract test suite passing |
 | **I4** | Security hardening & audit | done | `feat/a-i4-security-audit` | OWASP ASVS verification, adversarial IDOR sweep, tamper-resistant audit trail |
 | **I7** | Consultant workspace | done | `feat/a-i7-consultant-workspace` | Multi-tenant consultant switching, factor override workflow with justifications |
-| **I8** | Pilot deployment & backups | todo | - | VPS Docker Compose behind Caddy, backup restore drill |
+| **I8** | Pilot deployment & backups | done | `feat/a-i8-pilot-backups` | VPS Docker Compose behind Caddy TLS, automated SQLite vacuum backup & restore drill |
 
 ---
 
-**Blocked on:** None.
+**Blocked on:** None. All Track A Phase 0, Phase 1, and Phase 2 Integration tasks (P0-1a, P0-2, P0-5, A1–A7, I1, I4, I7, I8) Completed!
 
-**Next prompt:** I8 (Pilot deployment automation with Caddy TLS and backup restore verification).
+**Next prompt:** Track A Complete. Ready for deployment and pilot testing.
 
 **Open questions logged in 15_DECISIONS.md:**
 - None currently blocking Track A.
