@@ -9,14 +9,6 @@ using Microsoft.Extensions.Logging;
 
 namespace CarbonBill.Modules.Documents.Services;
 
-public record DocumentUploadedEvent(
-    Guid DocumentId,
-    Guid OrgId,
-    string StoragePath,
-    string ContentType,
-    string Source,
-    DateTime OccurredOnUtc) : IDomainEvent;
-
 public class DocumentService(
     DocumentsDbContext dbContext,
     IFileStore fileStore,

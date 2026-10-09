@@ -2,6 +2,7 @@ using CarbonBill.Modules.Onboarding.Domain;
 using CarbonBill.Modules.Onboarding.Endpoints;
 using CarbonBill.Modules.Onboarding.Persistence;
 using CarbonBill.Modules.Onboarding.Services;
+using CarbonBill.SharedKernel.Contracts;
 using CarbonBill.SharedKernel.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
