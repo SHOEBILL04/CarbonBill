@@ -12,14 +12,6 @@ using Microsoft.Extensions.Logging;
 
 namespace CarbonBill.Modules.Extraction.Services;
 
-public record DocumentExtractedEvent(
-    Guid DocumentId,
-    Guid OrgId,
-    int TierUsed,
-    string? DetectedDocType,
-    int FieldCount,
-    DateTime OccurredOnUtc) : IDomainEvent;
-
 public interface IExtractionService
 {
     Task<Result<ExtractionRun>> ProcessExtractionAsync(

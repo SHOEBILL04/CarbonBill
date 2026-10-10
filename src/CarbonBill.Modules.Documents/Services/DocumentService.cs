@@ -9,14 +9,6 @@ using Microsoft.Extensions.Logging;
 
 namespace CarbonBill.Modules.Documents.Services;
 
-public record DocumentUploadedEvent(
-    Guid DocumentId,
-    Guid OrgId,
-    string StoragePath,
-    string ContentType,
-    string Source,
-    DateTime OccurredOnUtc) : IDomainEvent;
-
 public class DocumentService(
     DocumentsDbContext dbContext,
     IFileStore fileStore,
@@ -36,7 +28,12 @@ public class DocumentService(
         var orgId = tenantContext.CurrentOrgId;
         if (!orgId.HasValue)
         {
-            return Result.Failure<DocumentReceiptDto>("Active Organization ID is required for document upload.");
+            orgId = await GetDefaultOrgIdAsync(ct);
+            if (!orgId.HasValue)
+            {
+                return Result.Failure<DocumentReceiptDto>("Active Organization ID is required for document upload.");
+            }
+            tenantContext.SetContext(orgId.Value, uploadedByUserId != Guid.Empty ? uploadedByUserId : Guid.Empty, "FloorStaff");
         }
 
         // Check idempotency key if provided
@@ -167,7 +164,12 @@ public class DocumentService(
         var orgId = tenantContext.CurrentOrgId;
         if (!orgId.HasValue)
         {
-            return Result.Failure<DocumentReceiptDto>("Active Organization ID is required.");
+            orgId = await GetDefaultOrgIdAsync(ct);
+            if (!orgId.HasValue)
+            {
+                return Result.Failure<DocumentReceiptDto>("Active Organization ID is required.");
+            }
+            tenantContext.SetContext(orgId.Value, uploadedByUserId != Guid.Empty ? uploadedByUserId : Guid.Empty, "FloorStaff");
         }
 
         var documentId = Guid.NewGuid();
@@ -283,9 +285,13 @@ public class DocumentService(
         int limit = 20,
         CancellationToken ct = default)
     {
-        return await dbContext.Documents
-            .AsNoTracking()
-            .Where(d => d.UploadedByUserId == userId)
+        var query = dbContext.Documents.AsNoTracking();
+        if (userId != Guid.Empty)
+        {
+            query = query.Where(d => d.UploadedByUserId == userId);
+        }
+
+        return await query
             .OrderByDescending(d => d.CapturedAtUtc)
             .Take(Math.Min(limit, 50))
             .Select(d => new DocumentReceiptDto(
@@ -298,5 +304,29 @@ public class DocumentService(
                 true,
                 d.Status == DocumentStatuses.Duplicate))
             .ToListAsync(ct);
+    }
+
+    public async Task<Guid?> GetDefaultOrgIdAsync(CancellationToken ct = default)
+    {
+        try
+        {
+            var conn = dbContext.Database.GetDbConnection();
+            if (conn.State != System.Data.ConnectionState.Open)
+            {
+                await conn.OpenAsync(ct);
+            }
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "SELECT Id FROM Organizations WHERE IsActive = 1 LIMIT 1;";
+            var scalar = await cmd.ExecuteScalarAsync(ct);
+            if (scalar != null && Guid.TryParse(scalar.ToString(), out var parsed))
+            {
+                return parsed;
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Could not resolve default organization ID from database.");
+        }
+        return null;
     }
 }

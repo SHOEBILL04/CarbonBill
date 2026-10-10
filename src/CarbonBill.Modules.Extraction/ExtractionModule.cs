@@ -58,6 +58,7 @@ public static class ExtractionModuleExtensions
         services.AddHttpClient<IGroqLlmExtractor, GroqLlmExtractor>();
         services.AddSingleton<IDualOcrEngine, DualOcrEngine>();
         services.AddScoped<IExtractionService, ExtractionService>();
+        services.AddScoped<CarbonBill.SharedKernel.Events.IDomainEventHandler<CarbonBill.SharedKernel.Events.DocumentUploadedEvent>, DocumentUploadedExtractionHandler>();
 
         return services;
     }

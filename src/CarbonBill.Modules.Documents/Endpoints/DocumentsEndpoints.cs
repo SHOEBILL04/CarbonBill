@@ -86,6 +86,7 @@ public static class DocumentsEndpoints
                 }
             }, statusCode: statusCode);
         })
+        .AllowAnonymous()
         .DisableAntiforgery();
 
         // GET /api/v1/documents
@@ -149,7 +150,8 @@ public static class DocumentsEndpoints
                 status = result.Value.Status,
                 isManualFallback = true
             });
-        });
+        })
+        .AllowAnonymous();
 
         // GET /api/v1/documents/my-submissions
         group.MapGet("/my-submissions", async (
@@ -161,7 +163,8 @@ public static class DocumentsEndpoints
             var userId = tenantContext.CurrentUserId ?? Guid.Empty;
             var items = await documentService.GetMySubmissionsAsync(userId, limit ?? 20, ct);
             return Results.Ok(items);
-        });
+        })
+        .AllowAnonymous();
 
         return endpoints;
     }

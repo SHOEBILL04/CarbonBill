@@ -69,4 +69,6 @@ public interface IDocumentService
         Guid userId,
         int limit = 20,
         CancellationToken ct = default);
+
+    Task<Guid?> GetDefaultOrgIdAsync(CancellationToken ct = default);
 }
