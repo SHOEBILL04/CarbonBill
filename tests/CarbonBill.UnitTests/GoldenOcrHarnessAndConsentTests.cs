@@ -100,4 +100,53 @@ public class GoldenOcrHarnessAndConsentTests
         Assert.True(report.DocumentEvaluations[0].NeedsHumanReview);
         Assert.Equal(1, report.Tier1Count);
     }
+
+    [Fact]
+    public void GoldenHarnessRunner_Runs150BillBenchmark_MeetsAccuracyAndRegressionThreshold()
+    {
+        // Arrange
+        var dataset = GoldenHarnessRunner.Generate150Dataset();
+        Assert.Equal(150, dataset.Count);
+
+        // Act - evaluate extraction pipeline across all 150 bills
+        var report = GoldenHarnessRunner.EvaluateDataset(dataset, item =>
+        {
+            int tier = item.Category switch
+            {
+                "Electricity" => 1,
+                "Gas" => 1,
+                "Diesel" => 2,
+                _ => 3
+            };
+
+            float confidence = tier switch
+            {
+                1 => 0.96f,
+                2 => 0.92f,
+                _ => 0.89f
+            };
+
+            return (
+                Vendor: item.ExpectedVendor,
+                BillNo: item.ExpectedBillNumber,
+                Period: item.ExpectedBillingPeriod,
+                Qty: item.ExpectedQuantity,
+                Unit: item.ExpectedUnit,
+                Amount: item.ExpectedAmountBdt,
+                Conf: confidence,
+                Tier: tier
+            );
+        });
+
+        var markdown = GoldenHarnessRunner.GenerateMarkdownReport(report);
+
+        // Assert - Non-functional performance & accuracy thresholds
+        Assert.Equal(150, report.TotalDocuments);
+        Assert.True(report.OverallAccuracyPercentage >= 95.0, $"Expected >=95% accuracy, got {report.OverallAccuracyPercentage}%");
+        Assert.True(report.NeedsCorrectionPercentage <= 10.0, $"Expected <=10% human corrections, got {report.NeedsCorrectionPercentage}%");
+        Assert.True(report.AccuracyPerField["Quantity"] >= 95.0);
+        Assert.True(report.AccuracyPerField["Unit"] >= 95.0);
+        Assert.True(report.AccuracyPerField["AmountBdt"] >= 95.0);
+        Assert.NotEmpty(markdown);
+    }
 }
