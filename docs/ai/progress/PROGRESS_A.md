@@ -19,6 +19,7 @@
 | **I7** | Consultant workspace | done | `feat/a-i7-consultant-workspace` | Multi-tenant consultant switching, factor override workflow with justifications |
 | **I8** | Pilot deployment & backups | done | `feat/a-i8-pilot-backups` | VPS Docker Compose behind Caddy TLS, automated SQLite vacuum backup & restore drill |
 | **A-P3-1**| Kiosk PIN Lock security (I9 follow-up) | done | `feat/a-p3-pin-lock` | Single-tap kiosk PIN lock, `/api/v1/auth/pin-lock/set`, `/lock`, `/unlock` and Auth UI overlay |
+| **A-P3-2**| Direct Utility Connectors | done | `feat/a-p3-utility-connectors`| Digital intake API for DESCO, DPDC, and Titas Gas into calculation pipeline |
 
 ---
 
