@@ -108,7 +108,7 @@ export const AuditorView: React.FC<AuditorViewProps> = ({ token }) => {
               {isBangla ? 'ডিজিটাল অডিট সম্মতি:' : 'Audit Preparedness:'}
             </span>
             <span className="text-xl font-black text-teal-800">
-              {snapshot.dqsGrade} ({(snapshot.dataQualityScore * 100).toFixed(0)}% DQS)
+              {snapshot.dqsGrade} ({((snapshot.dataQualityScore ?? 0) * 100).toFixed(0)}% DQS)
             </span>
           </div>
         </div>
@@ -150,7 +150,7 @@ export const AuditorView: React.FC<AuditorViewProps> = ({ token }) => {
             {isBangla ? 'মোট নির্গমন (Total)' : 'Total Footprint'}
           </span>
           <p className="text-2xl font-black text-slate-900">
-            {isBangla ? toBanglaDigits(snapshot.totalEmissions.toFixed(2)) : snapshot.totalEmissions.toFixed(2)}{' '}
+            {isBangla ? toBanglaDigits(Number(snapshot.totalEmissions ?? 0).toFixed(2)) : Number(snapshot.totalEmissions ?? 0).toFixed(2)}{' '}
             <span className="text-xs font-semibold text-slate-400">tCO₂e</span>
           </p>
         </div>
@@ -160,7 +160,7 @@ export const AuditorView: React.FC<AuditorViewProps> = ({ token }) => {
             {isBangla ? 'স্কোপ ১ (জ্বালানি/গ্যাস)' : 'Scope 1'}
           </span>
           <p className="text-2xl font-black text-orange-600">
-            {isBangla ? toBanglaDigits(snapshot.scope1Emissions.toFixed(2)) : snapshot.scope1Emissions.toFixed(2)}{' '}
+            {isBangla ? toBanglaDigits(Number(snapshot.scope1Emissions ?? 0).toFixed(2)) : Number(snapshot.scope1Emissions ?? 0).toFixed(2)}{' '}
             <span className="text-xs font-semibold text-slate-400">tCO₂e</span>
           </p>
         </div>
@@ -170,7 +170,7 @@ export const AuditorView: React.FC<AuditorViewProps> = ({ token }) => {
             {isBangla ? 'স্কোপ ২ (গ্রিড বিদ্যুৎ)' : 'Scope 2'}
           </span>
           <p className="text-2xl font-black text-sky-600">
-            {isBangla ? toBanglaDigits(snapshot.scope2Emissions.toFixed(2)) : snapshot.scope2Emissions.toFixed(2)}{' '}
+            {isBangla ? toBanglaDigits(Number(snapshot.scope2Emissions ?? 0).toFixed(2)) : Number(snapshot.scope2Emissions ?? 0).toFixed(2)}{' '}
             <span className="text-xs font-semibold text-slate-400">tCO₂e</span>
           </p>
         </div>
@@ -180,7 +180,7 @@ export const AuditorView: React.FC<AuditorViewProps> = ({ token }) => {
             {isBangla ? 'স্কোপ ৩ (পরিবহন)' : 'Scope 3'}
           </span>
           <p className="text-2xl font-black text-purple-600">
-            {isBangla ? toBanglaDigits(snapshot.scope3Emissions.toFixed(2)) : snapshot.scope3Emissions.toFixed(2)}{' '}
+            {isBangla ? toBanglaDigits(Number(snapshot.scope3Emissions ?? 0).toFixed(2)) : Number(snapshot.scope3Emissions ?? 0).toFixed(2)}{' '}
             <span className="text-xs font-semibold text-slate-400">tCO₂e</span>
           </p>
         </div>
@@ -261,7 +261,7 @@ export const AuditorView: React.FC<AuditorViewProps> = ({ token }) => {
                     )}
                   </td>
                   <td className="py-3 px-3 font-mono font-bold text-slate-900">
-                    {isBangla ? toBanglaDigits(item.emissionsTco2e.toFixed(2)) : item.emissionsTco2e.toFixed(2)}
+                    {isBangla ? toBanglaDigits(Number(item.emissionsTco2e ?? 0).toFixed(2)) : Number(item.emissionsTco2e ?? 0).toFixed(2)}
                   </td>
                   <td className="py-3 px-3 font-mono text-[11px] text-teal-800 font-bold">
                     {item.documentId}

@@ -66,17 +66,18 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({
     useBanglaDigits: isBangla,
   })}`;
 
+  const pLow = Number(rec.paybackMonthsRange?.low ?? 0).toFixed(1);
+  const pHigh = Number(rec.paybackMonthsRange?.high ?? 0).toFixed(1);
+  const pTyp = Number(rec.paybackMonthsRange?.typical ?? 0).toFixed(1);
   const paybackRangeFormatted = isBangla
-    ? `${toBanglaDigits(rec.paybackMonthsRange.low.toFixed(1))} – ${toBanglaDigits(
-        rec.paybackMonthsRange.high.toFixed(1)
-      )} মাস (গড়ে ${toBanglaDigits(rec.paybackMonthsRange.typical.toFixed(1))})`
-    : `${rec.paybackMonthsRange.low.toFixed(1)} – ${rec.paybackMonthsRange.high.toFixed(1)} mos (avg ${rec.paybackMonthsRange.typical.toFixed(1)})`;
+    ? `${toBanglaDigits(pLow)} – ${toBanglaDigits(pHigh)} মাস (গড়ে ${toBanglaDigits(pTyp)})`
+    : `${pLow} – ${pHigh} mos (avg ${pTyp})`;
 
+  const cLow = Number(rec.tco2eAvoidedRange?.low ?? 0).toFixed(1);
+  const cHigh = Number(rec.tco2eAvoidedRange?.high ?? 0).toFixed(1);
   const carbonRangeFormatted = isBangla
-    ? `${toBanglaDigits(rec.tco2eAvoidedRange.low.toFixed(1))} – ${toBanglaDigits(
-        rec.tco2eAvoidedRange.high.toFixed(1)
-      )} tCO₂e/বছর`
-    : `${rec.tco2eAvoidedRange.low.toFixed(1)} – ${rec.tco2eAvoidedRange.high.toFixed(1)} tCO₂e/yr`;
+    ? `${toBanglaDigits(cLow)} – ${toBanglaDigits(cHigh)} tCO₂e/বছর`
+    : `${cLow} – ${cHigh} tCO₂e/yr`;
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs hover:shadow-md transition-all duration-200 space-y-4">

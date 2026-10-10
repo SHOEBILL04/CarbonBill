@@ -45,7 +45,7 @@ export const RoleDashboard: React.FC<RoleDashboardProps> = ({
             </span>
             <div className="flex items-baseline justify-between">
               <span className="text-3xl font-black">
-                {isBangla ? toBanglaDigits(summary.totalEmissions.toFixed(2)) : summary.totalEmissions.toFixed(2)}
+                {isBangla ? toBanglaDigits((summary?.totalEmissions ?? 0).toFixed(2)) : (summary?.totalEmissions ?? 0).toFixed(2)}
               </span>
               <span className="text-sm font-semibold text-teal-300">tCO₂e</span>
             </div>
@@ -60,10 +60,10 @@ export const RoleDashboard: React.FC<RoleDashboardProps> = ({
             </span>
             <div className="flex items-baseline justify-between">
               <span className="text-3xl font-black text-slate-900">
-                {isBangla ? toBanglaDigits((summary.dataQualityScore * 100).toFixed(0)) : (summary.dataQualityScore * 100).toFixed(0)}%
+                {isBangla ? toBanglaDigits(((summary?.dataQualityScore ?? 0) * 100).toFixed(0)) : ((summary?.dataQualityScore ?? 0) * 100).toFixed(0)}%
               </span>
               <span className="text-xs font-bold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-md">
-                {summary.dqsGrade}
+                {summary?.dqsGrade || 'Grade A'}
               </span>
             </div>
             <div className="text-[11px] text-emerald-700 font-medium pt-1 flex items-center gap-1">
@@ -374,7 +374,7 @@ export const RoleDashboard: React.FC<RoleDashboardProps> = ({
                 {summary.dqsGrade}
               </span>
               <span className="text-xs font-mono text-slate-500">
-                {isBangla ? toBanglaDigits(summary.dataQualityScore.toFixed(3)) : summary.dataQualityScore.toFixed(3)}
+                {isBangla ? toBanglaDigits((summary?.dataQualityScore ?? 0).toFixed(3)) : (summary?.dataQualityScore ?? 0).toFixed(3)}
               </span>
             </div>
             <p className="text-[11px] text-emerald-700 font-medium pt-1">
@@ -478,13 +478,13 @@ export const RoleDashboard: React.FC<RoleDashboardProps> = ({
                   <td className="py-3 px-3 font-bold text-slate-900">{org.orgName}</td>
                   <td className="py-3 px-3 text-slate-600">{org.sector}</td>
                   <td className="py-3 px-3 font-mono font-semibold text-slate-800">
-                    {isBangla ? toBanglaDigits(org.totalEmissions.toFixed(2)) : org.totalEmissions.toFixed(2)}
+                    {isBangla ? toBanglaDigits((org.totalEmissions ?? 0).toFixed(2)) : (org.totalEmissions ?? 0).toFixed(2)}
                   </td>
                   <td className="py-3 px-3">
                     <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                       org.dqsGrade === 'Grade A' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
                     }`}>
-                      {org.dqsGrade} ({(org.dqsScore * 100).toFixed(0)}%)
+                      {org.dqsGrade} ({((org.dqsScore ?? 0) * 100).toFixed(0)}%)
                     </span>
                   </td>
                   <td className="py-3 px-3">

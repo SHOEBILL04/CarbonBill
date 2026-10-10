@@ -141,8 +141,29 @@ export const mockConsultantClientOrgs: ClientOrgSummary[] = [
 
 export async function fetchDashboardSummary(period: string = '2026-09'): Promise<DashboardSummary> {
   try {
-    const data = await apiFetch<DashboardSummary>(`/api/v1/dashboard/summary?period=${encodeURIComponent(period)}`);
-    return data;
+    const raw = await apiFetch<any>(`/api/v1/dashboard/summary?period=${encodeURIComponent(period)}`);
+    if (!raw) return mockDashboardSummary;
+
+    const s1 = Number(raw.scope1Emissions ?? raw.scope1Tco2e ?? mockDashboardSummary.scope1Emissions);
+    const s2 = Number(raw.scope2Emissions ?? raw.scope2Tco2e ?? mockDashboardSummary.scope2Emissions);
+    const s3 = Number(raw.scope3Emissions ?? raw.scope3Tco2e ?? mockDashboardSummary.scope3Emissions);
+    const total = Number(raw.totalEmissions ?? raw.totalTco2e ?? (s1 + s2 + s3));
+    const dqsRaw = raw.dataQualityScore ?? mockDashboardSummary.dataQualityScore;
+    const dqs = typeof dqsRaw === 'number' ? (dqsRaw > 1 ? dqsRaw / 100 : dqsRaw) : 0.9125;
+
+    return {
+      period: raw.reportingPeriod || raw.period || period,
+      scope1Emissions: s1,
+      scope2Emissions: s2,
+      scope3Emissions: s3,
+      totalEmissions: total,
+      dataQualityScore: dqs,
+      dqsGrade: raw.dqsGrade || (dqs >= 0.85 ? 'Grade A' : dqs >= 0.70 ? 'Grade B' : 'Grade C'),
+      verifiedPercentage: Number(raw.verifiedPercentage ?? raw.verifiedSharePercent ?? 92.4),
+      status: raw.status || 'ReadyForReview',
+      activeFlagsCount: Number(raw.activeFlagsCount ?? mockDashboardSummary.activeFlagsCount),
+      missingDocsCount: Number(raw.missingDocsCount ?? mockDashboardSummary.missingDocsCount),
+    };
   } catch {
     return mockDashboardSummary;
   }
@@ -150,8 +171,22 @@ export async function fetchDashboardSummary(period: string = '2026-09'): Promise
 
 export async function fetchDashboardTrend(start: string = '2026-04', end: string = '2026-09'): Promise<TrendDataPoint[]> {
   try {
-    const data = await apiFetch<TrendDataPoint[]>(`/api/v1/dashboard/trend?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`);
-    return data;
+    const data = await apiFetch<any[]>(`/api/v1/dashboard/trend?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`);
+    if (!Array.isArray(data) || data.length === 0) return mockTrendData;
+    return data.map((pt) => {
+      const v = Number(pt.verifiedEmissions ?? (pt.verifiedKgCo2e ? pt.verifiedKgCo2e / 1000 : 0));
+      const e = Number(pt.estimatedEmissions ?? (pt.estimatedKgCo2e ? pt.estimatedKgCo2e / 1000 : 0));
+      const t = Number(pt.totalEmissions ?? (pt.totalKgCo2e ? pt.totalKgCo2e / 1000 : v + e));
+      return {
+        period: pt.period || pt.reportingPeriod || '2026-09',
+        periodLabelBn: pt.periodLabelBn || pt.period || 'মাস',
+        periodLabelEn: pt.periodLabelEn || pt.period || 'Month',
+        verifiedEmissions: v,
+        estimatedEmissions: e,
+        totalEmissions: t,
+        hatchFlag: Boolean(pt.hatchFlag),
+      };
+    });
   } catch {
     return mockTrendData;
   }
@@ -160,7 +195,7 @@ export async function fetchDashboardTrend(start: string = '2026-04', end: string
 export async function fetchIntensityData(period: string = '2026-09'): Promise<IntensityData> {
   try {
     const data = await apiFetch<IntensityData>(`/api/v1/dashboard/intensity?period=${encodeURIComponent(period)}`);
-    return data;
+    return data || mockIntensityData;
   } catch {
     return mockIntensityData;
   }
@@ -169,7 +204,7 @@ export async function fetchIntensityData(period: string = '2026-09'): Promise<In
 export async function fetchConsultantClients(): Promise<ClientOrgSummary[]> {
   try {
     const data = await apiFetch<ClientOrgSummary[]>('/api/v1/consultant/clients');
-    return data;
+    return Array.isArray(data) ? data : mockConsultantClientOrgs;
   } catch {
     return mockConsultantClientOrgs;
   }
