@@ -18,12 +18,32 @@ public class DualOcrEngine(ILogger<DualOcrEngine> logger) : IDualOcrEngine
     {
         logger.LogInformation("DualOcrEngine processing: {FileName} ({ContentType})", fileName, contentType);
 
+        if (documentStream.CanSeek && documentStream.Position > 0)
+        {
+            documentStream.Position = 0;
+        }
+
         // Copy stream to memory buffer
         using var ms = new MemoryStream();
         await documentStream.CopyToAsync(ms, ct);
         var bytes = ms.ToArray();
 
-        // 1. Try Tesseract or PaddleOCR if available
+        // 1. Try Windows Native OCR if available on host OS
+        try
+        {
+            var winOcr = await RunWindowsOcrAsync(bytes, fileName, ct);
+            if (!string.IsNullOrWhiteSpace(winOcr))
+            {
+                logger.LogInformation("Windows Native OCR extracted {CharCount} chars from {FileName}", winOcr.Length, fileName);
+                return winOcr;
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Windows Native OCR invocation failed for {FileName}", fileName);
+        }
+
+        // 2. Try Tesseract or PaddleOCR if available
         try
         {
             if (contentType.Contains("pdf", StringComparison.OrdinalIgnoreCase))
@@ -44,6 +64,93 @@ public class DualOcrEngine(ILogger<DualOcrEngine> logger) : IDualOcrEngine
 
         // Graceful fallback for non-native / test environments
         return GenerateDeterministicFallback(fileName);
+    }
+
+    private async Task<string?> RunWindowsOcrAsync(byte[] imageBytes, string fileName, CancellationToken ct)
+    {
+        if (!OperatingSystem.IsWindows()) return null;
+
+        var tempDir = Path.GetTempPath();
+        var ext = Path.GetExtension(fileName);
+        if (string.IsNullOrWhiteSpace(ext)) ext = ".png";
+        var tempImage = Path.Combine(tempDir, $"carbonbill_ocr_{Guid.NewGuid():N}{ext}");
+
+        try
+        {
+            await File.WriteAllBytesAsync(tempImage, imageBytes, ct);
+
+            var baseDir = AppContext.BaseDirectory;
+            var scriptPath = Path.Combine(baseDir, "Scripts", "windows_ocr.ps1");
+            if (!File.Exists(scriptPath))
+            {
+                scriptPath = Path.Combine(baseDir, "windows_ocr.ps1");
+            }
+            if (!File.Exists(scriptPath))
+            {
+                var candidate = Path.Combine(baseDir, "..", "..", "..", "..", "CarbonBill.Modules.Extraction", "Scripts", "windows_ocr.ps1");
+                if (File.Exists(candidate)) scriptPath = Path.GetFullPath(candidate);
+            }
+            if (!File.Exists(scriptPath))
+            {
+                var candidate = Path.Combine(Directory.GetCurrentDirectory(), "src", "CarbonBill.Modules.Extraction", "Scripts", "windows_ocr.ps1");
+                if (File.Exists(candidate)) scriptPath = Path.GetFullPath(candidate);
+            }
+            if (!File.Exists(scriptPath))
+            {
+                var candidate = Path.Combine(Directory.GetCurrentDirectory(), "..", "CarbonBill.Modules.Extraction", "Scripts", "windows_ocr.ps1");
+                if (File.Exists(candidate)) scriptPath = Path.GetFullPath(candidate);
+            }
+
+            if (!File.Exists(scriptPath))
+            {
+                logger.LogWarning("windows_ocr.ps1 script not located. Fallback will be used.");
+                return null;
+            }
+
+            var psi = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = "powershell.exe",
+                Arguments = $"-NoProfile -ExecutionPolicy Bypass -File \"{scriptPath}\" -ImagePath \"{tempImage}\"",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                StandardOutputEncoding = System.Text.Encoding.UTF8
+            };
+
+            using var process = System.Diagnostics.Process.Start(psi);
+            if (process == null) return null;
+
+            var outputTask = process.StandardOutput.ReadToEndAsync(ct);
+            var errorTask = process.StandardError.ReadToEndAsync(ct);
+            await process.WaitForExitAsync(ct);
+
+            var output = await outputTask;
+            var error = await errorTask;
+
+            if (process.ExitCode == 0 && !string.IsNullOrWhiteSpace(output))
+            {
+                return output.Trim();
+            }
+
+            if (!string.IsNullOrWhiteSpace(error))
+            {
+                logger.LogWarning("Windows OCR message: {Error}", error);
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Failed to execute Windows Native OCR on {FileName}", fileName);
+        }
+        finally
+        {
+            if (File.Exists(tempImage))
+            {
+                try { File.Delete(tempImage); } catch { }
+            }
+        }
+
+        return null;
     }
 
     private string? RunTesseract(byte[] imageBytes)
