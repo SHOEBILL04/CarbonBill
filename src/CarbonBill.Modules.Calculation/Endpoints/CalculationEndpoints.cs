@@ -1,4 +1,5 @@
 using CarbonBill.Modules.Calculation.Services;
+using CarbonBill.SharedKernel.Contracts;
 using CarbonBill.SharedKernel.Tenancy;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;

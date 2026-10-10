@@ -132,6 +132,7 @@ public static class AuthEndpoints
 
             var hashedToken = tokenService.HashRefreshToken(rawRefreshToken);
             var tokenEntity = await dbContext.RefreshTokens
+                .IgnoreQueryFilters()
                 .Include(rt => rt.User)
                 .ThenInclude(u => u.Memberships)
                 .ThenInclude(m => m.Organization)

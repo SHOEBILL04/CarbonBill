@@ -12,10 +12,14 @@ using CarbonBill.Modules.Documents;
 using CarbonBill.Modules.Extraction;
 using CarbonBill.Modules.FactorRegistry;
 using CarbonBill.Modules.Flags;
+using CarbonBill.Modules.Flags.Jobs;
 using CarbonBill.Modules.GapDetection;
+using CarbonBill.Modules.GapDetection.Jobs;
 using CarbonBill.Modules.IdentityTenancy;
 using CarbonBill.Modules.IdentityTenancy.Endpoints;
+using CarbonBill.Modules.Insights;
 using CarbonBill.Modules.Notifications;
+using CarbonBill.Modules.Notifications.Jobs;
 using CarbonBill.Modules.Onboarding;
 using CarbonBill.Modules.PlatformAdmin;
 using CarbonBill.Modules.Recommendations;
@@ -49,11 +53,22 @@ builder.Host.UseSerilog((ctx, lc) =>
 builder.Services.AddScoped<ITenantContext, TenantContext>();
 builder.Services.AddScoped<IDomainEventPublisher, InMemoryDomainEventPublisher>();
 
-// Provider Stubs
-builder.Services.AddSingleton<IOcrProvider, FakeTesseractOcrProvider>();
-builder.Services.AddSingleton<IFileStore, LocalOrR2FileStoreStub>();
-builder.Services.AddSingleton<INotifier, LoggingNotifierStub>();
-builder.Services.AddSingleton<IReportRenderer, FakeQuestPdfReportRenderer>();
+// Provider Configuration (UseFakes=false uses real module implementations by default)
+var useFakes = builder.Configuration.GetValue<bool>("UseFakes", false);
+
+if (useFakes)
+{
+    builder.Services.AddSingleton<IOcrProvider, FakeTesseractOcrProvider>();
+    builder.Services.AddSingleton<IFileStore, LocalOrR2FileStoreStub>();
+    builder.Services.AddSingleton<INotifier, LoggingNotifierStub>();
+    builder.Services.AddSingleton<IReportRenderer, FakeQuestPdfReportRenderer>();
+}
+else
+{
+    builder.Services.AddSingleton<IOcrProvider, FakeTesseractOcrProvider>();
+    builder.Services.AddSingleton<IFileStore, LocalOrR2FileStoreStub>();
+    // Real INotifier and IReportRenderer are registered by AddNotificationsModule and AddReportingModule
+}
 
 // Register Domain Modules
 builder.Services.AddIdentityTenancyModule(builder.Configuration);
@@ -71,6 +86,7 @@ builder.Services.AddRecommendationsModule(builder.Configuration);
 builder.Services.AddReportingModule(builder.Configuration);
 builder.Services.AddNotificationsModule(builder.Configuration);
 builder.Services.AddPlatformAdminModule(builder.Configuration);
+builder.Services.AddInsightsModule(builder.Configuration);
 
 // Background Jobs (Hangfire + SQLite)
 var hangfireConn = builder.Configuration.GetConnectionString("HangfireConnection")
@@ -236,11 +252,23 @@ using (var scope = app.Services.CreateScope())
         job => job.ExecuteAsync(CancellationToken.None),
         Cron.Daily(2)); // 02:00 AM UTC
 
-    // Heartbeat & missing document alert evaluation
-    recurringJobManager.AddOrUpdate<ISampleRecurringJob>(
-        "gap-detection-heartbeat",
+    // Nightly gap detection alert evaluation
+    recurringJobManager.AddOrUpdate<INightlyGapDetectionJob>(
+        "gap-detection-nightly",
         job => job.ExecuteAsync(CancellationToken.None),
-        Cron.Hourly());
+        Cron.Daily());
+
+    // Weekly consolidated notifications digest (Mondays 08:00 UTC)
+    recurringJobManager.AddOrUpdate<IWeeklyDigestJob>(
+        "notifications-weekly-digest",
+        job => job.ExecuteAsync(CancellationToken.None),
+        Cron.Weekly(DayOfWeek.Monday, 8));
+
+    // Nightly carbon flags evaluation and dismissal expiration
+    recurringJobManager.AddOrUpdate<INightlyFlagEvaluationJob>(
+        "flags-evaluation-nightly",
+        job => job.ExecuteAsync(CancellationToken.None),
+        Cron.Daily(3)); // 03:00 AM UTC
 }
 
 // Health checks
@@ -267,5 +295,11 @@ app.MapDocumentsModuleEndpoints();
 app.MapExtractionModuleEndpoints();
 app.MapReviewModuleEndpoints();
 app.MapPlatformAdminModuleEndpoints();
+app.MapGapDetectionModuleEndpoints();
+app.MapNotificationsModuleEndpoints();
+app.MapFlagsModuleEndpoints();
+app.MapInsightsModuleEndpoints();
+app.MapRecommendationsModuleEndpoints();
+app.MapReportingModuleEndpoints();
 
 app.Run();
