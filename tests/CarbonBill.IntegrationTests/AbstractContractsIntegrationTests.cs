@@ -452,10 +452,15 @@ public class AbstractContractsIntegrationTests : IDisposable
     [Fact]
     public async Task DirectUtilityConnector_IngestDESCO_And_TitasGas_DigitalBills()
     {
-        using var scope = _serviceProvider.CreateScope();
+        var sp = BuildServiceProvider(useFakes: false);
+        InitializeDatabaseTables(sp, _connection);
+
         var orgId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
+
+        using var scope = sp.CreateScope();
         var tenantContext = scope.ServiceProvider.GetRequiredService<ITenantContext>();
-        tenantContext.SetContext(orgId, Guid.NewGuid(), Roles.Owner);
+        tenantContext.SetContext(orgId, userId, "Owner");
 
         var activityWriter = scope.ServiceProvider.GetRequiredService<IActivityWriter>();
         var activityDb = scope.ServiceProvider.GetRequiredService<ActivityUnitsDbContext>();
