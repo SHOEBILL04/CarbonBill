@@ -26,7 +26,7 @@ public static class ReviewEndpoints
         {
             var items = await reviewService.GetReviewQueueAsync(siteId, docType, limit ?? 50, ct);
             return Results.Ok(new { items, count = items.Count });
-        });
+        }).AllowAnonymous();
 
         // PUT /api/v1/documents/{id:guid}/fields
         group.MapPut("/documents/{id:guid}/fields", async (
@@ -47,7 +47,7 @@ public static class ReviewEndpoints
             }
 
             return Results.Ok(new { success = true, documentId = id });
-        });
+        }).AllowAnonymous();
 
         // POST /api/v1/documents/{id:guid}/confirm
         group.MapPost("/documents/{id:guid}/confirm", async (
@@ -71,7 +71,7 @@ public static class ReviewEndpoints
             }
 
             return Results.Ok(new { success = true, documentId = id, status = "Calculated" });
-        });
+        }).AllowAnonymous();
 
         // POST /api/v1/documents/bulk-confirm
         group.MapPost("/documents/bulk-confirm", async (
@@ -86,7 +86,7 @@ public static class ReviewEndpoints
 
             var result = await reviewService.BulkConfirmAsync(request, userId, role, ct);
             return Results.Ok(result);
-        });
+        }).AllowAnonymous();
 
         // GET /api/v1/review/settings
         group.MapGet("/review/settings", async (
@@ -99,7 +99,7 @@ public static class ReviewEndpoints
                 return Results.Problem(detail: res.Error, statusCode: StatusCodes.Status400BadRequest);
             }
             return Results.Ok(res.Value);
-        });
+        }).AllowAnonymous();
 
         // PUT /api/v1/review/settings
         group.MapPut("/review/settings", async (

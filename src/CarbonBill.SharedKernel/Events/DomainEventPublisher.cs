@@ -8,13 +8,6 @@ public interface IDomainEventHandler<in TEvent> where TEvent : IDomainEvent
     Task HandleAsync(TEvent domainEvent, CancellationToken cancellationToken = default);
 }
 
-public record DocumentUploadedEvent(
-    Guid DocumentId,
-    Guid OrgId,
-    string StoragePath,
-    string ContentType,
-    string Source,
-    DateTime OccurredOnUtc) : IDomainEvent;
 
 public record DocumentExtractedEvent(
     Guid DocumentId,

@@ -320,6 +320,14 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
             <p className="text-[11px] text-emerald-700 mt-1">
               ডকুমেন্টটি সফলভাবে সংরক্ষিত হয়েছে এবং হিসাবরক্ষকের যাচাইয়ের জন্য প্রস্তুত।
             </p>
+            <div className="mt-2.5 flex items-center gap-2">
+              <a
+                href="/?mode=review"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-xl shadow-sm transition"
+              >
+                📋 পর্যালোচনা কিউ-তে বিলটি দেখুন (View Extracted Bill ➔)
+              </a>
+            </div>
           </div>
         </div>
       )}
