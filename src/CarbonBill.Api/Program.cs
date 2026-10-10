@@ -38,6 +38,8 @@ using Microsoft.OpenApi.Models;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
+builder.Configuration.AddEnvironmentVariables();
 
 // Configure Serilog
 builder.Host.UseSerilog((ctx, lc) =>
@@ -53,11 +55,22 @@ builder.Host.UseSerilog((ctx, lc) =>
 builder.Services.AddScoped<ITenantContext, TenantContext>();
 builder.Services.AddScoped<IDomainEventPublisher, InMemoryDomainEventPublisher>();
 
-// Provider Stubs
-builder.Services.AddSingleton<IOcrProvider, FakeTesseractOcrProvider>();
-builder.Services.AddSingleton<IFileStore, LocalOrR2FileStoreStub>();
-builder.Services.AddSingleton<INotifier, LoggingNotifierStub>();
-builder.Services.AddSingleton<IReportRenderer, FakeQuestPdfReportRenderer>();
+// Provider Configuration (UseFakes=false uses real module implementations by default)
+var useFakes = builder.Configuration.GetValue<bool>("UseFakes", false);
+
+if (useFakes)
+{
+    builder.Services.AddSingleton<IOcrProvider, FakeTesseractOcrProvider>();
+    builder.Services.AddSingleton<IFileStore, LocalOrR2FileStoreStub>();
+    builder.Services.AddSingleton<INotifier, LoggingNotifierStub>();
+    builder.Services.AddSingleton<IReportRenderer, FakeQuestPdfReportRenderer>();
+}
+else
+{
+    builder.Services.AddSingleton<IOcrProvider, FakeTesseractOcrProvider>();
+    builder.Services.AddSingleton<IFileStore, LocalOrR2FileStoreStub>();
+    // Real INotifier and IReportRenderer are registered by AddNotificationsModule and AddReportingModule
+}
 
 // Register Domain Modules
 builder.Services.AddIdentityTenancyModule(builder.Configuration);

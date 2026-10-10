@@ -110,6 +110,8 @@ export async function processQueueUploads(
   let succeeded = 0;
   let failed = 0;
 
+  const effectiveToken = token || (typeof window !== 'undefined' ? localStorage.getItem('carbonbill_token') : null);
+
   for (const item of pending) {
     await updateCaptureStatus(item.id, 'uploading');
 
@@ -117,8 +119,8 @@ export async function processQueueUploads(
       const headers: Record<string, string> = {
         'Idempotency-Key': item.id,
       };
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
+      if (effectiveToken) {
+        headers['Authorization'] = `Bearer ${effectiveToken}`;
       }
 
       let response: Response;
@@ -128,6 +130,7 @@ export async function processQueueUploads(
         formData.append('file', item.blob, item.fileName || 'capture.webp');
         formData.append('source', 'phone');
         formData.append('category', item.category);
+        formData.append('docType', mapCategoryToDocType(item.category));
 
         response = await fetch(apiBaseUrl, {
           method: 'POST',
@@ -200,6 +203,17 @@ export function triggerBackgroundSync(): void {
         // Fallback: window online listener handles sync
       });
   }
+}
+
+export async function retryCaptureItem(id: string): Promise<void> {
+  const db = await getDb();
+  const item = await db.get('captureQueue', id);
+  if (!item) return;
+
+  item.status = 'queued';
+  item.error = undefined;
+  await db.put('captureQueue', item);
+  await processQueueUploads();
 }
 
 // Auto-register window online listener

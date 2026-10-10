@@ -18,7 +18,10 @@ export const ScopeBreakdownChart: React.FC<ScopeBreakdownChartProps> = ({
   scope3,
   isBangla,
 }) => {
-  const total = scope1 + scope2 + scope3;
+  const safeScope1 = Number(scope1 || 0);
+  const safeScope2 = Number(scope2 || 0);
+  const safeScope3 = Number(scope3 || 0);
+  const total = safeScope1 + safeScope2 + safeScope3;
 
   const chartData = useMemo(() => {
     return {
@@ -98,7 +101,7 @@ export const ScopeBreakdownChart: React.FC<ScopeBreakdownChartProps> = ({
             </span>
           </div>
           <div className="font-mono text-slate-800">
-            {isBangla ? toBanglaDigits(scope1.toFixed(2)) : scope1.toFixed(2)} tCO₂e (
+            {isBangla ? toBanglaDigits(safeScope1.toFixed(2)) : safeScope1.toFixed(2)} tCO₂e (
             {isBangla ? toBanglaDigits(s1Pct) : s1Pct}%)
           </div>
         </div>
@@ -111,7 +114,7 @@ export const ScopeBreakdownChart: React.FC<ScopeBreakdownChartProps> = ({
             </span>
           </div>
           <div className="font-mono text-slate-800">
-            {isBangla ? toBanglaDigits(scope2.toFixed(2)) : scope2.toFixed(2)} tCO₂e (
+            {isBangla ? toBanglaDigits(safeScope2.toFixed(2)) : safeScope2.toFixed(2)} tCO₂e (
             {isBangla ? toBanglaDigits(s2Pct) : s2Pct}%)
           </div>
         </div>
@@ -124,7 +127,7 @@ export const ScopeBreakdownChart: React.FC<ScopeBreakdownChartProps> = ({
             </span>
           </div>
           <div className="font-mono text-slate-800">
-            {isBangla ? toBanglaDigits(scope3.toFixed(2)) : scope3.toFixed(2)} tCO₂e (
+            {isBangla ? toBanglaDigits(safeScope3.toFixed(2)) : safeScope3.toFixed(2)} tCO₂e (
             {isBangla ? toBanglaDigits(s3Pct) : s3Pct}%)
           </div>
         </div>

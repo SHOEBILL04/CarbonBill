@@ -29,3 +29,7 @@ dist-ssr/
 .DS_Store
 Thumbs.db
 scratch/
+.env
+*.env
+appsettings.Local.json
+appsettings.*.Local.json

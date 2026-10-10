@@ -2,6 +2,7 @@ using CarbonBill.Modules.Extraction.Persistence;
 using CarbonBill.Modules.Extraction.Services;
 using CarbonBill.Modules.Extraction.Services.Groq;
 using CarbonBill.Modules.Extraction.Services.Providers;
+using CarbonBill.Modules.Extraction.Services.Tracing;
 using CarbonBill.SharedKernel.Domain;
 using CarbonBill.SharedKernel.Persistence;
 using CarbonBill.SharedKernel.Tenancy;
@@ -53,9 +54,11 @@ public static class ExtractionModuleExtensions
                 sp.GetRequiredService<TenantSaveChangesInterceptor>());
         });
 
+        services.AddHttpClient<ILangSmithTracer, CarbonBill.Modules.Extraction.Services.Tracing.LangSmithTracer>();
         services.AddHttpClient<IGroqLlmExtractor, GroqLlmExtractor>();
         services.AddSingleton<IDualOcrEngine, DualOcrEngine>();
         services.AddScoped<IExtractionService, ExtractionService>();
+        services.AddScoped<CarbonBill.SharedKernel.Events.IDomainEventHandler<CarbonBill.SharedKernel.Events.DocumentUploadedEvent>, DocumentUploadedExtractionHandler>();
 
         return services;
     }

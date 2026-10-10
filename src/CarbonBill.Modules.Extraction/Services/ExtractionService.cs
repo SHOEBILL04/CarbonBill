@@ -12,14 +12,6 @@ using Microsoft.Extensions.Logging;
 
 namespace CarbonBill.Modules.Extraction.Services;
 
-public record DocumentExtractedEvent(
-    Guid DocumentId,
-    Guid OrgId,
-    int TierUsed,
-    string? DetectedDocType,
-    int FieldCount,
-    DateTime OccurredOnUtc) : IDomainEvent;
-
 public interface IExtractionService
 {
     Task<Result<ExtractionRun>> ProcessExtractionAsync(
@@ -108,12 +100,16 @@ public class ExtractionService(
 
         logger.LogInformation("Extraction completed for Document {DocumentId}. Extracted {Count} fields.", documentId, extractionRun.Fields.Count);
 
+        var finalDocType = (groqResult.DetectedDocumentType != null && groqResult.DetectedDocumentType != "GeneralDocument")
+            ? groqResult.DetectedDocumentType
+            : (classification.DocumentType != DocumentTypes.Unknown ? classification.DocumentType : (groqResult.DetectedDocumentType ?? "GeneralDocument"));
+
         // Publish DocumentExtracted domain event
         await eventPublisher.PublishAsync(new DocumentExtractedEvent(
             documentId,
             orgId.Value,
             groqResult.TierUsed,
-            groqResult.DetectedDocumentType ?? classification.DocumentType,
+            finalDocType,
             extractionRun.Fields.Count,
             DateTime.UtcNow), ct);
 

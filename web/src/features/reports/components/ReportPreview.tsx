@@ -108,7 +108,7 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
           </span>
           <div className="flex items-baseline gap-1">
             <span className="text-2xl font-black text-slate-900">
-              {isBangla ? toBanglaDigits(report.totalEmissions.toFixed(2)) : report.totalEmissions.toFixed(2)}
+              {isBangla ? toBanglaDigits(Number(report.totalEmissions ?? 0).toFixed(2)) : Number(report.totalEmissions ?? 0).toFixed(2)}
             </span>
             <span className="text-xs font-semibold text-slate-500">tCO₂e</span>
           </div>
@@ -120,7 +120,7 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
           </span>
           <div className="flex items-baseline gap-1">
             <span className="text-2xl font-black text-orange-600">
-              {isBangla ? toBanglaDigits(report.scope1Emissions.toFixed(2)) : report.scope1Emissions.toFixed(2)}
+              {isBangla ? toBanglaDigits(Number(report.scope1Emissions ?? 0).toFixed(2)) : Number(report.scope1Emissions ?? 0).toFixed(2)}
             </span>
             <span className="text-xs font-semibold text-slate-500">tCO₂e</span>
           </div>
@@ -132,7 +132,7 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
           </span>
           <div className="flex items-baseline gap-1">
             <span className="text-2xl font-black text-sky-600">
-              {isBangla ? toBanglaDigits(report.scope2Emissions.toFixed(2)) : report.scope2Emissions.toFixed(2)}
+              {isBangla ? toBanglaDigits(Number(report.scope2Emissions ?? 0).toFixed(2)) : Number(report.scope2Emissions ?? 0).toFixed(2)}
             </span>
             <span className="text-xs font-semibold text-slate-500">tCO₂e</span>
           </div>
@@ -145,8 +145,8 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
           <div className="flex items-baseline gap-1">
             <span className="text-2xl font-black text-teal-800">
               {isBangla
-                ? toBanglaDigits((report.dataQualityScore * 100).toFixed(0))
-                : (report.dataQualityScore * 100).toFixed(0)}
+                ? toBanglaDigits(((report.dataQualityScore ?? 0) * 100).toFixed(0))
+                : ((report.dataQualityScore ?? 0) * 100).toFixed(0)}
               %
             </span>
             <span className="text-xs font-bold text-teal-700 ml-1">({report.dqsGrade})</span>

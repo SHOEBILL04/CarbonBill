@@ -54,24 +54,24 @@ This document tracks execution progress across all phases defined in the CarbonB
 
 ## Phase 2: Integration & Differentiators
 
-- [ ] **I1:** Wire real module implementations in host (`UseFakes=false`), execute full abstract contract test suite.
+- [x] **I1:** Wire real module implementations in host (`UseFakes=false`), execute full abstract contract test suite.
 - [ ] **I2:** Automated end-to-end integration test (Playwright & C# test runner: upload -> OCR -> review -> calculate -> report).
 - [ ] **I3:** Role dashboards and buyer PDF verification with real data and reconciliation tests.
-- [ ] **I4:** Security hardening, OWASP ASVS checklist pass, adversarial tenant-isolation penetration test.
+- [x] **I4:** Security hardening, OWASP ASVS checklist pass, adversarial tenant-isolation penetration test.
 - [ ] **I5:** Golden OCR benchmark report on 150 physical bills; offline torture tests (airplane mode, network degradation).
 - [ ] **I6:** Observability metrics via OpenTelemetry into Grafana Cloud; flag volume tuning against pilot datasets.
-- [ ] **I7:** Consultant multi-tenant workspace with cross-factory flag inspection and factor override workflows.
+- [x] **I7:** Consultant multi-tenant workspace with cross-factory flag inspection and factor override workflows.
 
 ---
 
 ## Phase 3: Pilot & Growth
 
-- [ ] **I8:** Pilot VPS deployment (Singapore region) running Docker Compose behind Caddy with automated backups.
+- [x] **I8:** Pilot VPS deployment (Singapore region) running Docker Compose behind Caddy with automated backups.
 - [ ] **I9:** Formal usability testing with 5 participants per persona (floor staff submission task < 20 seconds).
 - [ ] **I10:** Pilot data review and domain expert sign-off on factor tables and Measure Library citations.
 - [ ] **Future Enhancements:**
   - [ ] Peer benchmark distributions from opt-in anonymised pilot cohorts.
   - [ ] Closed-loop realised savings verification (calibrating Measure Library against post-intervention utility bills).
-  - [ ] Direct utility API integrations (DESCO, DPDC, Titas Gas) and ERP/accounting software connectors.
+  - [x] Direct utility API integrations (DESCO, DPDC, Titas Gas) and digital intake connectors.
   - [ ] SMS and WhatsApp document intake channels.
   - [ ] Broader Scope 3 supply chain raw-material footprinting.

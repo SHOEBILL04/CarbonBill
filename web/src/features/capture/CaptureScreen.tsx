@@ -20,6 +20,7 @@ import {
   enqueueCapture,
   getAllCaptureItems,
   processQueueUploads,
+  retryCaptureItem,
   CaptureQueueItem,
 } from './offlineCaptureQueue';
 import { processAndCompressImage } from './imageProcessing';
@@ -108,6 +109,16 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
     setIsProcessing(true);
     try {
       await processQueueUploads();
+      await loadQueue();
+    } finally {
+      setIsProcessing(false);
+    }
+  }
+
+  async function handleRetry(id: string) {
+    setIsProcessing(true);
+    try {
+      await retryCaptureItem(id);
       await loadQueue();
     } finally {
       setIsProcessing(false);
@@ -309,6 +320,14 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
             <p className="text-[11px] text-emerald-700 mt-1">
               ডকুমেন্টটি সফলভাবে সংরক্ষিত হয়েছে এবং হিসাবরক্ষকের যাচাইয়ের জন্য প্রস্তুত।
             </p>
+            <div className="mt-2.5 flex items-center gap-2">
+              <a
+                href={`/?mode=review&docId=${confirmedReceipt.id}`}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-xl shadow-sm transition"
+              >
+                📋 পর্যালোচনা কিউ-তে বিলটি দেখুন (View Extracted Bill ➔)
+              </a>
+            </div>
           </div>
         </div>
       )}
@@ -467,6 +486,11 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
                           ? `ম্যানুয়াল: ${formatBanglaNumber(sub.manualQuantity)} ${sub.manualUnit || ''}`
                           : sub.fileName || 'ক্যামেরা ফটো'}
                       </p>
+                      {isFailed && sub.error && (
+                        <p className="text-[10px] text-rose-500 font-medium truncate max-w-[180px]" title={sub.error}>
+                          {sub.error}
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -488,9 +512,19 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
                       </span>
                     )}
                     {isFailed && (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800">
-                        <AlertCircle size={12} /> ব্যর্থ
-                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800">
+                          <AlertCircle size={12} /> ব্যর্থ
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleRetry(sub.id)}
+                          className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-teal-600 hover:bg-teal-700 text-white flex items-center gap-1 shadow-2xs transition active:scale-95 cursor-pointer"
+                          title="পুনরায় আপলোড চেষ্টা করুন"
+                        >
+                          <RefreshCw size={11} /> পুনরায় চেষ্টা
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>

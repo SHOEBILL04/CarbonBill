@@ -10,7 +10,7 @@ interface IntensityChartProps {
 
 export const IntensityChart: React.FC<IntensityChartProps> = ({ data, isBangla }) => {
   const { benchmark, verifiedIntensity, inclEstimateIntensity, unit, productionQuantity } = data;
-  const hasBenchmark = benchmark !== null && benchmark.n >= 10;
+  const hasBenchmark = Boolean(benchmark && typeof benchmark.n === 'number' && benchmark.n >= 10);
 
   return (
     <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
@@ -38,7 +38,7 @@ export const IntensityChart: React.FC<IntensityChartProps> = ({ data, isBangla }
           </span>
           <div className="flex items-baseline gap-1">
             <span className="text-2xl font-black text-teal-900">
-              {isBangla ? toBanglaDigits(verifiedIntensity.toFixed(2)) : verifiedIntensity.toFixed(2)}
+              {isBangla ? toBanglaDigits(Number(verifiedIntensity ?? 0).toFixed(2)) : Number(verifiedIntensity ?? 0).toFixed(2)}
             </span>
             <span className="text-[10px] text-slate-500">kg CO₂e</span>
           </div>
@@ -53,7 +53,7 @@ export const IntensityChart: React.FC<IntensityChartProps> = ({ data, isBangla }
           </span>
           <div className="flex items-baseline gap-1">
             <span className="text-2xl font-black text-slate-800">
-              {isBangla ? toBanglaDigits(inclEstimateIntensity.toFixed(2)) : inclEstimateIntensity.toFixed(2)}
+              {isBangla ? toBanglaDigits(Number(inclEstimateIntensity ?? 0).toFixed(2)) : Number(inclEstimateIntensity ?? 0).toFixed(2)}
             </span>
             <span className="text-[10px] text-slate-500">kg CO₂e</span>
           </div>
@@ -70,7 +70,7 @@ export const IntensityChart: React.FC<IntensityChartProps> = ({ data, isBangla }
           {isBangla ? 'পোশাক খাতের তুলনামূলক বেঞ্চমার্ক (Peer Comparison)' : 'Industry Peer Benchmark Distribution'}
         </h4>
 
-        {hasBenchmark ? (
+        {hasBenchmark && benchmark ? (
           <div className="space-y-3 p-3.5 bg-teal-50/50 border border-teal-200/60 rounded-xl">
             <div className="flex items-center justify-between text-xs">
               <span className="text-slate-600 font-medium">
@@ -103,10 +103,10 @@ export const IntensityChart: React.FC<IntensityChartProps> = ({ data, isBangla }
               </div>
 
               <div className="flex justify-between text-[10px] text-slate-500 font-mono">
-                <span>{isBangla ? toBanglaDigits(benchmark.p25.toFixed(1)) : benchmark.p25.toFixed(1)}</span>
-                <span>{isBangla ? toBanglaDigits(benchmark.p50.toFixed(1)) : benchmark.p50.toFixed(1)} (Median)</span>
-                <span>{isBangla ? toBanglaDigits(benchmark.p75.toFixed(1)) : benchmark.p75.toFixed(1)}</span>
-                <span>{isBangla ? toBanglaDigits(benchmark.p90.toFixed(1)) : benchmark.p90.toFixed(1)}</span>
+                <span>{isBangla ? toBanglaDigits(Number(benchmark.p25 ?? 0).toFixed(1)) : Number(benchmark.p25 ?? 0).toFixed(1)}</span>
+                <span>{isBangla ? toBanglaDigits(Number(benchmark.p50 ?? 0).toFixed(1)) : Number(benchmark.p50 ?? 0).toFixed(1)} (Median)</span>
+                <span>{isBangla ? toBanglaDigits(Number(benchmark.p75 ?? 0).toFixed(1)) : Number(benchmark.p75 ?? 0).toFixed(1)}</span>
+                <span>{isBangla ? toBanglaDigits(Number(benchmark.p90 ?? 0).toFixed(1)) : Number(benchmark.p90 ?? 0).toFixed(1)}</span>
               </div>
             </div>
 
@@ -114,8 +114,8 @@ export const IntensityChart: React.FC<IntensityChartProps> = ({ data, isBangla }
               <Info size={14} className="text-teal-700 flex-shrink-0" />
               <span>
                 {isBangla
-                  ? `আপনার কারখানার স্কোর মধ্যবর্তী মান (P50: ${toBanglaDigits(benchmark.p50.toFixed(1))}) এর কাছাকাছি।`
-                  : `Your factory is operating near the median peer intensity (P50: ${benchmark.p50.toFixed(1)}).`}
+                  ? `আপনার কারখানার স্কোর মধ্যবর্তী মান (P50: ${toBanglaDigits(Number(benchmark.p50 ?? 0).toFixed(1))}) এর কাছাকাছি।`
+                  : `Your factory is operating near the median peer intensity (P50: ${Number(benchmark.p50 ?? 0).toFixed(1)}).`}
               </span>
             </div>
           </div>
