@@ -26,7 +26,7 @@ public class DocumentUploadedExtractionHandler(
                 return;
             }
 
-            var fileName = Path.GetFileName(domainEvent.StoragePath);
+            var fileName = domainEvent.FileName ?? Path.GetFileName(domainEvent.StoragePath);
             var result = await extractionService.ProcessExtractionAsync(
                 domainEvent.DocumentId,
                 stream,

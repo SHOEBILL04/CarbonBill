@@ -37,12 +37,44 @@ export function ReviewFieldsForm({
 
   const firstLowConfidenceInputRef = useRef<HTMLInputElement>(null);
 
+  // Canonical bill fields that must always appear in review
+  const canonicalFields = ['Vendor', 'BillingPeriod', 'BillNumber', 'Quantity', 'Unit', 'AmountBdt'];
+
   // Initialize corrections and auto-focus low-confidence field
   useEffect(() => {
-    const initial: Record<string, string> = {};
+    const initial: Record<string, string> = {
+      Vendor: '',
+      BillingPeriod: '',
+      BillNumber: '',
+      Quantity: '',
+      Unit: document.docType === 'GasBill' ? 'm3' : document.docType === 'DieselSlip' ? 'litre' : 'kWh',
+      AmountBdt: '',
+    };
+
     document.fields.forEach((f) => {
-      initial[f.fieldName] = f.correctedValue || f.normalizedValue || f.rawValue;
+      const val = f.correctedValue || f.normalizedValue || f.rawValue || '';
+      initial[f.fieldName] = val;
     });
+
+    // Check common aliases
+    if (!initial['Vendor']) {
+      initial['Vendor'] = initial['Organization'] || initial['Provider'] || initial['Company'] || '';
+    }
+    if (!initial['AmountBdt'] || initial['AmountBdt'] === '0' || initial['AmountBdt'] === '0.00') {
+      const altAmt = initial['Amount'] || initial['TotalAmount'] || initial['TotalPayable'] || initial['NetPayable'];
+      if (altAmt && altAmt !== '0' && altAmt !== '0.00') initial['AmountBdt'] = altAmt;
+    }
+    if (!initial['Quantity'] || initial['Quantity'] === '0' || initial['Quantity'] === '0.00') {
+      const altQty = initial['Consumption'] || initial['TotalUnits'] || initial['UsedUnits'] || initial['Units'];
+      if (altQty && altQty !== '0' && altQty !== '0.00') initial['Quantity'] = altQty;
+    }
+    if (!initial['BillingPeriod']) {
+      initial['BillingPeriod'] = initial['BillMonth'] || initial['Period'] || initial['Month'] || '';
+    }
+    if (!initial['BillNumber']) {
+      initial['BillNumber'] = initial['BillNo'] || initial['InvoiceNo'] || initial['AccountNumber'] || '';
+    }
+
     setCorrections(initial);
     setIsEstimated(document.isEstimated);
 
@@ -70,9 +102,9 @@ export function ReviewFieldsForm({
       const payload: ConfirmRequest = {
         activityType: document.docType,
         overrideQuantity: qtyNum > 0 ? qtyNum : undefined,
-        overrideUnit: corrections['Unit'],
+        overrideUnit: corrections['Unit'] || 'kWh',
         overrideAmountBdt: amountNum > 0 ? amountNum : undefined,
-        overridePeriod: corrections['BillingPeriod'],
+        overridePeriod: corrections['BillingPeriod'] || undefined,
         isEstimated,
         resolveDuplicateWithDocId: duplicateResolutionId || undefined,
       };
@@ -82,6 +114,44 @@ export function ReviewFieldsForm({
       setIsSubmitting(false);
     }
   }
+
+  // Build sorted list of fields guaranteeing standard fields + any extras
+  const existingFieldMap = new Map<string, ReviewField>(
+    document.fields.map((f) => [f.fieldName, f])
+  );
+
+  const displayFields: Array<{
+    id: string;
+    fieldName: string;
+    confidence: number;
+    sourceTier: number;
+    rawValue?: string;
+  }> = [];
+
+  // Add canonical fields in logical order
+  canonicalFields.forEach((fieldName) => {
+    const existing = existingFieldMap.get(fieldName);
+    displayFields.push({
+      id: existing?.id || `field_${fieldName}`,
+      fieldName,
+      confidence: existing?.confidence ?? 0.90,
+      sourceTier: existing?.sourceTier ?? 3,
+      rawValue: existing?.rawValue,
+    });
+  });
+
+  // Add any extra extracted fields (MeterNumber, PowerFactorPenaltyBdt, etc.)
+  document.fields.forEach((f) => {
+    if (!canonicalFields.includes(f.fieldName)) {
+      displayFields.push({
+        id: f.id,
+        fieldName: f.fieldName,
+        confidence: f.confidence,
+        sourceTier: f.sourceTier,
+        rawValue: f.rawValue,
+      });
+    }
+  });
 
   const confidencePct = Math.round(document.overallConfidence * 100);
   const isHighConfidence = document.overallConfidence >= 0.9;
@@ -121,9 +191,25 @@ export function ReviewFieldsForm({
         </div>
       </div>
 
+      {/* Quick Summary Pill Banner for Consumption & Amount */}
+      <div className="flex items-center justify-between bg-emerald-50/70 border border-emerald-200 rounded-xl px-3.5 py-2 mb-3.5">
+        <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-950">
+          <span className="text-emerald-700">ব্যবহার:</span>
+          <span className="font-mono font-black text-slate-900">
+            {corrections['Quantity'] || '—'} {corrections['Unit'] || ''}
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-950">
+          <span className="text-emerald-700">মোট টাকা:</span>
+          <span className="font-mono font-black text-emerald-800 text-sm">
+            ৳ {corrections['AmountBdt'] || '—'}
+          </span>
+        </div>
+      </div>
+
       {/* Field List */}
       <div className="flex-1 overflow-y-auto space-y-3.5 pr-1">
-        {document.fields.map((field, idx) => {
+        {displayFields.map((field, idx) => {
           const val = corrections[field.fieldName] ?? '';
           const isLow = field.confidence < 0.85;
           const isFocused = activeField?.id === field.id;
@@ -131,7 +217,7 @@ export function ReviewFieldsForm({
           return (
             <div
               key={field.id}
-              onClick={() => onSelectField(field)}
+              onClick={() => onSelectField(field as any)}
               className={`p-3 rounded-xl border-2 transition cursor-pointer ${
                 isFocused
                   ? 'border-emerald-600 bg-emerald-50/30 shadow-xs'
@@ -165,12 +251,13 @@ export function ReviewFieldsForm({
                 ref={isLow && idx === 0 ? firstLowConfidenceInputRef : null}
                 type="text"
                 value={val}
-                onFocus={() => onSelectField(field)}
+                placeholder={getFieldPlaceholder(field.fieldName)}
+                onFocus={() => onSelectField(field as any)}
                 onChange={(e) => handleFieldChange(field.fieldName, e.target.value)}
                 className="w-full px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-semibold text-slate-900 focus:outline-hidden focus:border-emerald-600 bg-white"
               />
 
-              {field.correctedValue && (
+              {field.rawValue && field.rawValue !== val && (
                 <p className="text-[10px] text-emerald-700 font-medium mt-1">
                   মূল ও সি আর: <span className="font-mono">{field.rawValue}</span>
                 </p>
@@ -247,5 +334,26 @@ function translateField(fieldName: string): string {
       return 'পাওয়ার ফ্যাক্টর জরিমানা (Penalty)';
     default:
       return fieldName;
+  }
+}
+
+function getFieldPlaceholder(fieldName: string): string {
+  switch (fieldName) {
+    case 'Vendor':
+      return 'উদা: DPDC, DESCO, Titas Gas';
+    case 'BillNumber':
+      return 'উদা: 25128075';
+    case 'BillingPeriod':
+      return 'উদা: 2026-09';
+    case 'Quantity':
+      return 'উদা: 439.00';
+    case 'Unit':
+      return 'উদা: kWh, m3, litre';
+    case 'AmountBdt':
+      return 'উদা: 4445.00';
+    case 'MeterNumber':
+      return 'উদা: 167564';
+    default:
+      return 'মান লিখুন...';
   }
 }

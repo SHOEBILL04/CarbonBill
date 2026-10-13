@@ -61,6 +61,20 @@ public class ReviewService(
     private async Task<Guid> GetEffectiveOrgIdAsync(CancellationToken ct)
     {
         if (tenantContext.CurrentOrgId.HasValue) return tenantContext.CurrentOrgId.Value;
+        try
+        {
+            var conn = documentsDb.Database.GetDbConnection();
+            if (conn.State != System.Data.ConnectionState.Open) await conn.OpenAsync(ct);
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "SELECT Id FROM Organizations WHERE IsActive = 1 LIMIT 1;";
+            var scalar = await cmd.ExecuteScalarAsync(ct);
+            if (scalar != null && Guid.TryParse(scalar.ToString(), out var parsedOrg))
+            {
+                return parsedOrg;
+            }
+        }
+        catch { }
+
         var existing = await documentsDb.Documents.Select(d => (Guid?)d.OrgId).FirstOrDefaultAsync(ct);
         return existing ?? DefaultPilotOrgId;
     }
@@ -158,12 +172,13 @@ public class ReviewService(
 
         var run = await extractionDb.ExtractionRuns
             .Include(r => r.Fields)
-            .FirstOrDefaultAsync(r => r.OrgId == orgId && r.DocumentId == documentId, ct);
+            .FirstOrDefaultAsync(r => (r.OrgId == orgId || !tenantContext.CurrentOrgId.HasValue) && r.DocumentId == documentId, ct);
 
         if (run == null)
         {
             return Result.Failure<bool>("Extraction run not found for document.");
         }
+        orgId = run.OrgId;
 
         foreach (var kvp in request.FieldCorrections)
         {
@@ -213,11 +228,12 @@ public class ReviewService(
         if (reviewerUserId == Guid.Empty) reviewerUserId = Guid.Parse("22222222-2222-2222-2222-222222222222");
 
         // 2. Fetch Document
-        var document = await documentsDb.Documents.FirstOrDefaultAsync(d => d.OrgId == orgId && d.Id == documentId, ct);
+        var document = await documentsDb.Documents.FirstOrDefaultAsync(d => (d.OrgId == orgId || !tenantContext.CurrentOrgId.HasValue) && d.Id == documentId, ct);
         if (document == null)
         {
             return Result.Failure<Guid>($"Document {documentId} not found.");
         }
+        orgId = document.OrgId;
 
         if (document.Status == DocumentStatuses.Locked)
         {

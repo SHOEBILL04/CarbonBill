@@ -161,7 +161,9 @@ public class DocumentService(
             document.StoragePath,
             document.ContentType,
             document.Source,
-            DateTime.UtcNow), ct);
+            DateTime.UtcNow,
+            DocType: document.DocType,
+            FileName: document.FileName), ct);
 
         return Result.Success(new DocumentReceiptDto(
             document.Id,
