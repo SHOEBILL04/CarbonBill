@@ -96,7 +96,7 @@ export default function DashboardView({ user, onGoToFloor, onGoToReview, onLogou
               <div className="text-right">
                 <p className="text-xs font-bold text-slate-800">{user.fullName}</p>
                 <span className="text-[10px] text-teal-700 font-semibold px-1.5 py-0.5 bg-teal-50 rounded">
-                  {t(`roles.${user.activeRole}`)}
+                  {user.activeOrgName || 'Apex Textiles'}
                 </span>
               </div>
               <button

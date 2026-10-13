@@ -19,7 +19,7 @@ export default function App() {
     const params = new URLSearchParams(window.location.search);
     if (storedUser) {
       setUser(storedUser);
-      if (storedUser.activeRole === 'FloorStaff') {
+      if (params.get('mode') === 'floor') {
         setView('floor');
       } else if (params.get('mode') === 'review') {
         setView('review');
@@ -37,14 +37,10 @@ export default function App() {
     }
   }, []);
 
-  function handleLoginSuccess(role: string) {
+  function handleLoginSuccess() {
     const updated = getStoredUser();
     setUser(updated);
-    if (role === 'FloorStaff') {
-      setView('floor');
-    } else {
-      setView('dashboard');
-    }
+    setView('dashboard');
   }
 
   function handleLogout() {
@@ -62,7 +58,7 @@ export default function App() {
               ফ্লোর মোড লোড হচ্ছে... (Loading Floor Mode...)
             </div>
           }>
-            <FloorStaffView onBack={user && user.activeRole !== 'FloorStaff' ? () => setView('dashboard') : () => setView('login')} />
+            <FloorStaffView onBack={user ? () => setView('dashboard') : () => setView('login')} />
           </Suspense>
         )}
 

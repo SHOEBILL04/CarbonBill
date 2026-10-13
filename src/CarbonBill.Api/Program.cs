@@ -207,6 +207,15 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+// Execute CLI seed command if --seed argument is passed
+if (args.Contains("--seed"))
+{
+    Log.Information("CarbonBill CLI --seed flag detected. Loading versioned platform datasets...");
+    await DataSeeder.SeedDevelopmentDataAsync(app.Services);
+    Log.Information("Versioned platform datasets successfully loaded. Exiting process.");
+    return;
+}
+
 // Seed Database in Development
 if (app.Environment.IsDevelopment())
 {

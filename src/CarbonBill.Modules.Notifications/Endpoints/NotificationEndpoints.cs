@@ -40,7 +40,7 @@ public static class NotificationEndpoints
             CancellationToken ct) =>
         {
             var userId = tenantContext.CurrentUserId ?? Guid.Empty;
-            if (userId == Guid.Empty && !tenantContext.IsPlatformAdmin)
+            if (userId == Guid.Empty)
             {
                 return Results.Unauthorized();
             }
@@ -104,7 +104,7 @@ public static class NotificationEndpoints
             CancellationToken ct) =>
         {
             var userId = tenantContext.CurrentUserId ?? Guid.Empty;
-            if (userId == Guid.Empty && !tenantContext.IsPlatformAdmin)
+            if (userId == Guid.Empty)
             {
                 return Results.Unauthorized();
             }
@@ -120,7 +120,7 @@ public static class NotificationEndpoints
             CancellationToken ct) =>
         {
             var userId = tenantContext.CurrentUserId ?? Guid.Empty;
-            if (userId == Guid.Empty && !tenantContext.IsPlatformAdmin)
+            if (userId == Guid.Empty)
             {
                 return Results.Unauthorized();
             }
@@ -137,7 +137,7 @@ public static class NotificationEndpoints
             CancellationToken ct) =>
         {
             var userId = tenantContext.CurrentUserId ?? Guid.Empty;
-            if (userId == Guid.Empty && !tenantContext.IsPlatformAdmin)
+            if (userId == Guid.Empty)
             {
                 return Results.Unauthorized();
             }
@@ -170,7 +170,7 @@ public static class NotificationEndpoints
             CancellationToken ct) =>
         {
             var userId = tenantContext.CurrentUserId ?? Guid.Empty;
-            if (userId == Guid.Empty && !tenantContext.IsPlatformAdmin)
+            if (userId == Guid.Empty)
             {
                 return Results.Unauthorized();
             }
@@ -187,7 +187,7 @@ public static class NotificationEndpoints
             CancellationToken ct) =>
         {
             var userId = tenantContext.CurrentUserId ?? Guid.Empty;
-            if (userId == Guid.Empty && !tenantContext.IsPlatformAdmin)
+            if (userId == Guid.Empty)
             {
                 return Results.Unauthorized();
             }
@@ -218,7 +218,7 @@ public static class NotificationEndpoints
             CancellationToken ct) =>
         {
             var userId = tenantContext.CurrentUserId ?? Guid.Empty;
-            if (userId == Guid.Empty && !tenantContext.IsPlatformAdmin)
+            if (userId == Guid.Empty)
             {
                 return Results.Unauthorized();
             }
@@ -243,7 +243,7 @@ public static class NotificationEndpoints
             CancellationToken ct) =>
         {
             var userId = tenantContext.CurrentUserId ?? Guid.Empty;
-            if (userId == Guid.Empty && !tenantContext.IsPlatformAdmin)
+            if (userId == Guid.Empty)
             {
                 return Results.Unauthorized();
             }
