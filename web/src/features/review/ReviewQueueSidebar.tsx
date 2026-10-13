@@ -112,6 +112,35 @@ export function ReviewQueueSidebar({
                   </span>
                   <span>{formatBanglaDate(item.capturedAtUtc)}</span>
                 </div>
+
+                {/* Extracted Amount and Quantity Badge */}
+                {(() => {
+                  const getVal = (name: string) => {
+                    const f = item.fields?.find(
+                      (x) => x.fieldName?.toLowerCase() === name.toLowerCase()
+                    );
+                    return f?.correctedValue || f?.normalizedValue || f?.rawValue;
+                  };
+                  const amt = getVal('AmountBdt') || getVal('Amount');
+                  const qty = getVal('Quantity') || getVal('Consumption');
+                  const unit = getVal('Unit') || '';
+                  const hasAmt = amt && amt !== '0.00' && amt !== '0';
+                  const hasQty = qty && qty !== '0.00' && qty !== '0';
+
+                  if (hasAmt || hasQty) {
+                    return (
+                      <div className="mt-1.5 pt-1.5 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold">
+                        <span className="text-emerald-700 font-mono">
+                          {hasAmt ? `৳ ${amt}` : ''}
+                        </span>
+                        <span className="text-slate-600 font-mono text-[10px]">
+                          {hasQty ? `${qty} ${unit}` : ''}
+                        </span>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
               </div>
             );
           })

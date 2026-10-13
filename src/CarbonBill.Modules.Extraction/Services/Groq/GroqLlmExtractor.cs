@@ -77,11 +77,11 @@ public class GroqLlmExtractor(
             var systemPrompt = """
             You are a specialized carbon-accounting data extraction assistant for Bangladeshi factories.
             Given OCR text from a utility bill, diesel delivery slip, gas invoice, or transport challan:
-            1. Identify the vendor (DESCO, DPDC, BPDB, Padma Oil, Meghna, Jamuna, Titas Gas, etc.).
-            2. Extract bill/challan number and billing period (YYYY-MM).
+            1. Identify the vendor (DESCO, DPDC, BPDB, BREB, NESCO, Padma Oil, Meghna, Jamuna, Titas Gas, Bakhrabad, Karnaphuli, etc.).
+            2. Extract bill/challan/customer number and billing period (YYYY-MM).
             3. Normalize all Bangla numerals (১২৩৪৫৬৭৮৯০) to Latin digits.
-            4. Extract the consumed quantity and canonical unit (kWh for electricity, litre for diesel/fuel, m3 for natural gas, kg or tonne-km for cargo).
-            5. Extract total net/payable amount in Bangladeshi Taka (BDT).
+            4. Extract the consumed quantity (energy or fuel consumption, e.g. Used Units / ব্যবহৃত ইউনিট / বর্তমান রিডিং - পূর্ববর্তী রিডিং) and canonical unit (kWh for electricity, litre for diesel/fuel, m3 for natural gas, kg or tonne-km for cargo).
+            5. Extract total net/payable amount in Bangladeshi Taka (BDT) (e.g. সর্বমোট প্রদেয় টাকা / Total Payable / মোট বিল).
             6. Identify any power factor penalty or demand charge surcharges if present.
             7. Return ONLY valid JSON matching this schema:
             {
@@ -93,8 +93,8 @@ public class GroqLlmExtractor(
               "unit": "kWh | litre | m3 | tonne-km",
               "amountBdt": 0.00,
               "meterNumber": "string or null",
-              "powerFactorPenaltyBdt": 0.00 or null,
-              "demandChargePenaltyBdt": 0.00 or null,
+              "powerFactorPenaltyBdt": 0.00,
+              "demandChargePenaltyBdt": 0.00,
               "confidence": 0.95,
               "reasoning": "brief explanation"
             }
@@ -117,6 +117,7 @@ public class GroqLlmExtractor(
             var requestJson = JsonSerializer.Serialize(requestBody);
             using var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl.TrimEnd('/')}/chat/completions");
             httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+            httpRequest.Headers.UserAgent.ParseAdd("CarbonBill-Extractor/1.0");
             httpRequest.Content = new StringContent(requestJson, Encoding.UTF8, "application/json");
 
             var response = await httpClient.SendAsync(httpRequest, ct);

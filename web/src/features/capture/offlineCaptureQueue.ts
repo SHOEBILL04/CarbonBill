@@ -14,6 +14,7 @@ export interface CaptureQueueItem {
   status: CaptureQueueStatus;
   retryCount: number;
   receiptCode?: string;
+  serverDocId?: string;
   error?: string;
   createdAt: string;
   syncedAt?: string;
@@ -84,7 +85,8 @@ export async function updateCaptureStatus(
   id: string,
   status: CaptureQueueStatus,
   receiptCode?: string,
-  error?: string
+  error?: string,
+  serverDocId?: string
 ): Promise<void> {
   const db = await getDb();
   const item = await db.get('captureQueue', id);
@@ -93,6 +95,7 @@ export async function updateCaptureStatus(
   item.status = status;
   if (receiptCode) item.receiptCode = receiptCode;
   if (error) item.error = error;
+  if (serverDocId) item.serverDocId = serverDocId;
   if (status === 'received') item.syncedAt = new Date().toISOString();
   if (status === 'failed') item.retryCount++;
 
@@ -161,8 +164,9 @@ export async function processQueueUploads(
 
       if (response.ok || response.status === 202 || response.status === 200) {
         const data = await response.json().catch(() => ({}));
+        const serverDocId = data.id || undefined;
         const receipt = (data.id || item.id).slice(0, 8).toUpperCase();
-        await updateCaptureStatus(item.id, 'received', receipt);
+        await updateCaptureStatus(item.id, 'received', receipt, undefined, serverDocId);
         succeeded++;
       } else {
         const errText = await response.text().catch(() => 'Upload failed');

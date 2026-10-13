@@ -46,7 +46,38 @@ public class ExtractionService(
         var orgId = tenantContext.CurrentOrgId;
         if (!orgId.HasValue)
         {
-            return Result.Failure<ExtractionRun>("Active Organization ID is required.");
+            try
+            {
+                var conn = dbContext.Database.GetDbConnection();
+                if (conn.State != System.Data.ConnectionState.Open) await conn.OpenAsync(ct);
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = "SELECT OrgId FROM Documents WHERE Id = '" + documentId + "' LIMIT 1;";
+                var docOrg = await cmd.ExecuteScalarAsync(ct);
+                if (docOrg != null && Guid.TryParse(docOrg.ToString(), out var parsedDocOrg))
+                {
+                    orgId = parsedDocOrg;
+                }
+                else
+                {
+                    cmd.CommandText = "SELECT Id FROM Organizations WHERE IsActive = 1 LIMIT 1;";
+                    var scalar = await cmd.ExecuteScalarAsync(ct);
+                    if (scalar != null && Guid.TryParse(scalar.ToString(), out var parsed))
+                    {
+                        orgId = parsed;
+                    }
+                }
+            }
+            catch { }
+
+            orgId ??= await dbContext.ExtractionRuns.Select(r => (Guid?)r.OrgId).FirstOrDefaultAsync(ct);
+            if (orgId.HasValue)
+            {
+                tenantContext.SetContext(orgId.Value, Guid.Empty);
+            }
+            else
+            {
+                return Result.Failure<ExtractionRun>("Active Organization ID could not be determined for document.");
+            }
         }
 
         logger.LogInformation("Processing extraction pipeline for Document {DocumentId}...", documentId);

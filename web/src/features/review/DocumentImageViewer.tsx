@@ -172,12 +172,21 @@ export function DocumentImageViewer({
         >
           {viewMode === 'image' && fileUrl && !imageError ? (
             <div className="relative inline-block max-w-full">
-              <img
-                src={fileUrl}
-                alt={fileName}
-                onError={() => setImageError(true)}
-                className="max-h-[640px] w-auto object-contain rounded-lg shadow-2xl select-none pointer-events-auto bg-slate-900"
-              />
+              {fileName.toLowerCase().endsWith('.pdf') ? (
+                <iframe
+                  src={fileUrl}
+                  title={fileName}
+                  className="w-[560px] h-[640px] rounded-lg border-0 bg-white shadow-2xl"
+                  onError={() => setImageError(true)}
+                />
+              ) : (
+                <img
+                  src={fileUrl}
+                  alt={fileName}
+                  onError={() => setImageError(true)}
+                  className="max-h-[640px] w-auto object-contain rounded-lg shadow-2xl select-none pointer-events-auto bg-slate-900"
+                />
+              )}
 
               {/* Bounding Box Highlight Overlay */}
               {activeBbox && (
