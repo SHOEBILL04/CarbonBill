@@ -17,7 +17,7 @@ public class DocumentUploadedExtractionHandler(
         try
         {
             logger.LogInformation("Background extraction triggered for Document {DocumentId}...", domainEvent.DocumentId);
-            tenantContext.SetContext(domainEvent.OrgId, Guid.Empty, "System");
+            tenantContext.SetContext(domainEvent.OrgId, Guid.Empty);
 
             await using var stream = await fileStore.DownloadAsync(domainEvent.StoragePath, cancellationToken);
             if (stream == null)

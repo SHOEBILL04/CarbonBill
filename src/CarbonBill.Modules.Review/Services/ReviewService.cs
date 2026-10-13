@@ -32,13 +32,11 @@ public interface IReviewService
         Guid documentId,
         ConfirmDocumentRequest request,
         Guid reviewerUserId,
-        string? userRole,
         CancellationToken ct = default);
 
     Task<BulkConfirmResultDto> BulkConfirmAsync(
         BulkConfirmRequest request,
         Guid reviewerUserId,
-        string? userRole,
         CancellationToken ct = default);
 
     Task<Result<ReviewOrganizationSetting>> GetOrUpdateOrgSettingsAsync(
@@ -57,11 +55,6 @@ public class ReviewService(
     ITenantContext tenantContext,
     ILogger<ReviewService> logger) : IReviewService
 {
-    private static readonly HashSet<string> DisallowedConfirmRoles = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "Operator",
-        "FloorStaff",
-    };
 
     private static readonly Guid DefaultPilotOrgId = Guid.Parse("f0ee71e0-717b-4b5e-af05-a443c6430a8f");
 
@@ -214,18 +207,10 @@ public class ReviewService(
         Guid documentId,
         ConfirmDocumentRequest request,
         Guid reviewerUserId,
-        string? userRole,
         CancellationToken ct = default)
     {
         var orgId = await GetEffectiveOrgIdAsync(ct);
         if (reviewerUserId == Guid.Empty) reviewerUserId = Guid.Parse("22222222-2222-2222-2222-222222222222");
-        if (string.IsNullOrWhiteSpace(userRole)) userRole = "Accountant";
-
-        // 1. Permission Matrix Check
-        if (!string.IsNullOrWhiteSpace(userRole) && DisallowedConfirmRoles.Contains(userRole))
-        {
-            return Result.Failure<Guid>("Floor staff / operator role cannot confirm documents. Accountant or Admin permission required.");
-        }
 
         // 2. Fetch Document
         var document = await documentsDb.Documents.FirstOrDefaultAsync(d => d.OrgId == orgId && d.Id == documentId, ct);
@@ -388,7 +373,6 @@ public class ReviewService(
     public async Task<BulkConfirmResultDto> BulkConfirmAsync(
         BulkConfirmRequest request,
         Guid reviewerUserId,
-        string? userRole,
         CancellationToken ct = default)
     {
         int succeeded = 0;
@@ -397,7 +381,7 @@ public class ReviewService(
 
         foreach (var id in request.DocumentIds)
         {
-            var res = await ConfirmDocumentAsync(id, new ConfirmDocumentRequest(), reviewerUserId, userRole, ct);
+            var res = await ConfirmDocumentAsync(id, new ConfirmDocumentRequest(), reviewerUserId, ct);
             if (res.IsSuccess)
             {
                 succeeded++;

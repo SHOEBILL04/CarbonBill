@@ -35,7 +35,7 @@ public class DocumentService(
             {
                 return Result.Failure<DocumentReceiptDto>("Active Organization ID is required for document upload.");
             }
-            tenantContext.SetContext(orgId.Value, uploadedByUserId != Guid.Empty ? uploadedByUserId : Guid.Empty, "FloorStaff");
+            tenantContext.SetContext(orgId.Value, uploadedByUserId != Guid.Empty ? uploadedByUserId : Guid.Empty);
         }
 
         // Check idempotency key if provided
@@ -187,7 +187,7 @@ public class DocumentService(
             {
                 return Result.Failure<DocumentReceiptDto>("Active Organization ID is required.");
             }
-            tenantContext.SetContext(orgId.Value, uploadedByUserId != Guid.Empty ? uploadedByUserId : Guid.Empty, "FloorStaff");
+            tenantContext.SetContext(orgId.Value, uploadedByUserId != Guid.Empty ? uploadedByUserId : Guid.Empty);
         }
 
         var documentId = Guid.NewGuid();

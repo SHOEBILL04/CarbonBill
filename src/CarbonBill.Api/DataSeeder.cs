@@ -69,38 +69,22 @@ public static class DataSeeder
             reportingDb
         };
 
-        // Check existing tables to prevent duplicate CREATE TABLE execution errors
-        using var connection = identityDb.Database.GetDbConnection();
-        await connection.OpenAsync();
-        var existingTables = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        using (var cmd = connection.CreateCommand())
-        {
-            cmd.CommandText = "SELECT name FROM sqlite_master WHERE type='table';";
-            using var reader = await cmd.ExecuteReaderAsync();
-            while (await reader.ReadAsync())
-            {
-                existingTables.Add(reader.GetString(0));
-            }
-        }
-
         foreach (var ctx in contexts)
         {
-            var hasUncreatedTables = ctx.Model.GetEntityTypes()
-                .Select(t => t.GetTableName())
-                .Where(n => n != null)
-                .Any(n => !existingTables.Contains(n!));
-
-            if (hasUncreatedTables)
+            try
             {
-                var creator = Microsoft.EntityFrameworkCore.Infrastructure.AccessorExtensions.GetService<Microsoft.EntityFrameworkCore.Storage.IRelationalDatabaseCreator>(ctx.Database);
-                try
-                {
-                    await creator.CreateTablesAsync();
-                }
-                catch
-                {
-                    // Catch fallback
-                }
+                var script = ctx.Database.GenerateCreateScript();
+                var safeScript = System.Text.RegularExpressions.Regex.Replace(
+                    script,
+                    @"\bCREATE\s+TABLE\s+",
+                    "CREATE TABLE IF NOT EXISTS ",
+                    System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+                await ctx.Database.ExecuteSqlRawAsync(safeScript);
+            }
+            catch (Exception ex)
+            {
+                logger.LogDebug("Table creation check for {Context}: {Msg}", ctx.GetType().Name, ex.Message);
             }
         }
 
@@ -253,87 +237,62 @@ public static class DataSeeder
         };
         identityDb.Organizations.Add(apexOrg);
 
-        // Platform Admin
-        var adminUser = new User
-        {
-            Email = "admin@carbonbill.local",
-            FullName = "Platform Administrator",
-            PasswordHash = passwordHasher.HashPassword("Admin1234!"),
-            PreferredLanguage = "en",
-            IsPlatformAdmin = true
-        };
-        identityDb.Users.Add(adminUser);
-
-        // Factory Owner (Kabir)
+        // Factory Team Users (All have identical full access to Apex Org)
         var ownerUser = new User
         {
             Email = "owner@apex.local",
             FullName = "Kabir Ahmed",
+            PhoneNumber = "01711111111",
             PasswordHash = passwordHasher.HashPassword("Pass1234!"),
             PreferredLanguage = "bn"
         };
         identityDb.Users.Add(ownerUser);
 
-        // Accountant (Rahim)
         var accountantUser = new User
         {
             Email = "accountant@apex.local",
             FullName = "Rahim Mia",
+            PhoneNumber = "01722222222",
             PasswordHash = passwordHasher.HashPassword("Pass1234!"),
             PreferredLanguage = "bn"
         };
         identityDb.Users.Add(accountantUser);
 
-        // Compliance Officer (Nusrat)
         var complianceUser = new User
         {
             Email = "compliance@apex.local",
             FullName = "Nusrat Jahan",
+            PhoneNumber = "01733333333",
             PasswordHash = passwordHasher.HashPassword("Pass1234!"),
             PreferredLanguage = "bn"
         };
         identityDb.Users.Add(complianceUser);
 
-        // Floor Staff (Jahid)
         var floorUser = new User
         {
             Email = "floor@apex.local",
             FullName = "Jahid Hasan",
-            PhoneNumber = "01700000000",
+            PhoneNumber = "01744444444",
             PasswordHash = passwordHasher.HashPassword("Pass1234!"),
             PreferredLanguage = "bn"
         };
         identityDb.Users.Add(floorUser);
 
-        // Sustainability Consultant (Farhana)
-        var consultantUser = new User
-        {
-            Email = "consultant@greenadvisory.local",
-            FullName = "Farhana Rahman",
-            PasswordHash = passwordHasher.HashPassword("Pass1234!"),
-            PreferredLanguage = "en"
-        };
-        identityDb.Users.Add(consultantUser);
-
         await identityDb.SaveChangesAsync();
 
-        // Assign Memberships
+        // Assign Memberships (Every user has identical full access to the organization)
         identityDb.Memberships.AddRange([
-            new Membership { UserId = ownerUser.Id, OrgId = apexOrg.Id, Role = Roles.Owner },
-            new Membership { UserId = accountantUser.Id, OrgId = apexOrg.Id, Role = Roles.Accountant },
-            new Membership { UserId = complianceUser.Id, OrgId = apexOrg.Id, Role = Roles.Compliance },
-            new Membership { UserId = floorUser.Id, OrgId = apexOrg.Id, Role = Roles.FloorStaff },
-            new Membership { UserId = consultantUser.Id, OrgId = apexOrg.Id, Role = Roles.Consultant },
-            new Membership { UserId = adminUser.Id, OrgId = apexOrg.Id, Role = Roles.PlatformAdmin }
+            new Membership { UserId = ownerUser.Id, OrgId = apexOrg.Id, IsActive = true },
+            new Membership { UserId = accountantUser.Id, OrgId = apexOrg.Id, IsActive = true },
+            new Membership { UserId = complianceUser.Id, OrgId = apexOrg.Id, IsActive = true },
+            new Membership { UserId = floorUser.Id, OrgId = apexOrg.Id, IsActive = true }
         ]);
 
-        // Create Demo QR + PIN invitation for Floor Staff
+        // Create Demo Teammate Invitation Link
         var invitation = new Invitation
         {
             OrgId = apexOrg.Id,
-            Role = Roles.FloorStaff,
-            Token = "apex-floor-demo",
-            PinHash = passwordHasher.HashPassword("1234"),
+            Token = "apex-team-invite-demo",
             ExpiresAtUtc = DateTime.UtcNow.AddYears(1),
             CreatedByUserId = ownerUser.Id,
             MaxUses = 100
@@ -411,7 +370,7 @@ public static class DataSeeder
             Description = "Bangladesh Grid + IPCC AR6 Seed Factors",
             RecordCount = 7,
             ChecksumSha256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-            UploadedByUserId = adminUser.Id,
+            UploadedByUserId = ownerUser.Id,
             UploadedAtUtc = DateTime.UtcNow,
             IsActive = true
         });
