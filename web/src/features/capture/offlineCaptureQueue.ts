@@ -4,7 +4,7 @@ export type CaptureQueueStatus = 'queued' | 'uploading' | 'received' | 'needs_re
 
 export interface CaptureQueueItem {
   id: string; // Client GUID idempotency key
-  category: 'diesel' | 'gas' | 'electricity' | 'shipment';
+  category: 'diesel' | 'gas' | 'electricity' | 'shipment' | 'other';
   blob?: Blob;
   fileName?: string;
   fileSizeBytes?: number;
@@ -192,6 +192,8 @@ function mapCategoryToDocType(category: string): string {
       return 'ElectricityBill';
     case 'shipment':
       return 'ShippingChallan';
+    case 'other':
+      return 'GeneralDocument';
     default:
       return 'GeneralDocument';
   }

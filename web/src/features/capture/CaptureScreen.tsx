@@ -18,6 +18,9 @@ import {
   WifiOff,
   ArrowLeft,
   ExternalLink,
+  MoreHorizontal,
+  X,
+  RotateCcw,
 } from 'lucide-react';
 import {
   enqueueCapture,
@@ -29,6 +32,8 @@ import {
 import { processAndCompressImage } from './imageProcessing';
 import { requestAndSubscribePush } from './pushSubscription';
 import { formatBanglaNumber, formatBanglaDate } from '../../shared/formatters';
+
+type CaptureCategory = 'diesel' | 'gas' | 'electricity' | 'shipment' | 'other';
 
 function formatLocalizedNumber(num: number | string, isBangla: boolean): string {
   if (isBangla) return formatBanglaNumber(num);
@@ -43,19 +48,26 @@ function formatLocalizedDate(dateInput: Date | string, isBangla: boolean): strin
   return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-function detectCategoryFromFileName(fileName: string): 'diesel' | 'gas' | 'electricity' | 'shipment' {
+function detectCategoryFromFileName(fileName: string): CaptureCategory {
   const lower = fileName.toLowerCase();
   if (lower.includes('gas') || lower.includes('titas') || lower.includes('bakhrabad') || lower.includes('jalalabad')) return 'gas';
   if (lower.includes('diesel') || lower.includes('fuel') || lower.includes('octane') || lower.includes('petrol') || lower.includes('pocl')) return 'diesel';
   if (lower.includes('ship') || lower.includes('truck') || lower.includes('transport') || lower.includes('challan') || lower.includes('freight')) return 'shipment';
-  return 'electricity';
+  if (lower.includes('elec') || lower.includes('power') || lower.includes('desco') || lower.includes('dpdc') || lower.includes('reb') || lower.includes('bill')) return 'electricity';
+  return 'other';
 }
 
-export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
+export function CaptureScreen({
+  onBack,
+  onGoToReview,
+}: {
+  onBack?: () => void;
+  onGoToReview?: (docId: string) => void;
+} = {}) {
   const { t, i18n } = useTranslation();
   const isBangla = i18n.language === 'bn';
 
-  const [selectedCategory, setSelectedCategory] = useState<'diesel' | 'gas' | 'electricity' | 'shipment' | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<CaptureCategory | null>(null);
   const [isBatchMode, setIsBatchMode] = useState<boolean>(false);
   const [batchCount, setBatchCount] = useState<number>(0);
   const [isManualMode, setIsManualMode] = useState<boolean>(false);
@@ -71,8 +83,17 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
 
   const [isDragging, setIsDragging] = useState<boolean>(false);
 
+  // Live Camera Viewfinder State (for PC webcam & mobile browser camera)
+  const [isCameraOpen, setIsCameraOpen] = useState<boolean>(false);
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const [capturedPhotoUrl, setCapturedPhotoUrl] = useState<string | null>(null);
+  const [capturedBlob, setCapturedBlob] = useState<Blob | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const categories = [
     {
@@ -131,6 +152,20 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
       defaultUnitBn: 'কেজি',
       defaultUnitEn: 'kg',
     },
+    {
+      key: 'other' as const,
+      labelBn: 'অন্যান্য',
+      labelEn: 'Other',
+      subBn: 'বিবিধ রশিদ ও খরচ',
+      subEn: 'Misc Slips & Expenses',
+      icon: MoreHorizontal,
+      color: 'bg-purple-600 text-white',
+      accentBg: 'bg-purple-50',
+      activeBorder: 'border-purple-600 ring-2 ring-purple-400',
+      badgeColor: 'bg-purple-100 text-purple-900',
+      defaultUnitBn: 'ইউনিট',
+      defaultUnitEn: 'units',
+    },
   ];
 
   useEffect(() => {
@@ -159,8 +194,17 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      stopCamera();
     };
   }, []);
+
+  // Connect video stream whenever cameraStream changes and videoRef is rendered
+  useEffect(() => {
+    if (isCameraOpen && cameraStream && videoRef.current) {
+      videoRef.current.srcObject = cameraStream;
+      videoRef.current.play().catch((err) => console.warn('Video play error:', err));
+    }
+  }, [isCameraOpen, cameraStream]);
 
   async function loadQueue() {
     const list = await getAllCaptureItems();
@@ -187,7 +231,7 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
     }
   }
 
-  function handleSelectCategory(cat: 'diesel' | 'gas' | 'electricity' | 'shipment') {
+  function handleSelectCategory(cat: CaptureCategory) {
     setSelectedCategory(cat);
     setCaptureError(null);
     const found = categories.find((c) => c.key === cat);
@@ -262,6 +306,114 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
     }
   }
 
+  // Camera Management Methods using HTML5 getUserMedia
+  async function startCamera() {
+    setCameraError(null);
+    setCapturedPhotoUrl(null);
+    setCapturedBlob(null);
+    setIsCameraOpen(true);
+
+    try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error(
+          isBangla
+            ? 'আপনার ব্রাউজার সরাসরি ক্যামেরা অ্যাক্সেস সমর্থন করে না। অনুগ্রহ করে ফাইল আপলোড ব্যবহার করুন।'
+            : 'Your browser does not support live camera access. Please use file upload.'
+        );
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: { ideal: 'environment' },
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+        },
+        audio: false,
+      });
+
+      setCameraStream(stream);
+    } catch (err: any) {
+      console.warn('getUserMedia camera error:', err);
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        setCameraError(
+          isBangla
+            ? 'ক্যামেরা ব্যবহারের অনুমতি দেওয়া হয়নি। অনুগ্রহ করে ব্রাউজারের ক্যামেরা পারমিশন সক্রিয় করুন।'
+            : 'Camera permission denied. Please allow camera access in your browser settings.'
+        );
+      } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+        setCameraError(
+          isBangla
+            ? 'কোনো ক্যামেরা বা ওয়েবক্যাম খুঁজে পাওয়া যায়নি।'
+            : 'No camera or webcam device found on your computer.'
+        );
+      } else {
+        setCameraError(
+          err.message ||
+            (isBangla
+              ? 'ক্যামেরা সংযোগ স্থাপন করা যায়নি।'
+              : 'Could not connect to camera.')
+        );
+      }
+    }
+  }
+
+  function stopCamera() {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach((track) => track.stop());
+      setCameraStream(null);
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    if (capturedPhotoUrl) {
+      URL.revokeObjectURL(capturedPhotoUrl);
+    }
+    setIsCameraOpen(false);
+    setCapturedPhotoUrl(null);
+    setCapturedBlob(null);
+    setCameraError(null);
+  }
+
+  function takePhoto() {
+    if (!videoRef.current || !canvasRef.current) return;
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+
+    canvas.width = video.videoWidth || 1280;
+    canvas.height = video.videoHeight || 720;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    canvas.toBlob(
+      (blob) => {
+        if (blob) {
+          setCapturedBlob(blob);
+          setCapturedPhotoUrl(URL.createObjectURL(blob));
+        }
+      },
+      'image/jpeg',
+      0.92
+    );
+  }
+
+  function retakePhoto() {
+    if (capturedPhotoUrl) {
+      URL.revokeObjectURL(capturedPhotoUrl);
+    }
+    setCapturedPhotoUrl(null);
+    setCapturedBlob(null);
+  }
+
+  async function confirmCapturedPhoto() {
+    if (!capturedBlob) return;
+    const filename = `camera_scan_${Date.now()}.jpg`;
+    const file = new File([capturedBlob], filename, { type: 'image/jpeg' });
+    stopCamera();
+    await processFile(file);
+  }
+
   async function handleManualSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!selectedCategory || !manualQuantity) return;
@@ -323,6 +475,9 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
         className="hidden"
         onChange={handleFileCapture}
       />
+
+      {/* Hidden Snapshot Canvas */}
+      <canvas ref={canvasRef} className="hidden" />
 
       {/* Top PC Web Navigation Bar */}
       <header className="sticky top-0 z-30 bg-white border-b border-slate-200 shadow-xs">
@@ -499,6 +654,12 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
             <div className="flex items-center gap-2.5 shrink-0">
               <a
                 href={`/?mode=review&docId=${confirmedReceipt.serverDocId || confirmedReceipt.id}`}
+                onClick={(e) => {
+                  if (onGoToReview) {
+                    e.preventDefault();
+                    onGoToReview(confirmedReceipt.serverDocId || confirmedReceipt.id);
+                  }
+                }}
                 className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-xl shadow-xs transition"
               >
                 <ExternalLink size={14} />
@@ -545,7 +706,7 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
                     <label className="block text-xs font-bold text-slate-700 mb-2">
                       {isBangla ? '১. ক্যাটাগরি নির্বাচন করুন' : '1. Select Category'}
                     </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
                       {categories.map((c) => {
                         const Icon = c.icon;
                         const isSelected = selectedCategory === c.key;
@@ -657,7 +818,7 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                     {categories.map((cat) => {
                       const Icon = cat.icon;
                       const isSelected = selectedCategory === cat.key;
@@ -667,13 +828,13 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
                           key={cat.key}
                           type="button"
                           onClick={() => handleSelectCategory(cat.key)}
-                          className={`relative flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition text-center shadow-xs ${
+                          className={`relative flex flex-col items-center justify-center p-3.5 rounded-2xl border-2 transition text-center shadow-xs ${
                             isSelected
                               ? `${cat.activeBorder} ${cat.accentBg} shadow-sm`
                               : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
                           }`}
                         >
-                          <div className={`w-11 h-11 rounded-xl ${cat.color} flex items-center justify-center mb-2.5 shadow-xs`}>
+                          <div className={`w-11 h-11 rounded-xl ${cat.color} flex items-center justify-center mb-2 shadow-xs`}>
                             <Icon size={22} strokeWidth={2.2} />
                           </div>
                           <span className="text-sm font-bold text-slate-900 tracking-tight leading-tight">
@@ -733,7 +894,7 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
 
                       <button
                         type="button"
-                        onClick={() => cameraInputRef.current?.click()}
+                        onClick={startCamera}
                         disabled={isProcessing}
                         className="px-4 py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold text-xs flex items-center gap-2 shadow-xs transition active:scale-95 cursor-pointer"
                       >
@@ -814,6 +975,7 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
                             {sub.category === 'gas' && <Flame size={18} className="text-orange-600" />}
                             {sub.category === 'electricity' && <Zap size={18} className="text-yellow-600" />}
                             {sub.category === 'shipment' && <Truck size={18} className="text-blue-600" />}
+                            {sub.category === 'other' && <MoreHorizontal size={18} className="text-purple-600" />}
                           </div>
 
                           <div className="min-w-0">
@@ -849,6 +1011,12 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
                               </span>
                               <a
                                 href={`/?mode=review&docId=${sub.serverDocId || sub.id}`}
+                                onClick={(e) => {
+                                  if (onGoToReview) {
+                                    e.preventDefault();
+                                    onGoToReview(sub.serverDocId || sub.id);
+                                  }
+                                }}
                                 className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-700 hover:bg-emerald-800 text-white flex items-center gap-1 shadow-2xs transition active:scale-95 cursor-pointer"
                                 title={isBangla ? 'পর্যালোচনা কিউ-তে বিলটি দেখুন' : 'View bill in review queue'}
                               >
@@ -891,6 +1059,141 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
           </div>
         </div>
       </main>
+
+      {/* Live Camera Viewfinder Modal for PC & Mobile */}
+      {isCameraOpen && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-700 rounded-3xl overflow-hidden max-w-2xl w-full text-white shadow-2xl flex flex-col">
+            {/* Camera Modal Header */}
+            <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Camera size={20} className="text-emerald-400" />
+                <h3 className="font-bold text-sm text-slate-100">
+                  {isBangla ? 'লাইভ ক্যামেরা স্ক্যানার' : 'Live Camera Scanner'}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={stopCamera}
+                className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition"
+                title={isBangla ? 'বন্ধ করুন' : 'Close'}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Viewfinder / Preview Screen */}
+            <div className="relative bg-black flex items-center justify-center min-h-[360px] max-h-[500px] overflow-hidden">
+              {capturedPhotoUrl ? (
+                /* Freeze Frame Photo Preview */
+                <img
+                  src={capturedPhotoUrl}
+                  alt="Captured Challan"
+                  className="w-full h-full object-contain max-h-[500px]"
+                />
+              ) : cameraError ? (
+                /* Error View if Webcam unavailable / denied */
+                <div className="p-8 text-center max-w-md">
+                  <div className="w-14 h-14 rounded-2xl bg-rose-900/60 text-rose-400 flex items-center justify-center mx-auto mb-3">
+                    <AlertCircle size={28} />
+                  </div>
+                  <h4 className="font-bold text-base text-rose-200 mb-1.5">
+                    {isBangla ? 'ক্যামেরা সংযোগ ব্যর্থ হয়েছে' : 'Camera Access Failed'}
+                  </h4>
+                  <p className="text-xs text-slate-300 mb-6 leading-relaxed">
+                    {cameraError}
+                  </p>
+                  <div className="flex items-center justify-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        stopCamera();
+                        fileInputRef.current?.click();
+                      }}
+                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-xs"
+                    >
+                      {isBangla ? 'ফাইল ম্যানেজার থেকে বাছুন' : 'Select from File Manager'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={stopCamera}
+                      className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition"
+                    >
+                      {isBangla ? 'বন্ধ করুন' : 'Close'}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* Live Video Stream View */
+                <div className="relative w-full h-full flex items-center justify-center">
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="w-full h-full object-cover min-h-[360px]"
+                  />
+                  {/* Viewfinder Target Framing Guidelines */}
+                  <div className="absolute inset-8 border-2 border-dashed border-emerald-400/60 rounded-2xl pointer-events-none flex items-center justify-center">
+                    <span className="text-[11px] font-bold bg-black/60 text-emerald-300 px-3 py-1 rounded-full backdrop-blur-xs">
+                      {isBangla ? 'বিল বা চালানটি ফ্রেমের মধ্যে রাখুন' : 'Position bill or challan within frame'}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Camera Modal Bottom Controls */}
+            <div className="px-6 py-4 bg-slate-950 border-t border-slate-800 flex items-center justify-between">
+              {capturedPhotoUrl ? (
+                /* Retake or Confirm Action Buttons */
+                <div className="flex items-center justify-between w-full">
+                  <button
+                    type="button"
+                    onClick={retakePhoto}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition"
+                  >
+                    <RotateCcw size={15} />
+                    {isBangla ? 'পুনরায় তুলুন' : 'Retake Photo'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={confirmCapturedPhoto}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md transition"
+                  >
+                    <CheckCircle2 size={16} />
+                    {isBangla ? 'এই ছবিটি ব্যবহার করুন' : 'Use This Photo'}
+                  </button>
+                </div>
+              ) : !cameraError ? (
+                /* Shutter Button */
+                <div className="flex items-center justify-center w-full relative">
+                  <button
+                    type="button"
+                    onClick={takePhoto}
+                    className="w-16 h-16 rounded-full bg-white hover:bg-slate-100 text-slate-900 border-4 border-slate-700 flex items-center justify-center shadow-lg active:scale-95 transition"
+                    title={isBangla ? 'ছবি তুলুন' : 'Take Photo'}
+                  >
+                    <div className="w-11 h-11 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center shadow-inner">
+                      <Camera size={22} />
+                    </div>
+                  </button>
+                </div>
+              ) : (
+                <div className="text-right w-full">
+                  <button
+                    type="button"
+                    onClick={stopCamera}
+                    className="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white"
+                  >
+                    {isBangla ? 'বাতিল' : 'Cancel'}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
