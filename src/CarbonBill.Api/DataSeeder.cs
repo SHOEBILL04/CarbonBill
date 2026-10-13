@@ -69,18 +69,73 @@ public static class DataSeeder
             reportingDb
         };
 
+        var existingTables = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        try
+        {
+            var connection = identityDb.Database.GetDbConnection();
+            var wasOpen = connection.State == System.Data.ConnectionState.Open;
+            if (!wasOpen)
+            {
+                await connection.OpenAsync();
+            }
+
+            using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = "SELECT name FROM sqlite_master WHERE type='table';";
+                using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    existingTables.Add(reader.GetString(0));
+                }
+            }
+
+            if (!wasOpen)
+            {
+                await connection.CloseAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogDebug("Could not inspect existing tables: {Msg}", ex.Message);
+        }
+
         foreach (var ctx in contexts)
         {
             try
             {
+                var entityTables = ctx.Model.GetEntityTypes()
+                    .Select(t => t.GetTableName())
+                    .Where(t => !string.IsNullOrEmpty(t))
+                    .Distinct()
+                    .ToList();
+
+                if (existingTables.Count > 0 && entityTables.Count > 0 && entityTables.All(t => existingTables.Contains(t!)))
+                {
+                    continue;
+                }
+
                 var script = ctx.Database.GenerateCreateScript();
                 var safeScript = System.Text.RegularExpressions.Regex.Replace(
                     script,
-                    @"\bCREATE\s+TABLE\s+",
+                    @"\bCREATE\s+TABLE\s+(?!IF\s+NOT\s+EXISTS\b)",
                     "CREATE TABLE IF NOT EXISTS ",
                     System.Text.RegularExpressions.RegexOptions.IgnoreCase);
 
+                safeScript = System.Text.RegularExpressions.Regex.Replace(
+                    safeScript,
+                    @"\bCREATE\s+(UNIQUE\s+)?INDEX\s+(?!IF\s+NOT\s+EXISTS\b)",
+                    "CREATE $1INDEX IF NOT EXISTS ",
+                    System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
                 await ctx.Database.ExecuteSqlRawAsync(safeScript);
+
+                foreach (var t in entityTables)
+                {
+                    if (t != null)
+                    {
+                        existingTables.Add(t);
+                    }
+                }
             }
             catch (Exception ex)
             {
