@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Fuel,
   Flame,
@@ -29,6 +30,19 @@ import { processAndCompressImage } from './imageProcessing';
 import { requestAndSubscribePush } from './pushSubscription';
 import { formatBanglaNumber, formatBanglaDate } from '../../shared/formatters';
 
+function formatLocalizedNumber(num: number | string, isBangla: boolean): string {
+  if (isBangla) return formatBanglaNumber(num);
+  const n = typeof num === 'string' ? parseFloat(num) : num;
+  return isNaN(n) ? String(num) : n.toLocaleString('en-US');
+}
+
+function formatLocalizedDate(dateInput: Date | string, isBangla: boolean): string {
+  if (isBangla) return formatBanglaDate(dateInput);
+  const d = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
 function detectCategoryFromFileName(fileName: string): 'diesel' | 'gas' | 'electricity' | 'shipment' {
   const lower = fileName.toLowerCase();
   if (lower.includes('gas') || lower.includes('titas') || lower.includes('bakhrabad') || lower.includes('jalalabad')) return 'gas';
@@ -38,6 +52,9 @@ function detectCategoryFromFileName(fileName: string): 'diesel' | 'gas' | 'elect
 }
 
 export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
+  const { t, i18n } = useTranslation();
+  const isBangla = i18n.language === 'bn';
+
   const [selectedCategory, setSelectedCategory] = useState<'diesel' | 'gas' | 'electricity' | 'shipment' | null>(null);
   const [isBatchMode, setIsBatchMode] = useState<boolean>(false);
   const [batchCount, setBatchCount] = useState<number>(0);
@@ -61,48 +78,71 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
     {
       key: 'diesel' as const,
       labelBn: 'ডিজেল স্লিপ',
+      labelEn: 'Diesel Slip',
       subBn: 'জেনারেটর ও বয়লার ফুয়েল',
+      subEn: 'Generator & Boiler Fuel',
       icon: Fuel,
       color: 'bg-amber-500 text-white',
       accentBg: 'bg-amber-50',
       activeBorder: 'border-amber-500 ring-2 ring-amber-400',
       badgeColor: 'bg-amber-100 text-amber-900',
-      defaultUnit: 'লিটার',
+      defaultUnitBn: 'লিটার',
+      defaultUnitEn: 'Litres',
     },
     {
       key: 'gas' as const,
       labelBn: 'গ্যাস বিল',
+      labelEn: 'Gas Bill',
       subBn: 'তিতাস / বাখরাবাদ আরএমএস',
+      subEn: 'Titas / Bakhrabad RMS',
       icon: Flame,
       color: 'bg-orange-500 text-white',
       accentBg: 'bg-orange-50',
       activeBorder: 'border-orange-500 ring-2 ring-orange-400',
       badgeColor: 'bg-orange-100 text-orange-900',
-      defaultUnit: 'ঘনমিটার',
+      defaultUnitBn: 'ঘনমিটার',
+      defaultUnitEn: 'm³',
     },
     {
       key: 'electricity' as const,
       labelBn: 'বিদ্যুৎ বিল',
+      labelEn: 'Electricity Bill',
       subBn: 'ডেসকো / ডিপিডিসি / আরইবি',
+      subEn: 'DESCO / DPDC / REB',
       icon: Zap,
       color: 'bg-yellow-500 text-white',
       accentBg: 'bg-yellow-50',
       activeBorder: 'border-yellow-500 ring-2 ring-yellow-400',
       badgeColor: 'bg-yellow-100 text-yellow-900',
-      defaultUnit: 'কেডব্লিউএইচ',
+      defaultUnitBn: 'কেডব্লিউএইচ',
+      defaultUnitEn: 'kWh',
     },
     {
       key: 'shipment' as const,
       labelBn: 'পরিবহন চালান',
+      labelEn: 'Transport Challan',
       subBn: 'ট্রাক ও কার্গো চালান',
+      subEn: 'Truck & Cargo Challan',
       icon: Truck,
       color: 'bg-blue-500 text-white',
       accentBg: 'bg-blue-50',
       activeBorder: 'border-blue-500 ring-2 ring-blue-400',
       badgeColor: 'bg-blue-100 text-blue-900',
-      defaultUnit: 'কেজি',
+      defaultUnitBn: 'কেজি',
+      defaultUnitEn: 'kg',
     },
   ];
+
+  useEffect(() => {
+    if (selectedCategory) {
+      const found = categories.find((c) => c.key === selectedCategory);
+      if (found) {
+        setManualUnit(isBangla ? found.defaultUnitBn : found.defaultUnitEn);
+      }
+    } else {
+      setManualUnit(isBangla ? 'লিটার' : 'Litres');
+    }
+  }, [isBangla, selectedCategory]);
 
   useEffect(() => {
     loadQueue();
@@ -151,7 +191,9 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
     setSelectedCategory(cat);
     setCaptureError(null);
     const found = categories.find((c) => c.key === cat);
-    if (found) setManualUnit(found.defaultUnit);
+    if (found) {
+      setManualUnit(isBangla ? found.defaultUnitBn : found.defaultUnitEn);
+    }
   }
 
   async function processFile(file: File) {
@@ -196,7 +238,7 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
       }
     } catch (err: any) {
       console.error('Capture error:', err);
-      setCaptureError(err?.message || 'ডকুমেন্ট আপলোড বা প্রসেসিং করতে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
+      setCaptureError(err?.message || (isBangla ? 'ডকুমেন্ট আপলোড বা প্রসেসিং করতে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।' : 'Failed to process and upload document. Please try again.'));
     } finally {
       setIsProcessing(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -250,7 +292,7 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
       }
     } catch (err: any) {
       console.error('Manual capture error:', err);
-      setCaptureError(err?.message || 'ম্যানুয়াল এন্ট্রি সংরক্ষণ করতে সমস্যা হয়েছে।');
+      setCaptureError(err?.message || (isBangla ? 'ম্যানুয়াল এন্ট্রি সংরক্ষণ করতে সমস্যা হয়েছে।' : 'Failed to save manual entry.'));
     } finally {
       setIsProcessing(false);
     }
@@ -290,24 +332,37 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
               <button
                 onClick={onBack}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition"
-                title="ড্যাশবোর্ডে ফিরে যান"
+                title={isBangla ? 'ড্যাশবোর্ডে ফিরে যান' : 'Back to Dashboard'}
               >
                 <ArrowLeft size={16} />
-                <span className="hidden sm:inline">ফিরে যান</span>
+                <span className="hidden sm:inline">{isBangla ? 'ফিরে যান' : 'Back'}</span>
               </button>
             )}
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xl font-black text-emerald-800 tracking-tight">কার্বনবিল</span>
+                <span className="text-xl font-black text-emerald-800 tracking-tight">
+                  {isBangla ? 'কার্বনবিল' : 'CarbonBill'}
+                </span>
                 <span className="hidden sm:inline text-xs font-bold px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-md border border-emerald-200">
-                  ইনজেশন পোর্টাল
+                  {isBangla ? 'ইনজেশন পোর্টাল' : 'Ingestion Portal'}
                 </span>
               </div>
-              <p className="text-xs font-medium text-slate-500">ফ্যাক্টরি ফ্লোর চালান ও ইউটিলিটি বিল ইনজেশন</p>
+              <p className="text-xs font-medium text-slate-500">
+                {isBangla ? 'ফ্যাক্টরি ফ্লোর চালান ও ইউটিলিটি বিল ইনজেশন' : 'Factory Floor Challan & Utility Bill Ingestion'}
+              </p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Language Switcher */}
+            <button
+              onClick={() => i18n.changeLanguage(isBangla ? 'en' : 'bn')}
+              className="text-xs font-semibold px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border border-slate-200 transition"
+              title="Switch Language / ভাষা পরিবর্তন"
+            >
+              {isBangla ? 'English' : 'বাংলা'}
+            </button>
+
             {/* Batch Mode Switch */}
             <button
               onClick={() => setIsBatchMode(!isBatchMode)}
@@ -316,13 +371,13 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
                   ? 'bg-emerald-700 text-white shadow-emerald-200'
                   : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50'
               }`}
-              title="একের পর এক একাধিক চালান স্ক্যান করতে ব্যাচ মোড ব্যবহার করুন"
+              title={isBangla ? 'একের পর এক একাধিক চালান স্ক্যান করতে ব্যাচ মোড ব্যবহার করুন' : 'Enable batch mode to capture multiple challans sequentially'}
             >
               <Layers size={15} />
-              <span>ব্যাচ মোড</span>
+              <span>{isBangla ? 'ব্যাচ মোড' : 'Batch Mode'}</span>
               {isBatchMode && (
                 <span className="bg-emerald-900 text-emerald-100 text-[10px] px-1.5 py-0.2 rounded-full font-mono">
-                  {formatBanglaNumber(batchCount)}
+                  {formatLocalizedNumber(batchCount, isBangla)}
                 </span>
               )}
             </button>
@@ -337,7 +392,11 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
               }`}
             >
               <FileText size={15} />
-              <span>{isManualMode ? 'স্ক্যান মোডে ফিরুন' : 'ম্যানুয়াল এন্ট্রি'}</span>
+              <span>
+                {isManualMode
+                  ? (isBangla ? 'স্ক্যান মোডে ফিরুন' : 'Back to Scan Mode')
+                  : (isBangla ? 'ম্যানুয়াল এন্ট্রি' : 'Manual Entry')}
+              </span>
             </button>
 
             {/* Online/Offline Status Badge */}
@@ -347,14 +406,16 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
               }`}
             >
               {isOnline ? <Wifi size={14} className="text-emerald-600" /> : <WifiOff size={14} className="text-rose-600" />}
-              <span className="hidden sm:inline">{isOnline ? 'অনলাইন' : 'অফলাইন'}</span>
+              <span className="hidden sm:inline">
+                {isOnline ? (isBangla ? 'অনলাইন' : 'Online') : (isBangla ? 'অফলাইন' : 'Offline')}
+              </span>
             </span>
 
             {/* Sync Button */}
             <button
               onClick={triggerSync}
               disabled={isProcessing}
-              title="সার্ভারের সাথে সিঙ্ক করুন"
+              title={isBangla ? 'সার্ভারের সাথে সিঙ্ক করুন' : 'Sync with Server'}
               className="p-2 text-slate-600 hover:bg-slate-100 border border-slate-200 rounded-xl transition"
             >
               <RefreshCw size={16} className={isProcessing ? 'animate-spin text-emerald-600' : ''} />
@@ -364,7 +425,7 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
             {!pushSubscribed && (
               <button
                 onClick={handleSubscribePush}
-                title="পুশ নোটিফিকেশন চালু করুন"
+                title={isBangla ? 'পুশ নোটিফিকেশন চালু করুন' : 'Enable Push Notifications'}
                 className="hidden md:flex p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs items-center gap-1.5 font-medium transition"
               >
                 <Bell size={15} />
@@ -381,8 +442,12 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
           <div className="mb-6 bg-teal-50 border border-teal-300 rounded-2xl p-4 shadow-sm animate-pulse flex items-center gap-3">
             <RefreshCw size={24} className="text-teal-600 animate-spin shrink-0" />
             <div className="flex-1">
-              <h4 className="text-sm font-bold text-teal-950">ডকুমেন্ট প্রক্রিয়াকরণ ও ব্যাকগ্রাউন্ড সিঙ্ক চলছে...</h4>
-              <p className="text-xs text-teal-700">ফাইল কম্প্রেস করে সার্ভারে পাঠানো হচ্ছে, অনুগ্রহ করে অপেক্ষা করুন।</p>
+              <h4 className="text-sm font-bold text-teal-950">
+                {isBangla ? 'ডকুমেন্ট প্রক্রিয়াকরণ ও ব্যাকগ্রাউন্ড সিঙ্ক চলছে...' : 'Processing Document & Background Sync...'}
+              </h4>
+              <p className="text-xs text-teal-700">
+                {isBangla ? 'ফাইল কম্প্রেস করে সার্ভারে পাঠানো হচ্ছে, অনুগ্রহ করে অপেক্ষা করুন।' : 'Compressing file and transmitting to server, please wait.'}
+              </p>
             </div>
           </div>
         )}
@@ -392,13 +457,15 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
           <div className="mb-6 bg-rose-50 border border-rose-300 rounded-2xl p-4 shadow-sm flex items-start gap-3">
             <AlertCircle size={24} className="text-rose-600 shrink-0 mt-0.5" />
             <div className="flex-1">
-              <h4 className="text-sm font-bold text-rose-950">আপলোড ব্যর্থ হয়েছে</h4>
+              <h4 className="text-sm font-bold text-rose-950">
+                {isBangla ? 'আপলোড ব্যর্থ হয়েছে' : 'Upload Failed'}
+              </h4>
               <p className="text-xs text-rose-800 mt-0.5">{captureError}</p>
               <button
                 onClick={() => setCaptureError(null)}
                 className="mt-2 text-xs font-bold text-rose-700 hover:underline"
               >
-                বন্ধ করুন
+                {isBangla ? 'বন্ধ করুন' : 'Close'}
               </button>
             </div>
           </div>
@@ -412,14 +479,18 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
                 <CheckCircle2 size={24} />
               </div>
               <div>
-                <h3 className="text-base font-bold text-emerald-950">চালান সফলভাবে জমা দেওয়া হয়েছে!</h3>
+                <h3 className="text-base font-bold text-emerald-950">
+                  {isBangla ? 'চালান সফলভাবে জমা দেওয়া হয়েছে!' : 'Challan Successfully Submitted!'}
+                </h3>
                 <div className="flex flex-wrap items-center gap-2 mt-1">
-                  <span className="text-xs text-emerald-800">রসিদ ট্র্যাকিং কোড:</span>
+                  <span className="text-xs text-emerald-800">
+                    {isBangla ? 'রসিদ ট্র্যাকিং কোড:' : 'Receipt Tracking Code:'}
+                  </span>
                   <span className="font-mono font-black text-sm bg-emerald-200/90 text-emerald-950 px-2.5 py-0.5 rounded-lg border border-emerald-300">
                     {confirmedReceipt.code}
                   </span>
                   <span className="text-xs text-emerald-700">
-                    — ডকুমেন্টটি হিসাবরক্ষকের পর্যালোচনার জন্য প্রস্তুত।
+                    {isBangla ? '— ডকুমেন্টটি হিসাবরক্ষকের পর্যালোচনার জন্য প্রস্তুত।' : '— Document is ready for accountant review.'}
                   </span>
                 </div>
               </div>
@@ -431,13 +502,13 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
                 className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-xl shadow-xs transition"
               >
                 <ExternalLink size={14} />
-                পর্যালোচনা কিউ-তে বিলটি দেখুন
+                {isBangla ? 'পর্যালোচনা কিউ-তে বিলটি দেখুন' : 'View Bill in Review Queue'}
               </a>
               <button
                 onClick={() => setConfirmedReceipt(null)}
                 className="px-3 py-2 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 rounded-xl transition"
               >
-                বাতিল
+                {isBangla ? 'বাতিল' : 'Dismiss'}
               </button>
             </div>
           </div>
@@ -457,19 +528,23 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
                     </div>
                     <div>
                       <h2 className="text-base font-bold text-slate-900">
-                        ম্যানুয়াল ফলব্যাক এন্ট্রি
+                        {isBangla ? 'ম্যানুয়াল ফলব্যাক এন্ট্রি' : 'Manual Fallback Entry'}
                       </h2>
-                      <p className="text-xs text-slate-500">চালান বা বিলের ছবি অস্পষ্ট হলে সরাসরি তথ্য প্রদান করুন</p>
+                      <p className="text-xs text-slate-500">
+                        {isBangla ? 'চালান বা বিলের ছবি অস্পষ্ট হলে সরাসরি তথ্য প্রদান করুন' : 'Enter details directly if bill photo or scan is unclear'}
+                      </p>
                     </div>
                   </div>
                   <span className="text-xs font-bold px-2.5 py-1 bg-amber-50 text-amber-800 rounded-lg border border-amber-200">
-                    ম্যানুয়াল মোড
+                    {isBangla ? 'ম্যানুয়াল মোড' : 'Manual Mode'}
                   </span>
                 </div>
 
                 <form onSubmit={handleManualSubmit} className="space-y-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-2">১. ক্যাটাগরি নির্বাচন করুন</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-2">
+                      {isBangla ? '১. ক্যাটাগরি নির্বাচন করুন' : '1. Select Category'}
+                    </label>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                       {categories.map((c) => {
                         const Icon = c.icon;
@@ -480,7 +555,7 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
                             type="button"
                             onClick={() => {
                               setSelectedCategory(c.key);
-                              setManualUnit(c.defaultUnit);
+                              setManualUnit(isBangla ? c.defaultUnitBn : c.defaultUnitEn);
                             }}
                             className={`p-3 rounded-xl text-xs font-bold border text-left flex flex-col gap-1.5 transition ${
                               isSelected
@@ -490,9 +565,11 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
                           >
                             <div className="flex items-center gap-1.5">
                               <Icon size={16} className={isSelected ? 'text-emerald-700' : 'text-slate-500'} />
-                              <span>{c.labelBn}</span>
+                              <span>{isBangla ? c.labelBn : c.labelEn}</span>
                             </div>
-                            <span className="text-[10px] text-slate-500 font-normal">{c.defaultUnit}</span>
+                            <span className="text-[10px] text-slate-500 font-normal">
+                              {isBangla ? c.defaultUnitBn : c.defaultUnitEn}
+                            </span>
                           </button>
                         );
                       })}
@@ -502,7 +579,7 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                        ২. পরিমাণ ({manualUnit}) <span className="text-rose-500">*</span>
+                        {isBangla ? `২. পরিমাণ (${manualUnit})` : `2. Quantity (${manualUnit})`} <span className="text-rose-500">*</span>
                       </label>
                       <div className="relative">
                         <input
@@ -511,7 +588,7 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
                           required
                           value={manualQuantity}
                           onChange={(e) => setManualQuantity(e.target.value)}
-                          placeholder="যেমন: ৩,৫০০"
+                          placeholder={isBangla ? 'যেমন: ৩,৫০০' : 'e.g. 3,500'}
                           className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-base font-bold text-slate-900 focus:outline-hidden focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition"
                         />
                         <span className="absolute right-3.5 top-3 text-xs font-semibold text-slate-400">
@@ -522,13 +599,13 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
 
                     <div>
                       <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                        ৩. স্লিপ / চালান নম্বর (ঐচ্ছিক)
+                        {isBangla ? '৩. স্লিপ / চালান নম্বর (ঐচ্ছিক)' : '3. Slip / Challan Number (Optional)'}
                       </label>
                       <input
                         type="text"
                         value={manualSlipNumber}
                         onChange={(e) => setManualSlipNumber(e.target.value)}
-                        placeholder="যেমন: POCL-44912"
+                        placeholder={isBangla ? 'যেমন: POCL-44912' : 'e.g. POCL-44912'}
                         className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-medium text-slate-900 focus:outline-hidden focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition"
                       />
                     </div>
@@ -540,14 +617,16 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
                       disabled={isProcessing || !selectedCategory || !manualQuantity}
                       className="flex-1 py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-sm shadow-md transition disabled:opacity-50"
                     >
-                      {isProcessing ? 'সংরক্ষণ হচ্ছে...' : 'সংরক্ষণ করুন ও কিউ-তে জমা দিন'}
+                      {isProcessing
+                        ? (isBangla ? 'সংরক্ষণ হচ্ছে...' : 'Saving...')
+                        : (isBangla ? 'সংরক্ষণ করুন ও কিউ-তে জমা দিন' : 'Save & Submit to Queue')}
                     </button>
                     <button
                       type="button"
                       onClick={() => setIsManualMode(false)}
                       className="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm transition"
                     >
-                      বাতিল
+                      {isBangla ? 'বাতিল' : 'Cancel'}
                     </button>
                   </div>
                 </form>
@@ -560,10 +639,12 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
                   <div className="flex items-center justify-between mb-3">
                     <div>
                       <h3 className="text-sm font-bold text-slate-900">
-                        ১. জ্বালানি বা ইউটিলিটি ক্যাটাগরি নির্বাচন করুন
+                        {isBangla ? '১. জ্বালানি বা ইউটিলিটি ক্যাটাগরি নির্বাচন করুন' : '1. Select Fuel or Utility Category'}
                       </h3>
                       <p className="text-xs text-slate-500">
-                        ক্যাটাগরি আগে নির্বাচন না করলেও ফাইলের নাম অনুযায়ী স্বয়ংক্রিয়ভাবে শনাক্ত হবে
+                        {isBangla
+                          ? 'ক্যাটাগরি আগে নির্বাচন না করলেও ফাইলের নাম অনুযায়ী স্বয়ংক্রিয়ভাবে শনাক্ত হবে'
+                          : 'Auto-detects from filename if category is not pre-selected'}
                       </p>
                     </div>
                     {selectedCategory && (
@@ -571,7 +652,7 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
                         onClick={() => setSelectedCategory(null)}
                         className="text-xs font-semibold text-emerald-700 hover:underline"
                       >
-                        ক্যাটাগরি পরিবর্তন
+                        {isBangla ? 'ক্যাটাগরি পরিবর্তন' : 'Change Category'}
                       </button>
                     )}
                   </div>
@@ -596,10 +677,10 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
                             <Icon size={22} strokeWidth={2.2} />
                           </div>
                           <span className="text-sm font-bold text-slate-900 tracking-tight leading-tight">
-                            {cat.labelBn}
+                            {isBangla ? cat.labelBn : cat.labelEn}
                           </span>
                           <span className="text-[11px] font-medium text-slate-500 mt-0.5">
-                            {cat.subBn}
+                            {isBangla ? cat.subBn : cat.subEn}
                           </span>
                         </button>
                       );
@@ -610,7 +691,7 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
                 {/* Step 2: PC Drag & Drop Dropzone */}
                 <div>
                   <h3 className="text-sm font-bold text-slate-900 mb-2">
-                    ২. চালান বা বিলের ডকুমেন্ট আপলোড করুন
+                    {isBangla ? '২. চালান বা বিলের ডকুমেন্ট আপলোড করুন' : '2. Upload Challan or Bill Document'}
                   </h3>
 
                   <div
@@ -631,10 +712,12 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
                     </div>
 
                     <h4 className="text-base font-bold text-slate-900 mb-1">
-                      চালান বা বিলের পিডিএফ (PDF) অথবা ছবি ড্র্যাগ করে এখানে ছাড়ুন
+                      {isBangla ? 'চালান বা বিলের পিডিএফ (PDF) অথবা ছবি ড্র্যাগ করে এখানে ছাড়ুন' : 'Drag and drop challan/bill PDF or image here'}
                     </h4>
                     <p className="text-xs text-slate-500 max-w-md mx-auto mb-5">
-                      কম্পিউটার থেকে সরাসরি ইনভয়েস, ক্যাশ মেমো, তিতাস/ডেসকো বিল বা ডেলিভারি চালান ড্রপ করুন
+                      {isBangla
+                        ? 'কম্পিউটার থেকে সরাসরি ইনভয়েস, ক্যাশ মেমো, তিতাস/ডেসকো বিল বা ডেলিভারি চালান ড্রপ করুন'
+                        : 'Drop invoices, cash memos, utility bills, or delivery challans directly from your computer'}
                     </p>
 
                     <div className="flex flex-wrap items-center justify-center gap-3">
@@ -645,7 +728,7 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
                         className="px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-bold text-xs flex items-center gap-2 shadow-xs transition active:scale-95 cursor-pointer"
                       >
                         <Upload size={16} />
-                        কম্পিউটার থেকে ফাইল বাছুন
+                        {isBangla ? 'কম্পিউটার থেকে ফাইল বাছুন' : 'Browse Files from PC'}
                       </button>
 
                       <button
@@ -655,12 +738,14 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
                         className="px-4 py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold text-xs flex items-center gap-2 shadow-xs transition active:scale-95 cursor-pointer"
                       >
                         <Camera size={16} />
-                        ক্যামেরা দিয়ে স্ক্যান
+                        {isBangla ? 'ক্যামেরা দিয়ে স্ক্যান' : 'Scan with Camera'}
                       </button>
                     </div>
 
                     <p className="text-[11px] text-slate-400 font-medium mt-4">
-                      সমর্থিত ফরম্যাট: PDF, JPG, PNG, WEBP (ক্লাইন্ট-সাইড নিরাপদ অটো-কম্প্রেশন)
+                      {isBangla
+                        ? 'সমর্থিত ফরম্যাট: PDF, JPG, PNG, WEBP (ক্লাইন্ট-সাইড নিরাপদ অটো-কম্প্রেশন)'
+                        : 'Supported formats: PDF, JPG, PNG, WEBP (secure client-side auto-compression)'}
                     </p>
                   </div>
                 </div>
@@ -673,16 +758,22 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
             <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col h-full">
               <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
                 <div>
-                  <h2 className="text-base font-bold text-slate-900">আমার জমা দেওয়া চালানসমূহ</h2>
-                  <p className="text-xs text-slate-500">অফলাইন ও অনলাইন ইনজেকশন হিস্ট্রি</p>
+                  <h2 className="text-base font-bold text-slate-900">
+                    {isBangla ? 'আমার জমা দেওয়া চালানসমূহ' : 'My Submissions'}
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    {isBangla ? 'অফলাইন ও অনলাইন ইনজেকশন হিস্ট্রি' : 'Offline & Online Ingestion History'}
+                  </p>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold px-2.5 py-0.5 bg-slate-100 text-slate-700 rounded-full border border-slate-200">
-                    মোট: {formatBanglaNumber(submissions.length)}
+                    {isBangla
+                      ? `মোট: ${formatLocalizedNumber(submissions.length, true)} টি`
+                      : `Total: ${formatLocalizedNumber(submissions.length, false)}`}
                   </span>
                   <button
                     onClick={loadQueue}
-                    title="রিফ্রেশ করুন"
+                    title={isBangla ? 'রিফ্রেশ করুন' : 'Refresh'}
                     className="p-1.5 text-slate-500 hover:bg-slate-100 rounded-lg transition"
                   >
                     <RefreshCw size={14} />
@@ -696,9 +787,13 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
                   <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mb-3">
                     <FileText size={24} />
                   </div>
-                  <h4 className="text-sm font-bold text-slate-700">এখনও কোনো চালান জমা দেওয়া হয়নি</h4>
+                  <h4 className="text-sm font-bold text-slate-700">
+                    {isBangla ? 'এখনও কোনো চালান জমা দেওয়া হয়নি' : 'No challans submitted yet'}
+                  </h4>
                   <p className="text-xs text-slate-400 mt-1 max-w-xs">
-                    বামপাশের ড্রপজোন বা আপলোড বাটন ব্যবহার করে প্রথম চালানটি জমা দিন।
+                    {isBangla
+                      ? 'বামপাশের ড্রপজোন বা আপলোড বাটন ব্যবহার করে প্রথম চালানটি জমা দিন।'
+                      : 'Use the dropzone or upload button on the left to submit your first challan.'}
                   </p>
                 </div>
               ) : (
@@ -727,13 +822,15 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
                                 {sub.receiptCode || sub.id.slice(0, 8).toUpperCase()}
                               </span>
                               <span className="text-[11px] text-slate-400">
-                                {formatBanglaDate(sub.createdAt)}
+                                {formatLocalizedDate(sub.createdAt, isBangla)}
                               </span>
                             </div>
-                            <p className="text-xs text-slate-700 font-medium truncate mt-0.5" title={sub.fileName || 'ম্যানুয়াল চালান'}>
+                            <p className="text-xs text-slate-700 font-medium truncate mt-0.5" title={sub.fileName || (isBangla ? 'ম্যানুয়াল চালান' : 'Manual Challan')}>
                               {sub.manualQuantity
-                                ? `ম্যানুয়াল: ${formatBanglaNumber(sub.manualQuantity)} ${sub.manualUnit || ''}`
-                                : sub.fileName || 'ক্যামেরা ফটো'}
+                                ? (isBangla
+                                    ? `ম্যানুয়াল: ${formatLocalizedNumber(sub.manualQuantity, true)} ${sub.manualUnit || ''}`
+                                    : `Manual: ${formatLocalizedNumber(sub.manualQuantity, false)} ${sub.manualUnit || ''}`)
+                                : sub.fileName || (isBangla ? 'ক্যামেরা ফটো' : 'Camera Photo')}
                             </p>
                             {isFailed && sub.error && (
                               <p className="text-[10px] text-rose-600 font-medium truncate" title={sub.error}>
@@ -748,39 +845,39 @@ export function CaptureScreen({ onBack }: { onBack?: () => void } = {}) {
                           {isReceived && (
                             <div className="flex items-center gap-1.5">
                               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">
-                                <CheckCircle2 size={12} /> গৃহীত
+                                <CheckCircle2 size={12} /> {isBangla ? 'গৃহীত' : 'Received'}
                               </span>
                               <a
                                 href={`/?mode=review&docId=${sub.serverDocId || sub.id}`}
                                 className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-700 hover:bg-emerald-800 text-white flex items-center gap-1 shadow-2xs transition active:scale-95 cursor-pointer"
-                                title="পর্যালোচনা কিউ-তে বিলটি দেখুন"
+                                title={isBangla ? 'পর্যালোচনা কিউ-তে বিলটি দেখুন' : 'View bill in review queue'}
                               >
-                                <ExternalLink size={11} /> দেখুন
+                                <ExternalLink size={11} /> {isBangla ? 'দেখুন' : 'View'}
                               </a>
                             </div>
                           )}
                           {isUploading && (
                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-sky-100 text-sky-800 animate-pulse">
-                              <RefreshCw size={12} className="animate-spin" /> আপলোড হচ্ছে
+                              <RefreshCw size={12} className="animate-spin" /> {isBangla ? 'আপলোড হচ্ছে' : 'Uploading'}
                             </span>
                           )}
                           {sub.status === 'queued' && (
                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">
-                              <Clock size={12} /> অপেক্ষমান
+                              <Clock size={12} /> {isBangla ? 'অপেক্ষমান' : 'Queued'}
                             </span>
                           )}
                           {isFailed && (
                             <div className="flex items-center gap-1.5">
                               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800">
-                                <AlertCircle size={12} /> ব্যর্থ
+                                <AlertCircle size={12} /> {isBangla ? 'ব্যর্থ' : 'Failed'}
                               </span>
                               <button
                                 type="button"
                                 onClick={() => handleRetry(sub.id)}
                                 className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-teal-600 hover:bg-teal-700 text-white flex items-center gap-1 shadow-2xs transition active:scale-95 cursor-pointer"
-                                title="পুনরায় আপলোড চেষ্টা করুন"
+                                title={isBangla ? 'পুনরায় আপলোড চেষ্টা করুন' : 'Retry upload'}
                               >
-                                <RefreshCw size={11} /> পুনরায়
+                                <RefreshCw size={11} /> {isBangla ? 'পুনরায়' : 'Retry'}
                               </button>
                             </div>
                           )}
