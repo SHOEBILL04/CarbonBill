@@ -18,7 +18,13 @@ public record AuditorLineItemDto(
     string ConfirmedAt,
     string FactorSource,
     decimal FactorValue,
-    int FactorCitationYear);
+    int FactorCitationYear,
+    string? BillCompany = null,
+    string? BillNumber = null,
+    string? FileName = null,
+    string? MeterNumber = null,
+    decimal? GrossKgCo2e = null,
+    string? CalculationFormula = null);
 
 public record AuditorSnapshotDto(
     string ReportId,

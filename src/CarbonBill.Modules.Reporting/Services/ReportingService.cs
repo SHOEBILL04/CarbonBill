@@ -307,7 +307,10 @@ public class ReportingService(
                     d.CapturedAtUtc,
                     run.OverallConfidence,
                     u.Email AS ReviewerEmail,
-                    dec.DecidedAtUtc
+                    dec.DecidedAtUtc,
+                    ef.Vendor,
+                    ef.BillNumber,
+                    ef.MeterNumber
                 FROM EmissionResults er
                 LEFT JOIN ActivityRecords ar ON er.ActivityRecordId = ar.Id
                 LEFT JOIN Documents d ON er.DocumentId = d.Id
@@ -316,6 +319,14 @@ public class ReportingService(
                     FROM ExtractionRuns
                     GROUP BY DocumentId
                 ) run ON d.Id = run.DocumentId
+                LEFT JOIN (
+                    SELECT DocumentId,
+                           MAX(CASE WHEN FieldName = 'Vendor' THEN COALESCE(CorrectedValue, NormalizedValue, RawValue) END) AS Vendor,
+                           MAX(CASE WHEN FieldName = 'BillNumber' THEN COALESCE(CorrectedValue, NormalizedValue, RawValue) END) AS BillNumber,
+                           MAX(CASE WHEN FieldName = 'MeterNumber' THEN COALESCE(CorrectedValue, NormalizedValue, RawValue) END) AS MeterNumber
+                    FROM ExtractedFields
+                    GROUP BY DocumentId
+                ) ef ON d.Id = ef.DocumentId
                 LEFT JOIN Decisions dec ON d.Id = dec.DocumentId
                 LEFT JOIN Users u ON dec.ReviewerUserId = u.Id
                 ORDER BY er.CalculatedAtUtc DESC;
@@ -344,8 +355,13 @@ public class ReportingService(
                 var confVal = reader["OverallConfidence"] != DBNull.Value ? Convert.ToDouble(reader["OverallConfidence"], CultureInfo.InvariantCulture) : 0.95;
                 var reviewer = reader["ReviewerEmail"]?.ToString() ?? "accountant@apex.local";
 
+                var vendorFromDb = reader["Vendor"] != DBNull.Value ? reader["Vendor"]?.ToString() : null;
+                var billNumberFromDb = reader["BillNumber"] != DBNull.Value ? reader["BillNumber"]?.ToString() : null;
+                var meterNumberFromDb = reader["MeterNumber"] != DBNull.Value ? reader["MeterNumber"]?.ToString() : null;
+
                 string sourceBn, sourceEn, docTypeBn, docTypeEn, factorSource;
                 int factorYear = 2024;
+                string billCompany = vendorFromDb ?? string.Empty;
 
                 if (activityType.Contains("Electric", StringComparison.OrdinalIgnoreCase) || docType.Contains("Electric", StringComparison.OrdinalIgnoreCase) || fileName.Contains("BPDB", StringComparison.OrdinalIgnoreCase) || fileName.Contains("Electricity", StringComparison.OrdinalIgnoreCase) || fileName.Contains("PHED", StringComparison.OrdinalIgnoreCase))
                 {
@@ -354,6 +370,17 @@ public class ReportingService(
                     docTypeBn = "মাসিক শিল্প বিদ্যুৎ বিল";
                     docTypeEn = "Industrial Electricity Tariff Bill";
                     factorSource = "SREDA / DoE Bangladesh National Grid Emission Factor (Location-Based)";
+
+                    if (string.IsNullOrWhiteSpace(billCompany))
+                    {
+                        if (fileName.Contains("BPDB", StringComparison.OrdinalIgnoreCase)) billCompany = "Bangladesh Power Development Board (BPDB)";
+                        else if (fileName.Contains("DESCO", StringComparison.OrdinalIgnoreCase)) billCompany = "Dhaka Electric Supply Company (DESCO)";
+                        else if (fileName.Contains("DPDC", StringComparison.OrdinalIgnoreCase)) billCompany = "Dhaka Power Distribution Company (DPDC)";
+                        else if (fileName.Contains("BREB", StringComparison.OrdinalIgnoreCase)) billCompany = "Bangladesh Rural Electrification Board (BREB)";
+                        else if (fileName.Contains("PHED", StringComparison.OrdinalIgnoreCase)) billCompany = "PHED Electricity";
+                        else if (fileName.Contains("Meralco", StringComparison.OrdinalIgnoreCase)) billCompany = "Meralco Power";
+                        else billCompany = "Bangladesh Power Development Board (BPDB)";
+                    }
                 }
                 else if (activityType.Contains("Gas", StringComparison.OrdinalIgnoreCase) || docType.Contains("Gas", StringComparison.OrdinalIgnoreCase) || fileName.Contains("Gas", StringComparison.OrdinalIgnoreCase) || fileName.Contains("Titas", StringComparison.OrdinalIgnoreCase))
                 {
@@ -363,6 +390,11 @@ public class ReportingService(
                     docTypeEn = "Titas Gas Transmission Bill";
                     factorSource = "Department of Environment (DoE) Bangladesh / IPCC Natural Gas EF";
                     factorYear = 2023;
+
+                    if (string.IsNullOrWhiteSpace(billCompany))
+                    {
+                        billCompany = "Titas Gas Transmission & Distribution Co. Ltd.";
+                    }
                 }
                 else if (activityType.Contains("Diesel", StringComparison.OrdinalIgnoreCase) || docType.Contains("Diesel", StringComparison.OrdinalIgnoreCase) || fileName.Contains("Diesel", StringComparison.OrdinalIgnoreCase))
                 {
@@ -371,6 +403,11 @@ public class ReportingService(
                     docTypeBn = "জ্বালানি তেল ক্রয় চালান";
                     docTypeEn = "Padma Oil Co. Diesel Slip";
                     factorSource = "IPCC Guidelines for National GHG Inventories (Diesel Stationary Combustion)";
+
+                    if (string.IsNullOrWhiteSpace(billCompany))
+                    {
+                        billCompany = "Padma Oil Company Limited";
+                    }
                 }
                 else
                 {
@@ -379,6 +416,11 @@ public class ReportingService(
                     docTypeBn = "পরিবহন চালান";
                     docTypeEn = "Trucking & Freight Challan";
                     factorSource = "UK DEFRA / GLEC Framework Freight Transport Factor";
+
+                    if (string.IsNullOrWhiteSpace(billCompany))
+                    {
+                        billCompany = "Chittagong Port Freight Logistics Ltd.";
+                    }
                 }
 
                 var displayDocId = !string.IsNullOrWhiteSpace(docIdStr) && docIdStr.Length >= 8
@@ -386,6 +428,8 @@ public class ReportingService(
                     : $"DOC-{emissionId[..8].ToUpperInvariant()}";
 
                 var itemDate = capturedAt.Length >= 10 ? capturedAt[..10] : capturedAt;
+                var billNumber = !string.IsNullOrWhiteSpace(billNumberFromDb) ? billNumberFromDb : (!string.IsNullOrWhiteSpace(fileName) ? fileName : displayDocId);
+                var formula = $"{standardQty:N0} {standardUnit} × {factorUsed:F4} kgCO₂e/{standardUnit} ÷ 1,000 = {tco2e:F2} tCO₂e";
 
                 lineItems.Add(new AuditorLineItemDto(
                     Id: emissionId,
@@ -405,7 +449,13 @@ public class ReportingService(
                     ConfirmedAt: calculatedAt,
                     FactorSource: factorSource,
                     FactorValue: factorUsed,
-                    FactorCitationYear: factorYear
+                    FactorCitationYear: factorYear,
+                    BillCompany: billCompany,
+                    BillNumber: billNumber,
+                    FileName: fileName,
+                    MeterNumber: meterNumberFromDb,
+                    GrossKgCo2e: kgCo2e,
+                    CalculationFormula: formula
                 ));
             }
         }
@@ -435,7 +485,13 @@ public class ReportingService(
                 "2026-08-15T09:12:00Z",
                 "IPCC Guidelines for National GHG Inventories (Diesel Stationary Combustion)",
                 2.68m,
-                2024
+                2024,
+                BillCompany: "Padma Oil Company Limited",
+                BillNumber: "DSL-2026-0814",
+                FileName: "padma_diesel_slip_aug26.pdf",
+                MeterNumber: "N/A (Fuel Slip)",
+                GrossKgCo2e: 7638.00m,
+                CalculationFormula: "2,850 Litres × 2.6800 kgCO₂e/Litre ÷ 1,000 = 7.64 tCO₂e"
             ),
             new(
                 "audit-item-02",
@@ -455,7 +511,13 @@ public class ReportingService(
                 "2026-08-29T11:45:00Z",
                 "Department of Environment (DoE) Bangladesh / IPCC Natural Gas EF",
                 2.0187m,
-                2023
+                2023,
+                BillCompany: "Titas Gas Transmission & Distribution Co. Ltd.",
+                BillNumber: "TITAS-GAS-88412",
+                FileName: "titas_gas_bill_aug26.pdf",
+                MeterNumber: "MTR-TG-9941",
+                GrossKgCo2e: 6459.84m,
+                CalculationFormula: "3,200 m³ × 2.0187 kgCO₂e/m³ ÷ 1,000 = 6.46 tCO₂e"
             ),
             new(
                 "audit-item-03",
@@ -475,7 +537,13 @@ public class ReportingService(
                 "2026-09-02T16:20:00Z",
                 "SREDA / DoE Bangladesh National Grid Emission Factor (Location-Based)",
                 0.640288m,
-                2025
+                2025,
+                BillCompany: "Dhaka Electric Supply Company (DESCO)",
+                BillNumber: "DESCO-IND-4102",
+                FileName: "desco_electricity_aug26.pdf",
+                MeterNumber: "MTR-DS-41028",
+                GrossKgCo2e: 44500.02m,
+                CalculationFormula: "69,500 kWh × 0.640288 kgCO₂e/kWh ÷ 1,000 = 44.50 tCO₂e"
             ),
             new(
                 "audit-item-04",
@@ -495,7 +563,13 @@ public class ReportingService(
                 "2026-08-27T10:15:00Z",
                 "UK DEFRA / GLEC Framework Freight Transport Factor (Heavy Goods Vehicle)",
                 0.254054m,
-                2024
+                2024,
+                BillCompany: "Chittagong Port Container Logistics Ltd.",
+                BillNumber: "CHL-FRT-9042",
+                FileName: "ctg_port_challan_aug26.pdf",
+                MeterNumber: "TRUCK-DH-7102",
+                GrossKgCo2e: 4700.00m,
+                CalculationFormula: "18,500 tonne-km × 0.254054 kgCO₂e/tonne-km ÷ 1,000 = 4.70 tCO₂e"
             )
         };
 
