@@ -152,7 +152,7 @@ export default function DashboardView({ user, onGoToFloor, onGoToReview, onLogou
               <AlertCircle size={14} />
               {isBangla ? 'কার্বন ফ্ল্যাগস' : 'Carbon Flags'}
               <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-amber-500 text-white font-bold ml-0.5">
-                ৩
+                {isBangla ? '৩' : '3'}
               </span>
             </button>
 

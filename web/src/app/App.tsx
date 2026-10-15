@@ -99,7 +99,7 @@ export default function App() {
           <Suspense
             fallback={
               <div className="min-h-screen flex items-center justify-center p-8 text-center text-sm font-semibold text-slate-500">
-                ফ্লোর মোড লোড হচ্ছে... (Loading Floor Mode...)
+                {i18n.language === 'bn' ? 'ফ্লোর মোড লোড হচ্ছে...' : 'Loading Floor Mode...'}
               </div>
             }
           >
@@ -114,7 +114,7 @@ export default function App() {
           <Suspense
             fallback={
               <div className="min-h-screen flex items-center justify-center p-8 text-center text-sm font-semibold text-slate-500">
-                পর্যালোচনা ওয়ার্কস্পেস লোড হচ্ছে... (Loading Review Workspace...)
+                {i18n.language === 'bn' ? 'পর্যালোচনা ওয়ার্কস্পেস লোড হচ্ছে...' : 'Loading Review Workspace...'}
               </div>
             }
           >
