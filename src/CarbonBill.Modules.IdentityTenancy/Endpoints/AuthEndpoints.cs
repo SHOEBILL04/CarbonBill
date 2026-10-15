@@ -19,12 +19,14 @@ public record RegisterRequest(
     string Password,
     string OrganizationName,
     string? PhoneNumber = null,
-    string? Sector = "RMG");
+    string? Sector = "RMG",
+    string? FacilityType = null);
 
 public record LoginRequest(
     string? Identifier,
     string Password,
     string? Email = null,
+    string? PhoneNumber = null,
     Guid? PreferredOrgId = null);
 
 public record LoginResponse(
@@ -111,11 +113,13 @@ public static class AuthEndpoints
                 slug = $"{slug}-{Guid.NewGuid().ToString("N")[..6]}";
             }
 
+            var sector = !string.IsNullOrWhiteSpace(request.Sector) ? request.Sector.Trim() : (!string.IsNullOrWhiteSpace(request.FacilityType) ? request.FacilityType.Trim() : "RMG");
+
             var organization = new Organization
             {
                 Name = request.OrganizationName.Trim(),
                 Slug = slug,
-                Sector = string.IsNullOrWhiteSpace(request.Sector) ? "RMG" : request.Sector.Trim(),
+                Sector = sector,
                 IsActive = true
             };
             dbContext.Organizations.Add(organization);
@@ -134,7 +138,9 @@ public static class AuthEndpoints
             var membership = new Membership
             {
                 User = user,
+                UserId = user.Id,
                 Organization = organization,
+                OrgId = organization.Id,
                 IsActive = true
             };
             dbContext.Memberships.Add(membership);
@@ -183,7 +189,7 @@ public static class AuthEndpoints
             HttpResponse httpResponse,
             CancellationToken ct) =>
         {
-            var loginId = (request.Identifier ?? request.Email ?? string.Empty).Trim();
+            var loginId = (request.Identifier ?? request.Email ?? request.PhoneNumber ?? string.Empty).Trim();
             if (string.IsNullOrWhiteSpace(loginId))
             {
                 return Results.Problem(
@@ -194,6 +200,9 @@ public static class AuthEndpoints
 
             var isEmail = loginId.Contains('@');
             var normalizedEmail = loginId.ToLowerInvariant();
+            var cleanPhone = loginId.Replace(" ", "").Replace("-", "");
+            var phonePrefixStripped = cleanPhone.StartsWith("+88", StringComparison.Ordinal) ? cleanPhone[3..] : (cleanPhone.StartsWith("88", StringComparison.Ordinal) ? cleanPhone[2..] : cleanPhone);
+            var phoneWithPrefix = "+88" + phonePrefixStripped.TrimStart('+');
 
             var user = await dbContext.Users
                 .IgnoreQueryFilters()
@@ -201,7 +210,12 @@ public static class AuthEndpoints
                 .ThenInclude(m => m.Organization)
                 .FirstOrDefaultAsync(u => u.IsActive && (
                     (isEmail && u.Email == normalizedEmail) ||
-                    (!isEmail && (u.PhoneNumber == loginId || u.Email == normalizedEmail))
+                    (!isEmail && (
+                        u.PhoneNumber == loginId ||
+                        u.PhoneNumber == cleanPhone ||
+                        u.PhoneNumber == phonePrefixStripped ||
+                        u.PhoneNumber == phoneWithPrefix ||
+                        u.Email == normalizedEmail))
                 ), ct);
 
             if (user == null || !passwordHasher.VerifyPassword(request.Password, user.PasswordHash))
