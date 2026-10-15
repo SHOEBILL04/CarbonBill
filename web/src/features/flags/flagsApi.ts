@@ -249,6 +249,9 @@ export async function triggerFlagEvaluation(period: string = '2026-09'): Promise
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     });
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('carbonbill:flags-updated'));
+    }
   } catch {
     // Ignore error
   }
@@ -261,6 +264,9 @@ export async function acknowledgeFlag(id: string): Promise<boolean> {
     // fallback
   }
   inMemoryFlags = inMemoryFlags.map((f) => (f.id === id ? { ...f, state: 'Acknowledged' } : f));
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('carbonbill:flags-updated'));
+  }
   return true;
 }
 
@@ -288,6 +294,9 @@ export async function dismissFlag(id: string, reason: string): Promise<boolean> 
         }
       : f
   );
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('carbonbill:flags-updated'));
+  }
   return true;
 }
 
@@ -311,5 +320,8 @@ export async function snoozeFlag(id: string, days: number, reason: string): Prom
         }
       : f
   );
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('carbonbill:flags-updated'));
+  }
   return true;
 }

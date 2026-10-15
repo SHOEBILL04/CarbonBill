@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import { DashboardFeature } from '../../features/dashboard';
 import { FlagsFeed } from '../../features/flags';
+import { fetchFlags } from '../../features/flags/flagsApi';
+import { toBanglaDigits } from '../../shared';
 import { RecommendationsView } from '../../features/recommendations';
 import { ReportsView } from '../../features/reports';
 import { AuditorView } from '../../features/auditor';
@@ -32,6 +34,36 @@ export default function DashboardView({ user, onGoToFloor, onGoToReview, onLogou
   const isBangla = i18n.language === 'bn';
 
   const [activeTab, setActiveTab] = useState<MainTab>('dashboard');
+  const [openFlagsCount, setOpenFlagsCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadOpenFlagsCount() {
+      try {
+        const list = await fetchFlags('open');
+        if (isMounted) {
+          setOpenFlagsCount(list.length);
+        }
+      } catch {
+        // fallback
+      }
+    }
+
+    loadOpenFlagsCount();
+
+    const handleUpdate = () => {
+      loadOpenFlagsCount();
+    };
+
+    window.addEventListener('carbonbill:flags-updated', handleUpdate);
+    window.addEventListener('focus', handleUpdate);
+    return () => {
+      isMounted = false;
+      window.removeEventListener('carbonbill:flags-updated', handleUpdate);
+      window.removeEventListener('focus', handleUpdate);
+    };
+  }, [activeTab]);
 
   useEffect(() => {
     function syncTabFromUrl() {
@@ -151,9 +183,15 @@ export default function DashboardView({ user, onGoToFloor, onGoToReview, onLogou
             >
               <AlertCircle size={14} />
               {isBangla ? 'কার্বন ফ্ল্যাগস' : 'Carbon Flags'}
-              <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-amber-500 text-white font-bold ml-0.5">
-                {isBangla ? '৩' : '3'}
-              </span>
+              {openFlagsCount !== null && (
+                <span
+                  className={`px-1.5 py-0.2 rounded-full text-[10px] text-white font-bold ml-0.5 transition ${
+                    openFlagsCount > 0 ? 'bg-amber-500' : 'bg-emerald-600'
+                  }`}
+                >
+                  {isBangla ? toBanglaDigits(openFlagsCount) : openFlagsCount}
+                </span>
+              )}
             </button>
 
             <button
