@@ -632,6 +632,37 @@ public class ReportingService(
         var jsonSnapshot = JsonSerializer.Serialize(allItems, JsonOptions);
         var contentHash = ComputeSha256(jsonSnapshot);
 
+        // Dynamically compute emission-weighted Data Quality Score (DQS) and Grade based on OCR confidence & primary provenance
+        decimal weightedConfidenceSum = 0m;
+        decimal totalWeight = 0m;
+
+        foreach (var item in allItems)
+        {
+            var weight = item.EmissionsTco2e > 0 ? item.EmissionsTco2e : 1.0m;
+            decimal confidenceFactor = item.OcrConfidence > 0 ? Convert.ToDecimal(item.OcrConfidence) / 100m : 0.85m;
+            if (confidenceFactor > 1.0m) confidenceFactor = 1.0m;
+
+            if (!string.IsNullOrWhiteSpace(item.ConfirmedBy))
+            {
+                confidenceFactor = Math.Min(1.0m, confidenceFactor * 1.01m);
+            }
+
+            weightedConfidenceSum += weight * confidenceFactor;
+            totalWeight += weight;
+        }
+
+        decimal computedDqs = totalWeight > 0 ? Math.Round(weightedConfidenceSum / totalWeight, 4) : 0.9500m;
+        if (computedDqs > 1.0m) computedDqs = 1.0m;
+        if (computedDqs < 0.10m) computedDqs = 0.50m;
+
+        string computedGrade = computedDqs switch
+        {
+            >= 0.90m => "Grade A",
+            >= 0.75m => "Grade B",
+            >= 0.60m => "Grade C",
+            _ => "Grade D"
+        };
+
         return new AuditorSnapshotDto(
             ReportId: "rep-2026-apex",
             Period: "2026-Q1 (Live)",
@@ -644,8 +675,8 @@ public class ReportingService(
             Scope1Emissions: Math.Round(s1, 2),
             Scope2Emissions: Math.Round(s2, 2),
             Scope3Emissions: Math.Round(s3, 2),
-            DataQualityScore: 0.9420m,
-            DqsGrade: "Grade A",
+            DataQualityScore: computedDqs,
+            DqsGrade: computedGrade,
             RedactPrices: false,
             Token: null,
             LineItems: allItems
