@@ -431,6 +431,37 @@ public class ReportingService(
                 var billNumber = !string.IsNullOrWhiteSpace(billNumberFromDb) ? billNumberFromDb : (!string.IsNullOrWhiteSpace(fileName) ? fileName : displayDocId);
                 var formula = $"{standardQty:N0} {standardUnit} × {factorUsed:F4} kgCO₂e/{standardUnit} ÷ 1,000 = {tco2e:F2} tCO₂e";
 
+                string division, divisionBn;
+                if (activityType.Contains("Freight", StringComparison.OrdinalIgnoreCase) ||
+                    docType.Contains("Freight", StringComparison.OrdinalIgnoreCase) ||
+                    fileName.Contains("Chittagong", StringComparison.OrdinalIgnoreCase) ||
+                    fileName.Contains("ctg", StringComparison.OrdinalIgnoreCase) ||
+                    fileName.Contains("Port", StringComparison.OrdinalIgnoreCase))
+                {
+                    division = "Chattogram Division";
+                    divisionBn = "চট্টগ্রাম বিভাগ";
+                }
+                else if (fileName.Contains("Sylhet", StringComparison.OrdinalIgnoreCase))
+                {
+                    division = "Sylhet Division";
+                    divisionBn = "সিলেট বিভাগ";
+                }
+                else if (fileName.Contains("Khulna", StringComparison.OrdinalIgnoreCase))
+                {
+                    division = "Khulna Division";
+                    divisionBn = "খুলনা বিভাগ";
+                }
+                else if (fileName.Contains("Rajshahi", StringComparison.OrdinalIgnoreCase))
+                {
+                    division = "Rajshahi Division";
+                    divisionBn = "রাজশাহী বিভাগ";
+                }
+                else
+                {
+                    division = "Dhaka Division";
+                    divisionBn = "ঢাকা বিভাগ";
+                }
+
                 lineItems.Add(new AuditorLineItemDto(
                     Id: emissionId,
                     Scope: scopeStr,
@@ -455,7 +486,10 @@ public class ReportingService(
                     FileName: fileName,
                     MeterNumber: meterNumberFromDb,
                     GrossKgCo2e: kgCo2e,
-                    CalculationFormula: formula
+                    CalculationFormula: formula,
+                    Division: division,
+                    DivisionBn: divisionBn,
+                    CompanyName: "Apex Textile & Garments Ltd."
                 ));
             }
         }
@@ -491,7 +525,10 @@ public class ReportingService(
                 FileName: "padma_diesel_slip_aug26.pdf",
                 MeterNumber: "N/A (Fuel Slip)",
                 GrossKgCo2e: 7638.00m,
-                CalculationFormula: "2,850 Litres × 2.6800 kgCO₂e/Litre ÷ 1,000 = 7.64 tCO₂e"
+                CalculationFormula: "2,850 Litres × 2.6800 kgCO₂e/Litre ÷ 1,000 = 7.64 tCO₂e",
+                Division: "Dhaka Division",
+                DivisionBn: "ঢাকা বিভাগ",
+                CompanyName: "Apex Textile & Garments Ltd."
             ),
             new(
                 "audit-item-02",
@@ -517,7 +554,10 @@ public class ReportingService(
                 FileName: "titas_gas_bill_aug26.pdf",
                 MeterNumber: "MTR-TG-9941",
                 GrossKgCo2e: 6459.84m,
-                CalculationFormula: "3,200 m³ × 2.0187 kgCO₂e/m³ ÷ 1,000 = 6.46 tCO₂e"
+                CalculationFormula: "3,200 m³ × 2.0187 kgCO₂e/m³ ÷ 1,000 = 6.46 tCO₂e",
+                Division: "Dhaka Division",
+                DivisionBn: "ঢাকা বিভাগ",
+                CompanyName: "Apex Textile & Garments Ltd."
             ),
             new(
                 "audit-item-03",
@@ -543,7 +583,10 @@ public class ReportingService(
                 FileName: "desco_electricity_aug26.pdf",
                 MeterNumber: "MTR-DS-41028",
                 GrossKgCo2e: 44500.02m,
-                CalculationFormula: "69,500 kWh × 0.640288 kgCO₂e/kWh ÷ 1,000 = 44.50 tCO₂e"
+                CalculationFormula: "69,500 kWh × 0.640288 kgCO₂e/kWh ÷ 1,000 = 44.50 tCO₂e",
+                Division: "Dhaka Division",
+                DivisionBn: "ঢাকা বিভাগ",
+                CompanyName: "Apex Textile & Garments Ltd."
             ),
             new(
                 "audit-item-04",
@@ -569,7 +612,10 @@ public class ReportingService(
                 FileName: "ctg_port_challan_aug26.pdf",
                 MeterNumber: "TRUCK-DH-7102",
                 GrossKgCo2e: 4700.00m,
-                CalculationFormula: "18,500 tonne-km × 0.254054 kgCO₂e/tonne-km ÷ 1,000 = 4.70 tCO₂e"
+                CalculationFormula: "18,500 tonne-km × 0.254054 kgCO₂e/tonne-km ÷ 1,000 = 4.70 tCO₂e",
+                Division: "Chattogram Division",
+                DivisionBn: "চট্টগ্রাম বিভাগ",
+                CompanyName: "Apex Textile & Garments Ltd."
             )
         };
 

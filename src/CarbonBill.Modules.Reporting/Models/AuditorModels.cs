@@ -24,7 +24,10 @@ public record AuditorLineItemDto(
     string? FileName = null,
     string? MeterNumber = null,
     decimal? GrossKgCo2e = null,
-    string? CalculationFormula = null);
+    string? CalculationFormula = null,
+    string? Division = null,
+    string? DivisionBn = null,
+    string? CompanyName = null);
 
 public record AuditorSnapshotDto(
     string ReportId,
