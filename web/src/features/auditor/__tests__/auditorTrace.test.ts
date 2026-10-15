@@ -69,6 +69,21 @@ describe('Auditor Read-Only Portal & Click-to-Source Traceability', () => {
     }
   });
 
+  it('provides division origin and company name for every activity source', async () => {
+    const snapshot = await fetchAuditorSnapshot('rep-2026-08');
+    for (const item of snapshot.lineItems) {
+      expect(item.division).toBeDefined();
+      expect(item.division!.length).toBeGreaterThan(0);
+      expect(item.division).toMatch(/(Dhaka|Chattogram|Sylhet|Khulna|Rajshahi) Division/);
+
+      expect(item.divisionBn).toBeDefined();
+      expect(item.divisionBn!.length).toBeGreaterThan(0);
+
+      expect(item.companyName).toBeDefined();
+      expect(item.companyName!.length).toBeGreaterThan(0);
+    }
+  });
+
   it('verifies that price redaction flag is respected', async () => {
     const snapshot = await fetchAuditorSnapshot('rep-2026-08');
     expect(snapshot.redactPrices).toBe(true);

@@ -8,6 +8,8 @@ import {
   Award,
   Lock,
   Building,
+  Building2,
+  MapPin,
   Calculator,
 } from 'lucide-react';
 
@@ -48,6 +50,9 @@ export const ProvenanceInspectorModal: React.FC<ProvenanceInspectorModalProps> =
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${badge.className}`}>
                   {badge.tag}
                 </span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-teal-50 text-teal-800 border border-teal-200 flex items-center gap-1">
+                  <MapPin size={10} /> {isBangla ? (item.divisionBn || 'ঢাকা বিভাগ') : (item.division || 'Dhaka Division')}
+                </span>
               </div>
               <h3 className="font-bold text-slate-900 text-lg mt-0.5">
                 {isBangla ? item.sourceNameBn : item.sourceNameEn}
@@ -56,7 +61,7 @@ export const ProvenanceInspectorModal: React.FC<ProvenanceInspectorModalProps> =
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition"
+            className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition cursor-pointer"
             aria-label="Close"
           >
             <X size={20} />
@@ -70,7 +75,7 @@ export const ProvenanceInspectorModal: React.FC<ProvenanceInspectorModalProps> =
             <div className="flex items-center justify-between">
               <span className="font-bold text-slate-800 flex items-center gap-2 text-sm">
                 <Building size={16} className="text-teal-700" />
-                {isBangla ? 'বিল ও সরবরাহকারী পরিচিতি (Bill & Utility Provider)' : 'Bill & Utility Provider Identification:'}
+                {isBangla ? 'উৎস, কোম্পানি ও সরবরাহকারী পরিচিতি' : 'Activity Source, Company & Facility Identification:'}
               </span>
               <span className={`text-xs font-bold px-2.5 py-0.5 rounded border ${badge.className}`}>
                 {badge.tag}
@@ -79,8 +84,28 @@ export const ProvenanceInspectorModal: React.FC<ProvenanceInspectorModalProps> =
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs pt-1">
               <div className="space-y-1">
+                <span className="text-slate-500 font-medium flex items-center gap-1">
+                  <Building2 size={12} className="text-slate-400" />
+                  {isBangla ? 'কোম্পানি / প্রতিষ্ঠান:' : 'Enterprise Company:'}
+                </span>
+                <p className="font-bold text-slate-900 text-[13px]">
+                  {item.companyName || 'Apex Textile & Garments Ltd.'}
+                </p>
+              </div>
+
+              <div className="space-y-1">
+                <span className="text-slate-500 font-medium flex items-center gap-1">
+                  <MapPin size={12} className="text-teal-600" />
+                  {isBangla ? 'বিভাগ / অবস্থান (Division):' : 'Administrative Division:'}
+                </span>
+                <p className="font-bold text-teal-900 text-[13px]">
+                  {isBangla ? (item.divisionBn || 'ঢাকা বিভাগ') : (item.division || 'Dhaka Division')}
+                </p>
+              </div>
+
+              <div className="space-y-1">
                 <span className="text-slate-500 font-medium">
-                  {isBangla ? 'বিল প্রদানকারী কোম্পানি / সংস্থা:' : 'Utility Provider / Company:'}
+                  {isBangla ? 'বিল প্রদানকারী ইউটিলিটি / বিক্রেতা:' : 'Utility Provider / Vendor:'}
                 </span>
                 <p className="font-bold text-slate-900 text-[13px]">
                   {item.billCompany || badge.name}
