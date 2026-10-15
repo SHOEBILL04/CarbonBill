@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { AuditorSnapshot, AuditorLineItem } from './types';
 import { fetchAuditorSnapshot } from './auditorApi';
 import { ProvenanceInspectorModal } from './components/ProvenanceInspectorModal';
+import { getCompanyBadge } from './companyBadge';
 import { toBanglaDigits, formatBdt } from '../../shared';
 import {
   ShieldCheck,
@@ -54,6 +55,8 @@ export const AuditorView: React.FC<AuditorViewProps> = ({ token }) => {
     loadData();
   }, [activeToken]);
 
+
+
   const filteredItems = useMemo(() => {
     if (!snapshot) return [];
     if (!searchTerm.trim()) return snapshot.lineItems;
@@ -63,7 +66,10 @@ export const AuditorView: React.FC<AuditorViewProps> = ({ token }) => {
         item.sourceNameEn.toLowerCase().includes(term) ||
         item.sourceNameBn.includes(term) ||
         item.documentId.toLowerCase().includes(term) ||
-        item.scope.toLowerCase().includes(term)
+        item.scope.toLowerCase().includes(term) ||
+        (item.billCompany && item.billCompany.toLowerCase().includes(term)) ||
+        (item.billNumber && item.billNumber.toLowerCase().includes(term)) ||
+        (item.fileName && item.fileName.toLowerCase().includes(term))
     );
   }, [snapshot, searchTerm]);
 
@@ -209,7 +215,7 @@ export const AuditorView: React.FC<AuditorViewProps> = ({ token }) => {
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder={isBangla ? 'উৎস বা চালান আইডি খুঁজুন...' : 'Filter ledger items...'}
+                placeholder={isBangla ? 'কোম্পানি, বিল নং বা চালান আইডি খুঁজুন...' : 'Filter by bill, company or document...'}
                 className="pl-8 pr-3 py-1.5 text-xs border border-slate-300 rounded-xl bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-teal-600"
               />
             </div>
@@ -229,63 +235,113 @@ export const AuditorView: React.FC<AuditorViewProps> = ({ token }) => {
             <thead>
               <tr className="border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
                 <th className="py-2.5 px-3">{isBangla ? 'স্কোপ' : 'Scope'}</th>
+                <th className="py-2.5 px-3">{isBangla ? 'বিল প্রদানকারী ও চালান' : 'Bill & Company'}</th>
                 <th className="py-2.5 px-3">{isBangla ? 'নির্গমন উৎস' : 'Activity Source'}</th>
                 <th className="py-2.5 px-3">{isBangla ? 'ব্যবহারের পরিমাণ' : 'Quantity'}</th>
                 <th className="py-2.5 px-3">{isBangla ? 'আর্থিক মূল্য' : 'Billed (BDT)'}</th>
-                <th className="py-2.5 px-3">{isBangla ? 'নির্গমন (tCO₂e)' : 'tCO₂e'}</th>
+                <th className="py-2.5 px-3">{isBangla ? 'নির্গমন ও গণনা (tCO₂e)' : 'tCO₂e & Breakdown'}</th>
                 <th className="py-2.5 px-3">{isBangla ? 'চালান আইডি' : 'Document ID'}</th>
                 <th className="py-2.5 px-3 text-right">{isBangla ? 'যাচাই' : 'Inspect'}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredItems.map((item) => (
-                <tr
-                  key={item.id}
-                  onClick={() => setSelectedItem(item)}
-                  className="hover:bg-teal-50/50 cursor-pointer transition"
-                >
-                  <td className="py-3 px-3 font-bold text-slate-700">
-                    <span className="px-2 py-0.5 bg-slate-100 rounded text-[10px]">
-                      {item.scope}
-                    </span>
-                  </td>
-                  <td className="py-3 px-3 font-semibold text-slate-900">
-                    {isBangla ? item.sourceNameBn : item.sourceNameEn}
-                  </td>
-                  <td className="py-3 px-3 font-mono">
-                    {isBangla
-                      ? toBanglaDigits(item.activityQuantity.toLocaleString('en-US'))
-                      : item.activityQuantity.toLocaleString('en-US')}{' '}
-                    {item.activityUnit}
-                  </td>
-                  <td className="py-3 px-3">
-                    {snapshot.redactPrices ? (
-                      <span className="font-mono text-[10px] text-slate-400 font-bold bg-slate-100 px-1.5 py-0.5 rounded">
-                        {isBangla ? '[গোপনীয়]' : '[Redacted]'}
+              {filteredItems.map((item) => {
+                const badge = getCompanyBadge(item.billCompany, item.documentTypeEn, item.sourceNameEn);
+                return (
+                  <tr
+                    key={item.id}
+                    onClick={() => setSelectedItem(item)}
+                    className="hover:bg-teal-50/50 cursor-pointer transition group"
+                  >
+                    <td className="py-3 px-3 font-bold text-slate-700">
+                      <span className="px-2 py-0.5 bg-slate-100 rounded text-[10px]">
+                        {item.scope}
                       </span>
-                    ) : (
-                      <span className="font-mono font-bold text-slate-800">
-                        {formatBdt(item.billedAmountBdt || 0, { useBanglaDigits: isBangla })}
-                      </span>
-                    )}
-                  </td>
-                  <td className="py-3 px-3 font-mono font-bold text-slate-900">
-                    {isBangla ? toBanglaDigits(Number(item.emissionsTco2e ?? 0).toFixed(2)) : Number(item.emissionsTco2e ?? 0).toFixed(2)}
-                  </td>
-                  <td className="py-3 px-3 font-mono text-[11px] text-teal-800 font-bold">
-                    {item.documentId}
-                  </td>
-                  <td className="py-3 px-3 text-right">
-                    <button
-                      type="button"
-                      className="px-2.5 py-1 text-xs font-bold text-teal-800 bg-teal-50 border border-teal-200 rounded-lg hover:bg-teal-100 transition inline-flex items-center gap-1"
-                    >
-                      <FileSearch size={12} />
-                      {isBangla ? 'উৎস দেখুন' : 'Trace'}
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td className="py-3 px-3">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${badge.className}`}>
+                            {badge.tag}
+                          </span>
+                          <span
+                            className="font-bold text-slate-900 text-xs truncate max-w-[170px]"
+                            title={item.billCompany || badge.name}
+                          >
+                            {item.billCompany || badge.name}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[10px] text-slate-500 font-mono">
+                          <span
+                            className="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded font-bold border border-slate-200/80"
+                            title={`Bill/Invoice #: ${item.billNumber || item.documentId}`}
+                          >
+                            #{item.billNumber ? (item.billNumber.length > 18 ? item.billNumber.slice(0, 16) + '..' : item.billNumber) : item.documentId}
+                          </span>
+                          {item.meterNumber && (
+                            <span className="text-slate-400" title={`Meter: ${item.meterNumber}`}>
+                              Mtr: {item.meterNumber}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-3 px-3 font-semibold text-slate-900 text-xs">
+                      {isBangla ? item.sourceNameBn : item.sourceNameEn}
+                    </td>
+                    <td className="py-3 px-3 font-mono">
+                      {isBangla
+                        ? toBanglaDigits(item.activityQuantity.toLocaleString('en-US'))
+                        : item.activityQuantity.toLocaleString('en-US')}{' '}
+                      {item.activityUnit}
+                    </td>
+                    <td className="py-3 px-3">
+                      {snapshot.redactPrices ? (
+                        <span className="font-mono text-[10px] text-slate-400 font-bold bg-slate-100 px-1.5 py-0.5 rounded">
+                          {isBangla ? '[গোপনীয়]' : '[Redacted]'}
+                        </span>
+                      ) : (
+                        <span className="font-mono font-bold text-slate-800">
+                          {formatBdt(item.billedAmountBdt || 0, { useBanglaDigits: isBangla })}
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-3 px-3 font-mono">
+                      <div className="space-y-1">
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-sm font-black text-slate-900">
+                            {isBangla ? toBanglaDigits(Number(item.emissionsTco2e ?? 0).toFixed(2)) : Number(item.emissionsTco2e ?? 0).toFixed(2)}
+                          </span>
+                          <span className="text-[10px] font-bold text-slate-400">tCO₂e</span>
+                        </div>
+                        <div
+                          className="text-[10px] text-teal-900 bg-teal-50/90 px-1.5 py-0.5 rounded border border-teal-200/80 inline-flex items-center gap-1 whitespace-nowrap font-medium"
+                          title={item.calculationFormula || `${item.activityQuantity} ${item.activityUnit} × ${item.factorValue} ÷ 1,000 = ${item.emissionsTco2e} tCO₂e`}
+                        >
+                          <span className="text-teal-600 font-bold">∑</span>
+                          <span>
+                            {isBangla
+                              ? `${toBanglaDigits(item.activityQuantity.toLocaleString('en-US'))} ${item.activityUnit} × ${toBanglaDigits(item.factorValue.toString())} ÷ ১,০০০`
+                              : `${item.activityQuantity.toLocaleString('en-US')} ${item.activityUnit} × ${item.factorValue} ÷ 1k`}
+                          </span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-3 px-3 font-mono text-[11px] text-teal-800 font-bold">
+                      {item.documentId}
+                    </td>
+                    <td className="py-3 px-3 text-right">
+                      <button
+                        type="button"
+                        className="px-2.5 py-1 text-xs font-bold text-teal-800 bg-teal-50 border border-teal-200 rounded-lg hover:bg-teal-100 transition inline-flex items-center gap-1 group-hover:bg-teal-600 group-hover:text-white group-hover:border-teal-600"
+                      >
+                        <FileSearch size={12} />
+                        {isBangla ? 'উৎস দেখুন' : 'Trace'}
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
