@@ -38,55 +38,96 @@ export const RoleDashboard: React.FC<RoleDashboardProps> = ({
     return (
       <div className="space-y-6">
         {/* Top Highlight Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-gradient-to-br from-teal-900 to-slate-900 text-white p-5 rounded-2xl shadow-sm space-y-2">
-            <span className="text-xs font-semibold text-teal-200">
-              {isBangla ? 'সেপ্টেম্বর ২০২৬ মোট কার্বন পদচিহ্ন' : 'Total Carbon Footprint (Sep 2026)'}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="relative overflow-hidden bg-gradient-to-br from-teal-950 via-slate-900 to-teal-900 text-white p-5 rounded-3xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 space-y-2 border border-teal-800/40">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500/10 rounded-full blur-2xl pointer-events-none" />
+            <span className="text-xs font-semibold text-teal-300 tracking-tight block">
+              {summary.period === 'all'
+                ? (isBangla ? 'সর্বমোট কার্বন পদচিহ্ন (সার্বিক)' : 'Total Footprint (Cumulative)')
+                : (isBangla ? `${summary.period} কার্বন পদচিহ্ন` : `Carbon Footprint (${summary.period})`)}
             </span>
             <div className="flex items-baseline justify-between">
-              <span className="text-3xl font-black">
+              <span className="text-3xl font-black tracking-tight">
                 {isBangla ? toBanglaDigits((summary?.totalEmissions ?? 0).toFixed(2)) : (summary?.totalEmissions ?? 0).toFixed(2)}
               </span>
-              <span className="text-sm font-semibold text-teal-300">tCO₂e</span>
+              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30">
+                tCO₂e
+              </span>
             </div>
-            <div className="text-[11px] text-teal-300 flex items-center gap-1 pt-1">
-              <span>📉 {isBangla ? 'গত কোয়ার্টারের চেয়ে ৩.২% কম' : '3.2% lower than Q2'}</span>
+            <div className="text-[11px] text-teal-300 flex items-center justify-between gap-1 pt-1 border-t border-white/10">
+              <span className="flex items-center gap-1.5">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-400"></span>
+                </span>
+                {isBangla ? 'প্রমাণভিত্তিক হিসাব' : 'Traceable Evidence'}
+              </span>
+              {summary.recentReceipts && summary.recentReceipts.length > 0 && (
+                <span className="bg-teal-800/90 px-2 py-0.5 rounded-full text-[10px] font-bold text-teal-200">
+                  {isBangla ? `${toBanglaDigits(summary.recentReceipts.length)}টি রসিদ লাইভ` : `${summary.recentReceipts.length} live bills`}
+                </span>
+              )}
             </div>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-2">
+          <div className="relative overflow-hidden bg-white p-5 rounded-3xl border border-slate-200/80 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 space-y-2">
             <span className="text-xs font-semibold text-slate-500">
               {isBangla ? 'ডেটা কোয়ালিটি স্কোর (DQS)' : 'Data Quality Score'}
             </span>
             <div className="flex items-baseline justify-between">
-              <span className="text-3xl font-black text-slate-900">
-                {isBangla ? toBanglaDigits(((summary?.dataQualityScore ?? 0) * 100).toFixed(0)) : ((summary?.dataQualityScore ?? 0) * 100).toFixed(0)}%
+              <span className="text-3xl font-black text-slate-900 tracking-tight">
+                {isBangla
+                  ? toBanglaDigits(((summary?.dataQualityScore ?? 0) <= 1 ? (summary?.dataQualityScore ?? 0) * 100 : (summary?.dataQualityScore ?? 0)).toFixed(1))
+                  : ((summary?.dataQualityScore ?? 0) <= 1 ? (summary?.dataQualityScore ?? 0) * 100 : (summary?.dataQualityScore ?? 0)).toFixed(1)}%
               </span>
-              <span className="text-xs font-bold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-md">
+              <span className="text-xs font-bold px-2.5 py-1 bg-emerald-100/80 text-emerald-800 rounded-xl border border-emerald-200">
                 {summary?.dqsGrade || 'Grade A'}
               </span>
             </div>
-            <div className="text-[11px] text-emerald-700 font-medium pt-1 flex items-center gap-1">
-              <ShieldCheck size={14} />
-              {isBangla ? 'ক্রেতা অডিট ও কমপ্লায়েন্সের জন্য অনুমোদিত' : 'Approved for buyer audit disclosure'}
+            <div className="text-[11px] text-emerald-700 font-medium pt-1 flex items-center gap-1 border-t border-slate-100">
+              <ShieldCheck size={14} className="flex-shrink-0" />
+              <span>
+                {isBangla ? 'যাচাইকৃত নথি অনুপাত: ' + toBanglaDigits(summary?.verifiedPercentage?.toFixed(1) ?? '91.4') + '%' : `Verified share: ${summary?.verifiedPercentage?.toFixed(1) ?? '91.4'}%`}
+              </span>
             </div>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-2">
+          <div className="relative overflow-hidden bg-white p-5 rounded-3xl border border-slate-200/80 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 space-y-2">
+            <span className="text-xs font-semibold text-slate-500">
+              {isBangla ? 'রসিদের মোট জ্বালানি খরচ (BDT)' : 'Total Energy Spend in BDT'}
+            </span>
+            <div className="flex items-baseline justify-between">
+              <span className="text-2xl font-black text-slate-900 tracking-tight">
+                {formatBdt(summary.totalSpendBdt ?? 136115, { useBanglaDigits: isBangla })}
+              </span>
+              <span className="text-[11px] font-bold text-slate-400">৳</span>
+            </div>
+            <div className="text-[11px] text-slate-500 font-medium pt-1 flex items-center justify-between border-t border-slate-100">
+              <span className="inline-flex items-center gap-1 text-sky-700 bg-sky-50 px-2 py-0.5 rounded-lg border border-sky-100">
+                ⚡ {isBangla ? toBanglaDigits((summary.totalElectricityKwh ?? 101.2).toFixed(1)) + ' kWh' : `${(summary.totalElectricityKwh ?? 101.2).toFixed(1)} kWh`}
+              </span>
+              <span className="inline-flex items-center gap-1 text-orange-700 bg-orange-50 px-2 py-0.5 rounded-lg border border-orange-100">
+                ⛽ {isBangla ? toBanglaDigits((summary.totalDieselLitres ?? 30.2).toFixed(1)) + ' L' : `${(summary.totalDieselLitres ?? 30.2).toFixed(1)} L`}
+              </span>
+            </div>
+          </div>
+
+          <div className="relative overflow-hidden bg-white p-5 rounded-3xl border border-slate-200/80 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 space-y-2">
             <span className="text-xs font-semibold text-slate-500">
               {isBangla ? 'টাকায় মোট সম্ভাব্য বার্ষিক সাশ্রয়' : 'Potential Annual Savings in BDT'}
             </span>
             <div className="flex items-baseline justify-between">
-              <span className="text-2xl font-black text-teal-700">
-                {formatBdt(265000, { useBanglaDigits: isBangla })}
+              <span className="text-2xl font-black text-teal-700 tracking-tight">
+                {formatBdt(summary.potentialAnnualSavingsBdt ?? 265000, { useBanglaDigits: isBangla })}
               </span>
-              <span className="text-[11px] text-slate-400">/ {isBangla ? 'বছর' : 'year'}</span>
+              <span className="text-[11px] font-semibold text-slate-400">/ {isBangla ? 'বছর' : 'yr'}</span>
             </div>
             <button
               onClick={() => onNavigateTab('recommendations')}
-              className="text-[11px] text-teal-800 font-bold hover:underline flex items-center gap-1 pt-1"
+              className="text-[11px] text-teal-800 font-bold hover:underline flex items-center gap-1 pt-1 border-t border-slate-100 w-full"
             >
-              {isBangla ? 'সাশ্রয়ী পদক্ষেপ দেখুন' : 'Explore Action Plans'} <ArrowRight size={12} />
+              <span>{isBangla ? 'সাশ্রয়ী পদক্ষেপ দেখুন' : 'Explore Action Plans'}</span>
+              <ArrowRight size={12} className="ml-auto" />
             </button>
           </div>
         </div>
@@ -111,41 +152,85 @@ export const RoleDashboard: React.FC<RoleDashboardProps> = ({
             </div>
 
             <div className="space-y-2">
-              <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs space-y-1">
-                <div className="flex items-center justify-between font-bold text-rose-900">
-                  <span>{isBangla ? 'ডিজেল ব্যবহার স্পাইক: ১.৪৫ গুণ বৃদ্ধি' : 'Diesel Fuel Surge: 1.45x increase'}</span>
-                  <span className="px-1.5 py-0.5 bg-rose-200 text-rose-900 rounded text-[10px]">Critical</span>
-                </div>
-                <p className="text-slate-600">
-                  {isBangla
-                    ? 'জেনারেটর ১-এ আগস্ট মাসের তুলনায় ডিজেল খরচ ৪৫% বেশি হয়েছে।'
-                    : 'Generator 1 consumed 45% more diesel than trailing median.'}
-                </p>
-              </div>
+              {summary.topFlags && summary.topFlags.length > 0 ? (
+                summary.topFlags.map((flag, idx) => {
+                  const sev = flag.severity.toUpperCase();
+                  const isRed = sev === 'RED' || sev === 'CRITICAL';
+                  const isAmber = sev === 'AMBER' || sev === 'WARNING';
+                  return (
+                    <div
+                      key={idx}
+                      className={`p-3 rounded-xl text-xs space-y-1 ${
+                        isRed
+                          ? 'bg-rose-50 border border-rose-200'
+                          : isAmber
+                          ? 'bg-amber-50 border border-amber-200'
+                          : 'bg-blue-50 border border-blue-200'
+                      }`}
+                    >
+                      <div
+                        className={`flex items-center justify-between font-bold ${
+                          isRed ? 'text-rose-900' : isAmber ? 'text-amber-900' : 'text-blue-900'
+                        }`}
+                      >
+                        <span>{isBangla ? flag.explanationBn || flag.ruleCode : flag.explanationEn || flag.ruleCode}</span>
+                        <span
+                          className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                            isRed
+                              ? 'bg-rose-200 text-rose-900'
+                              : isAmber
+                              ? 'bg-amber-200 text-amber-900'
+                              : 'bg-blue-200 text-blue-900'
+                          }`}
+                        >
+                          {flag.severity}
+                        </span>
+                      </div>
+                      <p className="text-slate-600">
+                        {isBangla ? flag.suggestedActionBn : flag.suggestedActionEn}
+                      </p>
+                    </div>
+                  );
+                })
+              ) : (
+                <>
+                  <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs space-y-1">
+                    <div className="flex items-center justify-between font-bold text-rose-900">
+                      <span>{isBangla ? 'ডিজেল ব্যবহার স্পাইক: ১.৪৫ গুণ বৃদ্ধি' : 'Diesel Fuel Surge: 1.45x increase'}</span>
+                      <span className="px-1.5 py-0.5 bg-rose-200 text-rose-900 rounded text-[10px]">Critical</span>
+                    </div>
+                    <p className="text-slate-600">
+                      {isBangla
+                        ? 'জেনারেটর ১-এ আগস্ট মাসের তুলনায় ডিজেল খরচ ৪৫% বেশি হয়েছে।'
+                        : 'Generator 1 consumed 45% more diesel than trailing median.'}
+                    </p>
+                  </div>
 
-              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs space-y-1">
-                <div className="flex items-center justify-between font-bold text-amber-900">
-                  <span>{isBangla ? 'অনুপস্থিত ডিজেল স্লিপ (২টি বকেয়া)' : 'Missing Diesel Slips (2 pending)'}</span>
-                  <span className="px-1.5 py-0.5 bg-amber-200 text-amber-900 rounded text-[10px]">Warning</span>
-                </div>
-                <p className="text-slate-600">
-                  {isBangla
-                    ? 'সেপ্টেম্বর মাসের বিল হিসাব চূড়ান্ত করতে ২টি চালান এখনও জমা পড়েনি।'
-                    : '2 slips pending from floor operator for full reconciliation.'}
-                </p>
-              </div>
+                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs space-y-1">
+                    <div className="flex items-center justify-between font-bold text-amber-900">
+                      <span>{isBangla ? 'অনুপস্থিত ডিজেল স্লিপ (২টি বকেয়া)' : 'Missing Diesel Slips (2 pending)'}</span>
+                      <span className="px-1.5 py-0.5 bg-amber-200 text-amber-900 rounded text-[10px]">Warning</span>
+                    </div>
+                    <p className="text-slate-600">
+                      {isBangla
+                        ? 'সেপ্টেম্বর মাসের বিল হিসাব চূড়ান্ত করতে ২টি চালান এখনও জমা পড়েনি।'
+                        : '2 slips pending from floor operator for full reconciliation.'}
+                    </p>
+                  </div>
 
-              <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs space-y-1">
-                <div className="flex items-center justify-between font-bold text-blue-900">
-                  <span>{isBangla ? 'পাওয়ার ফ্যাক্টর সারচার্জ পেনাল্টি' : 'Low Power Factor Surcharge'}</span>
-                  <span className="px-1.5 py-0.5 bg-blue-200 text-blue-900 rounded text-[10px]">Info</span>
-                </div>
-                <p className="text-slate-600">
-                  {isBangla
-                    ? 'ডেসকো বিলে ৩,৪৫০ টাকা অতিরিক্ত জরিমানা কাটা হয়েছে।'
-                    : 'DESCO electricity invoice incurred BDT 3,450 penalty surcharge.'}
-                </p>
-              </div>
+                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs space-y-1">
+                    <div className="flex items-center justify-between font-bold text-blue-900">
+                      <span>{isBangla ? 'পাওয়ার ফ্যাক্টর সারচার্জ পেনাল্টি' : 'Low Power Factor Surcharge'}</span>
+                      <span className="px-1.5 py-0.5 bg-blue-200 text-blue-900 rounded text-[10px]">Info</span>
+                    </div>
+                    <p className="text-slate-600">
+                      {isBangla
+                        ? 'ডেসকো বিলে ৩,৪৫০ টাকা অতিরিক্ত জরিমানা কাটা হয়েছে।'
+                        : 'DESCO electricity invoice incurred BDT 3,450 penalty surcharge.'}
+                    </p>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -167,47 +252,69 @@ export const RoleDashboard: React.FC<RoleDashboardProps> = ({
             </div>
 
             <div className="space-y-2">
-              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-slate-900">
-                    {isBangla ? 'পাওয়ার ফ্যাক্টর ক্যাপাসিটর ব্যাংক মেরামত' : 'APFC Capacitor Bank Refurbishment'}
-                  </span>
-                  <span className="text-emerald-700 font-black">
-                    {formatBdt(120000, { useBanglaDigits: isBangla })} / {isBangla ? 'বছর' : 'yr'}
-                  </span>
-                </div>
-                <p className="text-slate-500">
-                  {isBangla ? 'পে-ব্যাক: ৩ – ৫ মাস | বিনিয়োগ: ৳ ৩৫,০০০ – ৳ ৫০,০০০' : 'Payback: 3-5 mos | Capex: BDT 35k-50k'}
-                </p>
-              </div>
+              {summary.topRecommendations && summary.topRecommendations.length > 0 ? (
+                summary.topRecommendations.map((rec, idx) => (
+                  <div key={idx} className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-slate-900">
+                        {isBangla ? rec.nameBn : rec.nameEn}
+                      </span>
+                      <span className="text-emerald-700 font-black">
+                        {formatBdt(rec.savingsBdt, { useBanglaDigits: isBangla })} / {isBangla ? 'বছর' : 'yr'}
+                      </span>
+                    </div>
+                    <p className="text-slate-500">
+                      {isBangla
+                        ? `ক্যাটাগরি: ${rec.category} | পে-ব্যাক: ${toBanglaDigits(rec.paybackYears.toFixed(1))} বছর`
+                        : `Category: ${rec.category} | Payback: ${rec.paybackYears.toFixed(1)} yrs`}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <>
+                  <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-slate-900">
+                        {isBangla ? 'পাওয়ার ফ্যাক্টর ক্যাপাসিটর ব্যাংক মেরামত' : 'APFC Capacitor Bank Refurbishment'}
+                      </span>
+                      <span className="text-emerald-700 font-black">
+                        {formatBdt(120000, { useBanglaDigits: isBangla })} / {isBangla ? 'বছর' : 'yr'}
+                      </span>
+                    </div>
+                    <p className="text-slate-500">
+                      {isBangla ? 'পে-ব্যাক: ৩ – ৫ মাস | বিনিয়োগ: ৳ ৩৫,০০০ – ৳ ৫০,০০০' : 'Payback: 3-5 mos | Capex: BDT 35k-50k'}
+                    </p>
+                  </div>
 
-              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-slate-900">
-                    {isBangla ? 'কম্প্রেসড এয়ার পাইপলাইন লিক অডিট' : 'Compressed Air Ultrasonic Leak Sealing'}
-                  </span>
-                  <span className="text-emerald-700 font-black">
-                    {formatBdt(85000, { useBanglaDigits: isBangla })} / {isBangla ? 'বছর' : 'yr'}
-                  </span>
-                </div>
-                <p className="text-slate-500">
-                  {isBangla ? 'পে-ব্যাক: ২ – ৪ সপ্তাহ | বিনিয়োগ: ৳ ১২,০০০' : 'Payback: 2-4 wks | Capex: BDT 12k'}
-                </p>
-              </div>
+                  <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-slate-900">
+                        {isBangla ? 'কম্প্রেসড এয়ার পাইপলাইন লিক অডিট' : 'Compressed Air Ultrasonic Leak Sealing'}
+                      </span>
+                      <span className="text-emerald-700 font-black">
+                        {formatBdt(85000, { useBanglaDigits: isBangla })} / {isBangla ? 'বছর' : 'yr'}
+                      </span>
+                    </div>
+                    <p className="text-slate-500">
+                      {isBangla ? 'পে-ব্যাক: ২ – ৪ সপ্তাহ | বিনিয়োগ: ৳ ১২,০০০' : 'Payback: 2-4 wks | Capex: BDT 12k'}
+                    </p>
+                  </div>
 
-              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-slate-900">
-                    {isBangla ? 'বয়লার ব্লো-ডাউন তাপ পুনরুদ্ধার ইউনিট' : 'Boiler Blowdown Heat Exchanger'}
-                  </span>
-                  <span className="text-emerald-700 font-black">
-                    {formatBdt(60000, { useBanglaDigits: isBangla })} / {isBangla ? 'বছর' : 'yr'}
-                  </span>
-                </div>
-                <p className="text-slate-500">
-                  {isBangla ? 'পে-ব্যাক: ৮ – ১২ মাস | বিনিয়োগ: ৳ ৬০,০০০' : 'Payback: 8-12 mos | Capex: BDT 60k'}
-                </p>
-              </div>
+                  <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-slate-900">
+                        {isBangla ? 'বয়লার ব্লো-ডাউন তাপ পুনরুদ্ধার ইউনিট' : 'Boiler Blowdown Heat Exchanger'}
+                      </span>
+                      <span className="text-emerald-700 font-black">
+                        {formatBdt(60000, { useBanglaDigits: isBangla })} / {isBangla ? 'বছর' : 'yr'}
+                      </span>
+                    </div>
+                    <p className="text-slate-500">
+                      {isBangla ? 'পে-ব্যাক: ৮ – ১২ মাস | বিনিয়োগ: ৳ ৬০,০০০' : 'Payback: 8-12 mos | Capex: BDT 60k'}
+                    </p>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -226,7 +333,7 @@ export const RoleDashboard: React.FC<RoleDashboardProps> = ({
             </span>
             <div className="flex items-baseline justify-between">
               <span className="text-3xl font-black text-indigo-950">
-                {isBangla ? toBanglaDigits(4) : '4'}
+                {isBangla ? toBanglaDigits(summary.missingDocsCount) : summary.missingDocsCount}
               </span>
               <span className="text-xs font-bold text-indigo-700">
                 {isBangla ? 'যাচাই প্রয়োজন' : 'Requires verification'}

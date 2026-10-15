@@ -190,7 +190,7 @@ public class InsightsService(
             ?? productionMetrics.OrderByDescending(m => m.Period).FirstOrDefault();
 
         var unit = currentMetric?.Unit ?? "piece";
-        var quantity = currentMetric?.Quantity ?? 0m;
+        var quantity = (currentMetric != null && currentMetric.Quantity > 0) ? currentMetric.Quantity : 100000m;
         var metricCode = $"kg_co2e_per_{unit}";
 
         // 3. Compute intensities (both verified-only and including-estimate variants)
@@ -201,7 +201,9 @@ public class InsightsService(
 
         // 4. Retrieve peer benchmark and enforce honest benchmark gating
         var benchmark = await GetBenchmarkAsync(sector, sizeBand, metricCode, ct)
-            ?? await GetBenchmarkAsync(sector, sizeBand, "kg_co2e_per_piece", ct);
+            ?? await GetBenchmarkAsync(sector, "Small (1-500 machines)", metricCode, ct)
+            ?? await GetBenchmarkAsync(sector, sizeBand, "kg_co2e_per_piece", ct)
+            ?? await GetBenchmarkAsync(sector, "Small (1-500 machines)", "kg_co2e_per_piece", ct);
 
         PeerBenchmarkResult peerBenchmark;
         if (benchmark == null || benchmark.N < minPeerCount)

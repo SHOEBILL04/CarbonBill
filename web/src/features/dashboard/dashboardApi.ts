@@ -1,4 +1,4 @@
-import { DashboardSummary, TrendDataPoint, IntensityData, ClientOrgSummary } from './types';
+import { DashboardSummary, TrendDataPoint, IntensityData, ClientOrgSummary, ReceiptImpactItem } from './types';
 import { apiFetch } from '../../lib/apiClient';
 
 export const mockDashboardSummary: DashboardSummary = {
@@ -151,6 +151,26 @@ export async function fetchDashboardSummary(period: string = '2026-09'): Promise
     const dqsRaw = raw.dataQualityScore ?? mockDashboardSummary.dataQualityScore;
     const dqs = typeof dqsRaw === 'number' ? (dqsRaw > 1 ? dqsRaw / 100 : dqsRaw) : 0.9125;
 
+    const recentReceipts: ReceiptImpactItem[] = Array.isArray(raw.recentReceipts)
+      ? raw.recentReceipts.map((r: any) => ({
+          documentId: r.documentId || r.id,
+          fileName: r.fileName,
+          docType: r.docType,
+          status: r.status,
+          vendor: r.vendor,
+          billNumber: r.billNumber,
+          quantity: r.quantity != null ? Number(r.quantity) : undefined,
+          unit: r.unit,
+          amountBdt: r.amountBdt != null ? Number(r.amountBdt) : undefined,
+          emissionsTco2e: Number(r.emissionsTco2e ?? 0),
+          scope: r.scope != null ? Number(r.scope) : undefined,
+          capturedAtUtc: r.capturedAtUtc,
+          confidence: r.confidence != null ? Number(r.confidence) : undefined,
+          isEstimated: Boolean(r.isEstimated),
+          period: r.period || r.billingPeriod,
+        }))
+      : [];
+
     return {
       period: raw.reportingPeriod || raw.period || period,
       scope1Emissions: s1,
@@ -163,15 +183,97 @@ export async function fetchDashboardSummary(period: string = '2026-09'): Promise
       status: raw.status || 'ReadyForReview',
       activeFlagsCount: Number(raw.activeFlagsCount ?? mockDashboardSummary.activeFlagsCount),
       missingDocsCount: Number(raw.missingDocsCount ?? mockDashboardSummary.missingDocsCount),
+      recentReceipts,
+      totalSpendBdt: raw.totalSpendBdt != null ? Number(raw.totalSpendBdt) : undefined,
+      totalElectricityKwh: raw.totalElectricityKwh != null ? Number(raw.totalElectricityKwh) : undefined,
+      totalDieselLitres: raw.totalDieselLitres != null ? Number(raw.totalDieselLitres) : undefined,
+      potentialAnnualSavingsBdt: raw.potentialAnnualSavingsBdt != null ? Number(raw.potentialAnnualSavingsBdt) : undefined,
+      topFlags: Array.isArray(raw.topFlags)
+        ? raw.topFlags.map((f: any) => ({
+            ruleCode: f.ruleCode,
+            severity: f.severity,
+            period: f.period,
+            explanationBn: f.explanationBn,
+            explanationEn: f.explanationEn,
+            suggestedActionBn: f.suggestedActionBn,
+            suggestedActionEn: f.suggestedActionEn,
+          }))
+        : undefined,
+      topRecommendations: Array.isArray(raw.topRecommendations)
+        ? raw.topRecommendations.map((rc: any) => ({
+            nameEn: rc.nameEn,
+            nameBn: rc.nameBn,
+            category: rc.category,
+            savingsBdt: Number(rc.savingsBdt ?? 0),
+            paybackYears: Number(rc.paybackYears ?? 0),
+          }))
+        : undefined,
     };
   } catch {
     return mockDashboardSummary;
   }
 }
 
-export async function fetchDashboardTrend(start: string = '2026-04', end: string = '2026-09'): Promise<TrendDataPoint[]> {
+export async function uploadReceiptFromDashboard(
+  file: File,
+  category?: string
+): Promise<{ success: boolean; documentId?: string; message?: string }> {
   try {
-    const rawList = await apiFetch<any[]>(`/api/v1/dashboard/trend?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`);
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+    formData.append('source', 'dashboard');
+    if (category) {
+      formData.append('category', category);
+    }
+
+    const token = localStorage.getItem('carbonbill_token');
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch('/api/v1/documents', {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+
+    if (response.ok || response.status === 202 || response.status === 200) {
+      const data = await response.json().catch(() => ({}));
+      return { success: true, documentId: data.id };
+    }
+
+    const errorData = await response.json().catch(() => ({}));
+    return { success: false, message: errorData.detail || errorData.title || 'Upload failed' };
+  } catch (err: any) {
+    return { success: false, message: err?.message || 'Network error during upload' };
+  }
+}
+
+export async function quickConfirmReceipt(documentId: string): Promise<boolean> {
+  try {
+    const token = localStorage.getItem('carbonbill_token');
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const res = await fetch(`/api/v1/documents/${documentId}/confirm`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({}),
+    });
+
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+export async function fetchDashboardTrend(period?: string): Promise<TrendDataPoint[]> {
+  try {
+    const url = period && period !== 'all' ? `/api/v1/dashboard/trend?period=${encodeURIComponent(period)}` : '/api/v1/dashboard/trend?period=all';
+    const rawList = await apiFetch<any[]>(url);
     if (Array.isArray(rawList) && rawList.length > 0) {
       const monthNamesEn: Record<string, string> = { '01': 'Jan', '02': 'Feb', '03': 'Mar', '04': 'Apr', '05': 'May', '06': 'Jun', '07': 'Jul', '08': 'Aug', '09': 'Sep', '10': 'Oct', '11': 'Nov', '12': 'Dec' };
       const monthNamesBn: Record<string, string> = { '01': 'জানু', '02': 'ফেব্রু', '03': 'মার্চ', '04': 'এপ্রিল', '05': 'মে', '06': 'জুন', '07': 'জুলাই', '08': 'আগস্ট', '09': 'সেপ্টে', '10': 'অক্টো', '11': 'নভে', '12': 'ডিসে' };

@@ -280,4 +280,99 @@ public class ReportingBackendTests
             Assert.True(estimatedPoint.HatchFlag);
         }
     }
+
+    [Fact]
+    public async Task DashboardSummary_DynamicallyReflectsReceipts_WhenReceiptsExistInDatabase()
+    {
+        var orgId = Guid.NewGuid();
+        var (db, conn) = CreateInMemoryDb(orgId);
+        using (conn)
+        using (db)
+        {
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = @"
+                CREATE TABLE IF NOT EXISTS EmissionResults (
+                    Id TEXT PRIMARY KEY,
+                    OrgId TEXT,
+                    ActivityRecordId TEXT,
+                    DocumentId TEXT,
+                    Scope INTEGER,
+                    Category TEXT,
+                    QuantityStandard NUMERIC,
+                    StandardUnit TEXT,
+                    EmissionFactorUsed NUMERIC,
+                    KgCo2e NUMERIC,
+                    Period TEXT,
+                    IsEstimated INTEGER,
+                    CalculatedAtUtc TEXT
+                );
+                CREATE TABLE IF NOT EXISTS ActivityRecords (
+                    Id TEXT PRIMARY KEY,
+                    TotalCostBdt NUMERIC
+                );
+                CREATE TABLE IF NOT EXISTS Documents (
+                    Id TEXT PRIMARY KEY,
+                    OrgId TEXT,
+                    FileName TEXT,
+                    DocType TEXT,
+                    Status TEXT,
+                    CapturedAtUtc TEXT
+                );
+                CREATE TABLE IF NOT EXISTS ExtractionRuns (
+                    Id TEXT PRIMARY KEY,
+                    DocumentId TEXT,
+                    OverallConfidence REAL
+                );
+                CREATE TABLE IF NOT EXISTS ExtractedFields (
+                    Id TEXT PRIMARY KEY,
+                    DocumentId TEXT,
+                    FieldName TEXT,
+                    RawValue TEXT,
+                    NormalizedValue TEXT,
+                    CorrectedValue TEXT
+                );
+                CREATE TABLE IF NOT EXISTS Flags (
+                    Id TEXT PRIMARY KEY,
+                    OrgId TEXT,
+                    Status TEXT
+                );
+            ";
+            cmd.ExecuteNonQuery();
+
+            var docId = Guid.NewGuid();
+            var emId = Guid.NewGuid();
+            using var insertCmd = conn.CreateCommand();
+            insertCmd.CommandText = $@"
+                INSERT INTO Documents (Id, OrgId, FileName, DocType, Status, CapturedAtUtc)
+                VALUES ('{docId}', '{orgId}', 'desco_bill_sep26.pdf', 'ElectricityBill', 'Calculated', '2026-09-15');
+
+                INSERT INTO EmissionResults (Id, OrgId, DocumentId, Scope, Category, QuantityStandard, StandardUnit, KgCo2e, Period, IsEstimated, CalculatedAtUtc)
+                VALUES ('{emId}', '{orgId}', '{docId}', 2, 'Electricity', 15000, 'kWh', 9300, '2026-09', 0, '2026-09-15');
+            ";
+            insertCmd.ExecuteNonQuery();
+
+            var pdfRenderer = new QuestPdfReportRenderer(NullLogger<QuestPdfReportRenderer>.Instance);
+            var excelRenderer = new ClosedXmlReportRenderer();
+            var service = new ReportingService(db, pdfRenderer, excelRenderer);
+
+            var summary = await service.GetDashboardSummaryAsync(orgId, "2026-09");
+            Assert.NotNull(summary);
+            Assert.NotNull(summary.RecentReceipts);
+            Assert.Single(summary.RecentReceipts);
+            Assert.Equal("desco_bill_sep26.pdf", summary.RecentReceipts[0].FileName);
+            Assert.Equal(9.300m, summary.RecentReceipts[0].EmissionsTco2e);
+            Assert.Equal(2, summary.RecentReceipts[0].Scope);
+
+            // Scope 2 emissions should reflect baseline (48.2) + receipt (9.3) = 57.5 tCO2e
+            Assert.Equal(57.500m, summary.Scope2Emissions);
+            Assert.Equal(75.050m, summary.TotalEmissions);
+
+            // Trend points should also include this live period
+            var trend = await service.GetDashboardTrendAsync(orgId);
+            Assert.NotNull(trend);
+            var sepPoint = trend.FirstOrDefault(t => t.Period == "2026-09");
+            Assert.NotNull(sepPoint);
+            Assert.True(sepPoint.VerifiedKgCo2e >= 70000m);
+        }
+    }
 }

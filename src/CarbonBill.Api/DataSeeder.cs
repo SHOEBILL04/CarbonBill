@@ -448,11 +448,8 @@ public static class DataSeeder
             }
         }
 
-        if (await onboardingDb.Sites.IgnoreQueryFilters().AnyAsync(s => s.OrgId == apexOrg.Id))
+        if (!await onboardingDb.Sites.IgnoreQueryFilters().AnyAsync(s => s.OrgId == apexOrg.Id))
         {
-            logger.LogInformation("Database already contains operational assets. Seeding complete.");
-            return;
-        }
 
         // Seed Onboarding Site & Assets for Apex
         var site = new Site
@@ -514,21 +511,25 @@ public static class DataSeeder
             ProductionUnit = "piece",
             UpdatedAtUtc = DateTime.UtcNow
         });
-        await onboardingDb.SaveChangesAsync();
+            await onboardingDb.SaveChangesAsync();
+        }
 
         // Seed Dataset Version
-        adminDb.DatasetVersions.Add(new DatasetVersion
+        if (!await adminDb.DatasetVersions.AnyAsync())
         {
-            Kind = "Factors",
-            Version = "2024.1",
-            Description = "Bangladesh Grid + IPCC AR6 Seed Factors",
-            RecordCount = 7,
-            ChecksumSha256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-            UploadedByUserId = ownerUser.Id,
-            UploadedAtUtc = DateTime.UtcNow,
-            IsActive = true
-        });
-        await adminDb.SaveChangesAsync();
+            adminDb.DatasetVersions.Add(new DatasetVersion
+            {
+                Kind = "Factors",
+                Version = "2024.1",
+                Description = "Bangladesh Grid + IPCC AR6 Seed Factors",
+                RecordCount = 7,
+                ChecksumSha256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                UploadedByUserId = ownerUser.Id,
+                UploadedAtUtc = DateTime.UtcNow,
+                IsActive = true
+            });
+            await adminDb.SaveChangesAsync();
+        }
 
         // Seed Flags Rules from seeds/flags/flag_rules.json
         await flagSeedLoader.SeedFlagRulesAsync();
@@ -536,8 +537,49 @@ public static class DataSeeder
         // Seed Insights Benchmark Sets
         await insightsSeedLoader.SeedDefaultBenchmarksAsync();
 
+        // Seed Production Metrics for Apex
+        if (!await insightsDb.ProductionMetrics.IgnoreQueryFilters().AnyAsync(m => m.OrgId == apexOrg.Id))
+        {
+            insightsDb.ProductionMetrics.AddRange([
+                new CarbonBill.Modules.Insights.Domain.ProductionMetric { OrgId = apexOrg.Id, Period = "2026-03", Unit = "piece", Quantity = 100000m },
+                new CarbonBill.Modules.Insights.Domain.ProductionMetric { OrgId = apexOrg.Id, Period = "2025-12", Unit = "piece", Quantity = 100000m },
+                new CarbonBill.Modules.Insights.Domain.ProductionMetric { OrgId = apexOrg.Id, Period = "2026-09", Unit = "piece", Quantity = 100000m }
+            ]);
+            await insightsDb.SaveChangesAsync();
+        }
+
         // Seed Recommendations Measures and Sources
         await recommendationsSeedLoader.SeedDefaultMeasuresAsync();
+
+        // Run Recommendations Pipeline for apexOrg
+        var recService = scope.ServiceProvider.GetService<CarbonBill.Modules.Recommendations.Services.RecommendationsService>();
+        if (recService != null)
+        {
+            try
+            {
+                await recService.GenerateAndSaveRecommendationsAsync(apexOrg.Id);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning("Could not pre-generate recommendations: {Msg}", ex.Message);
+            }
+        }
+
+        // Run Flag Engine for apexOrg
+        var flagEngine = scope.ServiceProvider.GetService<CarbonBill.Modules.Flags.Services.IFlagEngine>();
+        if (flagEngine != null)
+        {
+            try
+            {
+                await flagEngine.EvaluateOrgPeriodAsync(apexOrg.Id, "2026-03");
+                await flagEngine.EvaluateOrgPeriodAsync(apexOrg.Id, "2025-12");
+                await flagEngine.EvaluateOrgPeriodAsync(apexOrg.Id, "2026-09");
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning("Could not pre-evaluate flags: {Msg}", ex.Message);
+            }
+        }
 
         logger.LogInformation("Database seeding completed successfully!");
     }
