@@ -81,11 +81,15 @@ export const FlagCard: React.FC<FlagCardProps> = ({
               <span className="text-[11px] font-mono text-slate-500 font-semibold">
                 {flag.ruleCode}
               </span>
-              {flag.state !== 'Open' && (
+              {flag.state === 'Resolved' ? (
+                <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-md flex items-center gap-1">
+                  <CheckCircle2 size={11} /> {isBangla ? 'রসিদে সমাধানকৃত' : 'Resolved by Receipt'}
+                </span>
+              ) : flag.state !== 'Open' ? (
                 <span className="text-[10px] font-bold px-2 py-0.5 bg-slate-200 text-slate-700 rounded-md">
                   {flag.state}
                 </span>
-              )}
+              ) : null}
             </div>
             <h4 className="font-bold text-slate-900 text-sm mt-1">
               {isBangla ? flag.titleBn : flag.titleEn}
@@ -200,6 +204,12 @@ export const FlagCard: React.FC<FlagCardProps> = ({
           {flag.state === 'Acknowledged' && (
             <span className="text-[11px] text-teal-700 font-bold flex items-center gap-1">
               <CheckCircle2 size={13} /> {isBangla ? 'স্বীকৃত' : 'Acknowledged'}
+            </span>
+          )}
+
+          {flag.state === 'Resolved' && (
+            <span className="text-[11px] text-emerald-700 font-bold flex items-center gap-1 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
+              <CheckCircle2 size={13} /> {isBangla ? 'রসিদ জমাদানের মাধ্যমে স্বয়ংক্রিয় সমাধান' : 'Auto-Resolved via Uploaded Slip'}
             </span>
           )}
 

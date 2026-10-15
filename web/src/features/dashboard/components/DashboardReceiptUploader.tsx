@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Upload, FileText, CheckCircle2, AlertCircle, RefreshCw, Zap, Fuel, Flame, Truck } from 'lucide-react';
 import { uploadReceiptFromDashboard } from '../dashboardApi';
+import { triggerFlagEvaluation } from '../../flags/flagsApi';
 
 interface DashboardReceiptUploaderProps {
   isBangla: boolean;
@@ -42,11 +43,14 @@ export const DashboardReceiptUploader: React.FC<DashboardReceiptUploaderProps> =
     try {
       const result = await uploadReceiptFromDashboard(file, selectedCategory || undefined);
       if (result.success) {
+        // Trigger live flag evaluation so missing document flags resolve and new receipt anomalies are caught
+        await triggerFlagEvaluation('2026-09');
+
         setStatusMessage({
           type: 'success',
           text: isBangla
-            ? `রসিদ সফলভাবে আপলোড হয়েছে! ড্যাশবোর্ডের মোট নির্গমন আপডেট করা হয়েছে।`
-            : `Receipt successfully analyzed! Dashboard carbon footprint updated.`,
+            ? `রসিদ সফলভাবে আপলোড হয়েছে! ড্যাশবোর্ড ও কার্বন ফ্ল্যাগস আপডেট করা হয়েছে।`
+            : `Receipt successfully analyzed! Dashboard carbon footprint and flags updated.`,
           docId: result.documentId,
         });
 

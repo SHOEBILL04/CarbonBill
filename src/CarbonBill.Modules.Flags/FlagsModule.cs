@@ -33,11 +33,13 @@ public static class FlagsModuleExtensions
                 sp.GetRequiredService<TenantSaveChangesInterceptor>());
         });
 
-        // Fallback fakes for read models until other modules land
-        services.TryAddScoped<IFlagDocumentReadModel, FakeFlagDocumentReadModel>();
-        services.TryAddScoped<IFlagEmissionReadModel, FakeFlagEmissionReadModel>();
+        // Database-backed read models for live receipt evaluations
+        services.AddScoped<IFlagDocumentReadModel, DbFlagDocumentReadModel>();
+        services.AddScoped<IFlagEmissionReadModel, DbFlagEmissionReadModel>();
+        services.AddScoped<IDocumentReadModel, DbDocumentReadModel>();
+
+        // Fallback fakes for remaining cross-module read models until other modules land
         services.TryAddScoped<IExpectedDocRuleReader, FakeExpectedDocRuleReader>();
-        services.TryAddScoped<IDocumentReadModel, FakeDocumentReadModel>();
         services.TryAddScoped<IEmissionReadModel, FakeEmissionReadModel>();
         services.TryAddScoped<IProductionMetricReader, FakeProductionMetricReader>();
         services.TryAddScoped<IBenchmarkReader, FakeBenchmarkReader>();
@@ -77,6 +79,8 @@ public static class FlagsModuleExtensions
         // Domain event handlers
         services.AddScoped<IDomainEventHandler<DocumentConfirmedEvent>, DocumentConfirmedEventHandler>();
         services.AddScoped<IDomainEventHandler<EmissionCalculatedEvent>, EmissionCalculatedEventHandler>();
+        services.AddScoped<IDomainEventHandler<DocumentUploadedEvent>, DocumentUploadedFlagEventHandler>();
+        services.AddScoped<IDomainEventHandler<DocumentExtractedEvent>, DocumentExtractedFlagEventHandler>();
 
         return services;
     }

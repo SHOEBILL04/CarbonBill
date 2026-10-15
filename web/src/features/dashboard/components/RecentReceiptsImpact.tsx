@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ReceiptImpactItem } from '../types';
 import { toBanglaDigits, formatBdt } from '../../../shared';
 import { quickConfirmReceipt } from '../dashboardApi';
+import { triggerFlagEvaluation } from '../../flags/flagsApi';
 import {
   FileText,
   CheckCircle2,
@@ -39,6 +40,7 @@ export const RecentReceiptsImpact: React.FC<RecentReceiptsImpactProps> = ({
     try {
       const ok = await quickConfirmReceipt(docId);
       if (ok) {
+        await triggerFlagEvaluation('2026-09');
         await onReceiptUpdated();
       }
     } finally {
