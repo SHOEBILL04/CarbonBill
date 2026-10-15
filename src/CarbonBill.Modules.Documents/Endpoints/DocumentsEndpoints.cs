@@ -226,6 +226,44 @@ public static class DocumentsEndpoints
         })
         .AllowAnonymous();
 
+        // DELETE /api/v1/documents/{id:guid}
+        group.MapDelete("/{id:guid}", async (
+            Guid id,
+            CarbonBill.Modules.Documents.Persistence.DocumentsDbContext dbContext,
+            CancellationToken ct) =>
+        {
+            var doc = await dbContext.Documents.IgnoreQueryFilters().FirstOrDefaultAsync(d => d.Id == id, ct);
+            if (doc == null)
+            {
+                return Results.NotFound(new { message = "Document not found." });
+            }
+
+            var conn = dbContext.Database.GetDbConnection();
+            if (conn.State != System.Data.ConnectionState.Open)
+            {
+                await conn.OpenAsync(ct);
+            }
+
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = @"
+                DELETE FROM ExtractedFields WHERE DocumentId = @id;
+                DELETE FROM ExtractionRuns WHERE DocumentId = @id;
+                DELETE FROM Decisions WHERE DocumentId = @id;
+                DELETE FROM EmissionResults WHERE DocumentId = @id;
+                DELETE FROM ActivityRecords WHERE DocumentId = @id;
+                DELETE FROM DocumentPages WHERE DocumentId = @id;
+                DELETE FROM Documents WHERE Id = @id;
+            ";
+            var p = cmd.CreateParameter();
+            p.ParameterName = "@id";
+            p.Value = id;
+            cmd.Parameters.Add(p);
+            await cmd.ExecuteNonQueryAsync(ct);
+
+            return Results.Ok(new { success = true, id });
+        })
+        .AllowAnonymous();
+
         return endpoints;
     }
 }

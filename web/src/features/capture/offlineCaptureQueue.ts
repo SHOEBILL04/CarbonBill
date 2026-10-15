@@ -231,6 +231,15 @@ export async function retryCaptureItem(id: string): Promise<void> {
   await processQueueUploads();
 }
 
+export async function deleteCaptureItem(id: string): Promise<void> {
+  try {
+    const db = await getDb();
+    await db.delete('captureQueue', id);
+  } catch (err) {
+    console.warn('Could not delete capture item from local IndexedDB:', err);
+  }
+}
+
 // Auto-register window online listener
 if (typeof window !== 'undefined') {
   window.addEventListener('online', () => {

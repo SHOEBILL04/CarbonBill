@@ -21,12 +21,14 @@ import {
   MoreHorizontal,
   X,
   RotateCcw,
+  Trash2,
 } from 'lucide-react';
 import {
   enqueueCapture,
   getAllCaptureItems,
   processQueueUploads,
   retryCaptureItem,
+  deleteCaptureItem,
   CaptureQueueItem,
 } from './offlineCaptureQueue';
 import { processAndCompressImage } from './imageProcessing';
@@ -81,6 +83,7 @@ export function CaptureScreen({
   const [captureError, setCaptureError] = useState<string | null>(null);
   const [isOnline, setIsOnline] = useState<boolean>(typeof navigator !== 'undefined' ? navigator.onLine : true);
   const [pushSubscribed, setPushSubscribed] = useState<boolean>(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const [isDragging, setIsDragging] = useState<boolean>(false);
 
@@ -285,6 +288,47 @@ export function CaptureScreen({
       await loadQueue();
     } finally {
       setIsProcessing(false);
+    }
+  }
+
+  async function handleRemoveSubmission(sub: CaptureQueueItem) {
+    const confirmMsg = isBangla
+      ? 'আপনি কি নিশ্চিত যে এই সাবমিশনটি তালিকা থেকে মুছে ফেলতে চান? এটি স্থায়ীভাবে মুছে ফেলা হবে।'
+      : 'Are you sure you want to remove this submission? This will permanently delete it.';
+    if (!window.confirm(confirmMsg)) return;
+
+    setDeletingId(sub.id);
+    try {
+      // 1. Delete from server if the document exists on backend
+      const docIdToDelete = sub.serverDocId || sub.id;
+      if (docIdToDelete) {
+        try {
+          await apiFetch(`/api/v1/documents/${docIdToDelete}`, {
+            method: 'DELETE',
+          });
+        } catch (serverErr) {
+          console.warn('Backend document deletion note:', serverErr);
+        }
+      }
+
+      // 2. Delete from offline IndexedDB queue
+      await deleteCaptureItem(sub.id);
+      if (sub.serverDocId && sub.serverDocId !== sub.id) {
+        await deleteCaptureItem(sub.serverDocId);
+      }
+
+      // 3. Reset confirmation badge if this document is currently displayed
+      if (confirmedReceipt?.id === sub.id || confirmedReceipt?.serverDocId === sub.id) {
+        setConfirmedReceipt(null);
+      }
+
+      // 4. Reload queue items
+      await loadQueue();
+    } catch (err: any) {
+      console.error('Failed to remove submission:', err);
+      alert(isBangla ? 'সাবমিশনটি মুছে ফেলতে সমস্যা হয়েছে।' : 'Failed to delete submission. Please try again.');
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -1153,6 +1197,22 @@ export function CaptureScreen({
                               </button>
                             </div>
                           )}
+
+                          {/* Remove Submission Button */}
+                          <button
+                            type="button"
+                            disabled={deletingId === sub.id}
+                            onClick={() => handleRemoveSubmission(sub)}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition active:scale-95 cursor-pointer ml-1 disabled:opacity-50"
+                            title={isBangla ? 'সাবমিশনটি মুছে ফেলুন' : 'Remove submission'}
+                            aria-label={isBangla ? 'সাবমিশন মুছে ফেলুন' : 'Remove submission'}
+                          >
+                            {deletingId === sub.id ? (
+                              <RefreshCw size={13} className="animate-spin text-rose-500" />
+                            ) : (
+                              <Trash2 size={13} />
+                            )}
+                          </button>
                         </div>
                       </div>
                     );
