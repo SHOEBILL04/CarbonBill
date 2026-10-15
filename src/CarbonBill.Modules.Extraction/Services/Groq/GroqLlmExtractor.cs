@@ -195,6 +195,7 @@ public class GroqLlmExtractor(
                 visionHttpRequest.Headers.UserAgent.ParseAdd("CarbonBill-Extractor/1.0");
                 visionHttpRequest.Content = new StringContent(visionRequestJson, Encoding.UTF8, "application/json");
 
+                var visionStartUtc = DateTime.UtcNow;
                 var visionResponse = await httpClient.SendAsync(visionHttpRequest, ct);
                 if (visionResponse.IsSuccessStatusCode)
                 {
@@ -214,6 +215,37 @@ public class GroqLlmExtractor(
                             logger.LogInformation("Groq Vision succeeded for {FileName}: Vendor={Vendor}, Qty={Qty} {Unit}, Amt={Amt} BDT",
                                 fileName, parsedVision.Vendor, parsedVision.Quantity, parsedVision.Unit, parsedVision.AmountBdt);
 
+                            if (langSmithTracer != null)
+                            {
+                                await langSmithTracer.TraceRunAsync(
+                                    "GroqVisionBillExtraction",
+                                    "llm",
+                                    new
+                                    {
+                                        model = _visionModel,
+                                        fileName,
+                                        mimeType = mime,
+                                        fileSizeBytes = imageBytes.Length,
+                                        prompt = visionPrompt
+                                    },
+                                    parsedVision,
+                                    visionStartUtc,
+                                    DateTime.UtcNow,
+                                    new Dictionary<string, object>
+                                    {
+                                        ["model"] = _visionModel,
+                                        ["provider"] = "Groq",
+                                        ["tier"] = 3,
+                                        ["fileName"] = fileName,
+                                        ["extractedVendor"] = parsedVision.Vendor ?? "Unknown",
+                                        ["extractedQuantity"] = parsedVision.Quantity,
+                                        ["extractedUnit"] = parsedVision.Unit ?? "",
+                                        ["extractedAmountBdt"] = parsedVision.AmountBdt
+                                    },
+                                    null,
+                                    ct);
+                            }
+
                             return BuildResult(parsedVision, rawOcrText, 3);
                         }
                     }
@@ -222,6 +254,20 @@ public class GroqLlmExtractor(
                 {
                     var vErr = await visionResponse.Content.ReadAsStringAsync(ct);
                     logger.LogWarning("Groq Vision API returned HTTP {StatusCode}: {Error}. Falling back to text LLM.", visionResponse.StatusCode, vErr);
+
+                    if (langSmithTracer != null)
+                    {
+                        await langSmithTracer.TraceRunAsync(
+                            "GroqVisionBillExtraction",
+                            "llm",
+                            new { model = _visionModel, fileName, prompt = visionPrompt },
+                            null,
+                            visionStartUtc,
+                            DateTime.UtcNow,
+                            new Dictionary<string, object> { ["model"] = _visionModel, ["provider"] = "Groq", ["fileName"] = fileName },
+                            $"HTTP {visionResponse.StatusCode}: {vErr}",
+                            ct);
+                    }
                 }
             }
             catch (Exception ex)
