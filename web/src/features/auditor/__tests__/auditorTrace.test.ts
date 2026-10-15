@@ -84,6 +84,29 @@ describe('Auditor Read-Only Portal & Click-to-Source Traceability', () => {
     }
   });
 
+  it('validates GHG Protocol scopes breakdown and dynamic DQS grading', async () => {
+    const snapshot = await fetchAuditorSnapshot('rep-2026-08');
+    // Scope arithmetic
+    expect(snapshot.scope1Emissions).toBeGreaterThan(0);
+    expect(snapshot.scope2Emissions).toBeGreaterThan(0);
+    expect(snapshot.scope3Emissions).toBeGreaterThan(0);
+    expect(snapshot.totalEmissions).toBeCloseTo(
+      snapshot.scope1Emissions + snapshot.scope2Emissions + snapshot.scope3Emissions,
+      1
+    );
+
+    // Dynamic DQS score & grade validation
+    expect(snapshot.dataQualityScore).toBeGreaterThanOrEqual(0.6);
+    expect(snapshot.dataQualityScore).toBeLessThanOrEqual(1.0);
+    expect(['Grade A', 'Grade B', 'Grade C', 'Grade D']).toContain(snapshot.dqsGrade);
+
+    if (snapshot.dataQualityScore >= 0.9) {
+      expect(snapshot.dqsGrade).toBe('Grade A');
+    } else if (snapshot.dataQualityScore >= 0.75) {
+      expect(snapshot.dqsGrade).toBe('Grade B');
+    }
+  });
+
   it('verifies that price redaction flag is respected', async () => {
     const snapshot = await fetchAuditorSnapshot('rep-2026-08');
     expect(snapshot.redactPrices).toBe(true);

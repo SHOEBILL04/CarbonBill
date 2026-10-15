@@ -13,7 +13,7 @@ export const mockAuditorSnapshot: AuditorSnapshot = {
   scope1Emissions: 14.10,
   scope2Emissions: 44.50,
   scope3Emissions: 4.70,
-  dataQualityScore: 0.8950,
+  dataQualityScore: 0.9760,
   dqsGrade: 'Grade A',
   redactPrices: true,
   token: 'share-tok-inditex-202608',
