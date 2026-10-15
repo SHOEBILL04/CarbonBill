@@ -105,7 +105,7 @@ export async function fetchAuditorSnapshot(reportId?: string, token?: string): P
   try {
     const url = token
       ? `/api/v1/reports/share/${encodeURIComponent(token)}`
-      : `/api/v1/reports/${encodeURIComponent(reportId || 'rep-2026-08')}/auditor/trace`;
+      : `/api/v1/auditor/snapshot`;
     const res = await apiFetch<AuditorSnapshot>(url);
     if (res && res.lineItems) return res;
     return mockAuditorSnapshot;

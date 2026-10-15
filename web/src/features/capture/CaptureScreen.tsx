@@ -32,6 +32,7 @@ import {
 import { processAndCompressImage } from './imageProcessing';
 import { requestAndSubscribePush } from './pushSubscription';
 import { formatBanglaNumber, formatBanglaDate } from '../../shared/formatters';
+import { apiFetch } from '../../lib/apiClient';
 
 type CaptureCategory = 'diesel' | 'gas' | 'electricity' | 'shipment' | 'other';
 
@@ -207,8 +208,64 @@ export function CaptureScreen({
   }, [isCameraOpen, cameraStream]);
 
   async function loadQueue() {
-    const list = await getAllCaptureItems();
-    setSubmissions(list);
+    const localList = await getAllCaptureItems();
+    try {
+      const serverDocs = await apiFetch<
+        Array<{
+          id: string;
+          status: string;
+          fileName: string;
+          contentType: string;
+          fileSizeBytes: number;
+          capturedAtUtc: string;
+          received: boolean;
+          isDuplicate: boolean;
+        }>
+      >('/api/v1/documents/my-submissions?limit=30');
+
+      if (serverDocs && Array.isArray(serverDocs) && serverDocs.length > 0) {
+        // Map server docs to CaptureQueueItem structure
+        const serverItems: CaptureQueueItem[] = serverDocs.map((doc) => {
+          let mappedStatus: CaptureQueueItem['status'] = 'received';
+          if (doc.status === 'Calculated' || doc.status === 'Confirmed') {
+            mappedStatus = 'calculated';
+          } else if (doc.status === 'NeedsReview' || doc.status === 'Uploaded' || doc.status === 'Extracting') {
+            mappedStatus = 'needs_review';
+          } else if (doc.status === 'Duplicate') {
+            mappedStatus = 'duplicate';
+          } else if (doc.status === 'Failed') {
+            mappedStatus = 'failed';
+          }
+
+          const cat = detectCategoryFromFileName(doc.fileName || '');
+          return {
+            id: doc.id,
+            category: cat,
+            fileName: doc.fileName,
+            fileSizeBytes: doc.fileSizeBytes,
+            status: mappedStatus,
+            retryCount: 0,
+            receiptCode: doc.id.slice(0, 8).toUpperCase(),
+            serverDocId: doc.id,
+            createdAt: doc.capturedAtUtc,
+          };
+        });
+
+        // Filter local items that are not yet on the server (e.g. pending queued/uploading)
+        const serverIds = new Set(serverDocs.map((s) => s.id.toLowerCase()));
+        const unsyncedLocals = localList.filter((loc) => {
+          const locServerId = loc.serverDocId ? loc.serverDocId.toLowerCase() : '';
+          const locId = loc.id.toLowerCase();
+          return !serverIds.has(locServerId) && !serverIds.has(locId);
+        });
+
+        setSubmissions([...unsyncedLocals, ...serverItems]);
+        return;
+      }
+    } catch (e) {
+      console.warn('Could not fetch server submissions, using local queue:', e);
+    }
+    setSubmissions(localList);
   }
 
   async function triggerSync() {
@@ -1003,10 +1060,57 @@ export function CaptureScreen({
                         </div>
 
                         {/* Status Badges & Action Buttons */}
-                        <div className="shrink-0">
+                        <div className="shrink-0 flex items-center gap-1.5">
+                          {sub.status === 'calculated' && (
+                            <>
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 shadow-2xs">
+                                <CheckCircle2 size={12} className="text-emerald-700" />
+                                {isBangla ? 'যাচাইকৃত ও হিসাবকৃত' : 'Verified & Calculated'}
+                              </span>
+                              <a
+                                href={`/?mode=review&docId=${sub.serverDocId || sub.id}`}
+                                onClick={(e) => {
+                                  if (onGoToReview) {
+                                    e.preventDefault();
+                                    onGoToReview(sub.serverDocId || sub.id);
+                                  }
+                                }}
+                                className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-teal-800 hover:bg-teal-900 text-white flex items-center gap-1 shadow-2xs transition active:scale-95 cursor-pointer"
+                                title={isBangla ? 'যাচাইকৃত চালান দেখুন' : 'View verified invoice'}
+                              >
+                                <ExternalLink size={11} /> {isBangla ? 'দেখুন' : 'View'}
+                              </a>
+                            </>
+                          )}
+                          {sub.status === 'needs_review' && (
+                            <>
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                                <Clock size={12} className="text-amber-700" />
+                                {isBangla ? 'পর্যালোচনার অপেক্ষায়' : 'Needs Review'}
+                              </span>
+                              <a
+                                href={`/?mode=review&docId=${sub.serverDocId || sub.id}`}
+                                onClick={(e) => {
+                                  if (onGoToReview) {
+                                    e.preventDefault();
+                                    onGoToReview(sub.serverDocId || sub.id);
+                                  }
+                                }}
+                                className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-600 hover:bg-amber-700 text-white flex items-center gap-1 shadow-2xs transition active:scale-95 cursor-pointer"
+                                title={isBangla ? 'পর্যালোচনা কিউ-তে বিলটি যাচাই করুন' : 'Verify bill in review queue'}
+                              >
+                                <ExternalLink size={11} /> {isBangla ? 'যাচাই' : 'Verify'}
+                              </a>
+                            </>
+                          )}
+                          {sub.status === 'duplicate' && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-purple-100 text-purple-800 border border-purple-200">
+                              {isBangla ? 'ডুপ্লিকেট' : 'Duplicate'}
+                            </span>
+                          )}
                           {isReceived && (
                             <div className="flex items-center gap-1.5">
-                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-teal-100 text-teal-800 border border-teal-200">
                                 <CheckCircle2 size={12} /> {isBangla ? 'গৃহীত' : 'Received'}
                               </span>
                               <a
@@ -1025,18 +1129,18 @@ export function CaptureScreen({
                             </div>
                           )}
                           {isUploading && (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-sky-100 text-sky-800 animate-pulse">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-sky-100 text-sky-800 animate-pulse border border-sky-200">
                               <RefreshCw size={12} className="animate-spin" /> {isBangla ? 'আপলোড হচ্ছে' : 'Uploading'}
                             </span>
                           )}
                           {sub.status === 'queued' && (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
                               <Clock size={12} /> {isBangla ? 'অপেক্ষমান' : 'Queued'}
                             </span>
                           )}
                           {isFailed && (
                             <div className="flex items-center gap-1.5">
-                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800">
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-200">
                                 <AlertCircle size={12} /> {isBangla ? 'ব্যর্থ' : 'Failed'}
                               </span>
                               <button

@@ -258,6 +258,32 @@ public static class ReportingEndpoints
         .WithName("GetAuditorTrace")
         .WithSummary("Auditor verification trace mapping a specific reported figure directly to source document and factor.");
 
+        // 8b. GET /api/v1/auditor/snapshot
+        group.MapGet("/auditor/snapshot", async (
+            ITenantContext tenantContext,
+            ReportingService service,
+            CancellationToken ct) =>
+        {
+            var orgId = tenantContext.CurrentOrgId ?? Guid.Parse("f0ee71e0-717b-4b5e-af05-a443c6430a8f");
+            var snapshot = await service.GetAuditorSnapshotAsync(orgId, ct);
+            return Results.Ok(snapshot);
+        })
+        .WithName("GetAuditorSnapshot")
+        .WithSummary("Live auditor snapshot and click-to-source traceability ledger.")
+        .AllowAnonymous();
+
+        // Also alias /reports/auditor/snapshot
+        group.MapGet("/reports/auditor/snapshot", async (
+            ITenantContext tenantContext,
+            ReportingService service,
+            CancellationToken ct) =>
+        {
+            var orgId = tenantContext.CurrentOrgId ?? Guid.Parse("f0ee71e0-717b-4b5e-af05-a443c6430a8f");
+            var snapshot = await service.GetAuditorSnapshotAsync(orgId, ct);
+            return Results.Ok(snapshot);
+        })
+        .AllowAnonymous();
+
         // 9. Dashboard Summary: GET /api/v1/dashboard/summary
         group.MapGet("/dashboard/summary", async (
             [FromQuery] string? period,

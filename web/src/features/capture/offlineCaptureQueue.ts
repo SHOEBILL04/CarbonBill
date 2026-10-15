@@ -1,6 +1,15 @@
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
 
-export type CaptureQueueStatus = 'queued' | 'uploading' | 'received' | 'needs_retake' | 'failed';
+export type CaptureQueueStatus =
+  | 'queued'
+  | 'uploading'
+  | 'received'
+  | 'needs_retake'
+  | 'failed'
+  | 'needs_review'
+  | 'calculated'
+  | 'confirmed'
+  | 'duplicate';
 
 export interface CaptureQueueItem {
   id: string; // Client GUID idempotency key

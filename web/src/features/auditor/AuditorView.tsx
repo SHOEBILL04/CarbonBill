@@ -202,15 +202,24 @@ export const AuditorView: React.FC<AuditorViewProps> = ({ token }) => {
             </p>
           </div>
 
-          <div className="relative">
-            <Search size={14} className="absolute left-3 top-2.5 text-slate-400" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder={isBangla ? 'উৎস বা চালান আইডি খুঁজুন...' : 'Filter ledger items...'}
-              className="pl-8 pr-3 py-1.5 text-xs border border-slate-300 rounded-xl bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-teal-600"
-            />
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <Search size={14} className="absolute left-3 top-2.5 text-slate-400" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder={isBangla ? 'উৎস বা চালান আইডি খুঁজুন...' : 'Filter ledger items...'}
+                className="pl-8 pr-3 py-1.5 text-xs border border-slate-300 rounded-xl bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-teal-600"
+              />
+            </div>
+            <button
+              onClick={loadData}
+              title={isBangla ? 'লেজার রিফ্রেশ করুন' : 'Refresh Ledger'}
+              className="p-2 border border-slate-200 hover:bg-slate-100 rounded-xl text-slate-600 transition cursor-pointer"
+            >
+              <RefreshCw size={14} />
+            </button>
           </div>
         </div>
 
