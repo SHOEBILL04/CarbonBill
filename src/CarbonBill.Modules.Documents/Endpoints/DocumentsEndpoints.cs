@@ -2,6 +2,7 @@ using System.Security.Claims;
 using CarbonBill.Modules.Documents.Domain;
 using CarbonBill.Modules.Documents.Services;
 using CarbonBill.SharedKernel.Tenancy;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -197,6 +198,31 @@ public static class DocumentsEndpoints
             var userId = tenantContext.CurrentUserId ?? Guid.Empty;
             var items = await documentService.GetMySubmissionsAsync(userId, limit ?? 20, ct);
             return Results.Ok(items);
+        })
+        .AllowAnonymous();
+
+        // POST /api/v1/documents/{id}/reprocess
+        group.MapPost("/{id:guid}/reprocess", async (
+            Guid id,
+            CarbonBill.SharedKernel.Providers.IFileStore fileStore,
+            CarbonBill.SharedKernel.Events.IDomainEventPublisher eventPublisher,
+            CarbonBill.Modules.Documents.Persistence.DocumentsDbContext dbContext,
+            CancellationToken ct) =>
+        {
+            var doc = await dbContext.Documents.IgnoreQueryFilters().FirstOrDefaultAsync(d => d.Id == id, ct);
+            if (doc == null) return Results.NotFound(new { error = "Document not found." });
+
+            await eventPublisher.PublishAsync(new CarbonBill.SharedKernel.Events.DocumentUploadedEvent(
+                doc.Id,
+                doc.OrgId,
+                doc.StoragePath,
+                doc.ContentType,
+                doc.Source,
+                DateTime.UtcNow,
+                DocType: doc.DocType,
+                FileName: doc.FileName), ct);
+
+            return Results.Ok(new { success = true, documentId = doc.Id, status = "ReprocessTriggered" });
         })
         .AllowAnonymous();
 

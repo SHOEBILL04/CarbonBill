@@ -91,6 +91,20 @@ public class DocumentService(
                 logger.LogWarning(ex, "Could not restore storage file for duplicate document {DocId}", existingDuplicate.Id);
             }
 
+            // If the existing document was never extracted or failed, trigger extraction now
+            if (existingDuplicate.Status == DocumentStatuses.Uploaded)
+            {
+                await eventPublisher.PublishAsync(new DocumentUploadedEvent(
+                    existingDuplicate.Id,
+                    existingDuplicate.OrgId,
+                    existingDuplicate.StoragePath,
+                    existingDuplicate.ContentType,
+                    existingDuplicate.Source,
+                    DateTime.UtcNow,
+                    DocType: existingDuplicate.DocType,
+                    FileName: existingDuplicate.FileName), ct);
+            }
+
             return Result.Success(new DocumentReceiptDto(
                 existingDuplicate.Id,
                 DocumentStatuses.Duplicate,

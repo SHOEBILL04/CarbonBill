@@ -82,14 +82,23 @@ public class ExtractionService(
 
         logger.LogInformation("Processing extraction pipeline for Document {DocumentId}...", documentId);
 
-        // 1. Dual OCR (Option C: Tesseract / PaddleOCR)
-        var rawOcrText = await dualOcrEngine.ExtractRawTextAsync(documentStream, fileName, contentType, ct);
+        using var ms = new MemoryStream();
+        if (documentStream.CanSeek && documentStream.Position > 0)
+        {
+            documentStream.Position = 0;
+        }
+        await documentStream.CopyToAsync(ms, ct);
+        var documentBytes = ms.ToArray();
+        ms.Position = 0;
+
+        // 1. Dual OCR (Option C: Tesseract / PaddleOCR / Windows OCR)
+        var rawOcrText = await dualOcrEngine.ExtractRawTextAsync(ms, fileName, contentType, ct);
 
         // 2. Classify Document Type
         var classification = DocumentClassifier.Classify(rawOcrText, fileName);
 
-        // 3. Groq LLM Semantic Intelligence (openai/gpt-oss-120b) with consent gating
-        var groqResult = await groqExtractor.ExtractAsync(rawOcrText, fileName, contentType, hasTier3Consent, ct);
+        // 3. Groq LLM / Vision Semantic Intelligence with consent gating
+        var groqResult = await groqExtractor.ExtractAsync(rawOcrText, fileName, contentType, hasTier3Consent, documentBytes, ct);
 
         // 4. Save ExtractionRun and ExtractedFields
         var extractionRunId = Guid.NewGuid();
