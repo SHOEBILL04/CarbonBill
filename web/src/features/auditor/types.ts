@@ -23,6 +23,9 @@ export interface AuditorLineItem {
   meterNumber?: string;
   grossKgCo2e?: number;
   calculationFormula?: string;
+  division?: string;
+  divisionBn?: string;
+  companyName?: string;
 }
 
 export interface AuditorSnapshot {

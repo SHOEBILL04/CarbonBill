@@ -13,6 +13,8 @@ import {
   Search,
   ExternalLink,
   Building,
+  Building2,
+  MapPin,
   CheckCircle2,
   RefreshCw,
   Info,
@@ -69,7 +71,10 @@ export const AuditorView: React.FC<AuditorViewProps> = ({ token }) => {
         item.scope.toLowerCase().includes(term) ||
         (item.billCompany && item.billCompany.toLowerCase().includes(term)) ||
         (item.billNumber && item.billNumber.toLowerCase().includes(term)) ||
-        (item.fileName && item.fileName.toLowerCase().includes(term))
+        (item.fileName && item.fileName.toLowerCase().includes(term)) ||
+        (item.division && item.division.toLowerCase().includes(term)) ||
+        (item.divisionBn && item.divisionBn.includes(term)) ||
+        (item.companyName && item.companyName.toLowerCase().includes(term))
     );
   }, [snapshot, searchTerm]);
 
@@ -236,7 +241,7 @@ export const AuditorView: React.FC<AuditorViewProps> = ({ token }) => {
               <tr className="border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
                 <th className="py-2.5 px-3">{isBangla ? 'স্কোপ' : 'Scope'}</th>
                 <th className="py-2.5 px-3">{isBangla ? 'বিল প্রদানকারী ও চালান' : 'Bill & Company'}</th>
-                <th className="py-2.5 px-3">{isBangla ? 'নির্গমন উৎস' : 'Activity Source'}</th>
+                <th className="py-2.5 px-3">{isBangla ? 'নির্গমন উৎস ও বিভাগ' : 'Activity Source & Division'}</th>
                 <th className="py-2.5 px-3">{isBangla ? 'ব্যবহারের পরিমাণ' : 'Quantity'}</th>
                 <th className="py-2.5 px-3">{isBangla ? 'আর্থিক মূল্য' : 'Billed (BDT)'}</th>
                 <th className="py-2.5 px-3">{isBangla ? 'নির্গমন ও গণনা (tCO₂e)' : 'tCO₂e & Breakdown'}</th>
@@ -286,8 +291,28 @@ export const AuditorView: React.FC<AuditorViewProps> = ({ token }) => {
                         </div>
                       </div>
                     </td>
-                    <td className="py-3 px-3 font-semibold text-slate-900 text-xs">
-                      {isBangla ? item.sourceNameBn : item.sourceNameEn}
+                    <td className="py-3 px-3">
+                      <div className="space-y-1">
+                        <div className="font-semibold text-slate-900 text-xs">
+                          {isBangla ? item.sourceNameBn : item.sourceNameEn}
+                        </div>
+                        <div className="flex items-center gap-1.5 flex-wrap text-[10px]">
+                          <span
+                            className="inline-flex items-center gap-1 text-slate-700 font-medium bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200"
+                            title={isBangla ? `কোম্পানি: ${item.companyName || snapshot.organizationName}` : `Company: ${item.companyName || snapshot.organizationName}`}
+                          >
+                            <Building2 size={11} className="text-slate-500 shrink-0" />
+                            <span className="truncate max-w-[130px]">{item.companyName || snapshot.organizationName}</span>
+                          </span>
+                          <span
+                            className="inline-flex items-center gap-1 text-teal-800 font-medium bg-teal-50 px-1.5 py-0.5 rounded border border-teal-200"
+                            title={isBangla ? `বিভাগ: ${item.divisionBn || 'ঢাকা বিভাগ'}` : `Division: ${item.division || 'Dhaka Division'}`}
+                          >
+                            <MapPin size={11} className="text-teal-600 shrink-0" />
+                            <span>{isBangla ? (item.divisionBn || 'ঢাকা বিভাগ') : (item.division || 'Dhaka Division')}</span>
+                          </span>
+                        </div>
+                      </div>
                     </td>
                     <td className="py-3 px-3 font-mono">
                       {isBangla

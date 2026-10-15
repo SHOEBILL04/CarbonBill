@@ -43,6 +43,9 @@ export const mockAuditorSnapshot: AuditorSnapshot = {
       meterNumber: 'N/A (Fuel Slip)',
       grossKgCo2e: 7638.00,
       calculationFormula: '2,850 Litres × 2.6800 kgCO₂e/Litre ÷ 1,000 = 7.64 tCO₂e',
+      division: 'Dhaka Division',
+      divisionBn: 'ঢাকা বিভাগ',
+      companyName: 'Apex Textile & Garments Ltd.',
     },
     {
       id: 'audit-item-02',
@@ -69,6 +72,9 @@ export const mockAuditorSnapshot: AuditorSnapshot = {
       meterNumber: 'MTR-TG-9941',
       grossKgCo2e: 6459.84,
       calculationFormula: '3,200 m³ × 2.0187 kgCO₂e/m³ ÷ 1,000 = 6.46 tCO₂e',
+      division: 'Dhaka Division',
+      divisionBn: 'ঢাকা বিভাগ',
+      companyName: 'Apex Textile & Garments Ltd.',
     },
     {
       id: 'audit-item-03',
@@ -95,6 +101,9 @@ export const mockAuditorSnapshot: AuditorSnapshot = {
       meterNumber: 'MTR-DS-41028',
       grossKgCo2e: 44500.02,
       calculationFormula: '69,500 kWh × 0.640288 kgCO₂e/kWh ÷ 1,000 = 44.50 tCO₂e',
+      division: 'Dhaka Division',
+      divisionBn: 'ঢাকা বিভাগ',
+      companyName: 'Apex Textile & Garments Ltd.',
     },
     {
       id: 'audit-item-04',
@@ -121,6 +130,9 @@ export const mockAuditorSnapshot: AuditorSnapshot = {
       meterNumber: 'TRUCK-DH-7102',
       grossKgCo2e: 4700.00,
       calculationFormula: '18,500 tonne-km × 0.254054 kgCO₂e/tonne-km ÷ 1,000 = 4.70 tCO₂e',
+      division: 'Chattogram Division',
+      divisionBn: 'চট্টগ্রাম বিভাগ',
+      companyName: 'Apex Textile & Garments Ltd.',
     },
   ],
 };
