@@ -43,7 +43,7 @@ public class GroqLlmExtractor(
     HttpClient httpClient,
     IConfiguration configuration,
     ILogger<GroqLlmExtractor> logger,
-    ILangSmithTracer? langSmithTracer = null) : IGroqLlmExtractor
+    CarbonBill.SharedKernel.Providers.ILangSmithTracer? langSmithTracer = null) : IGroqLlmExtractor
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -119,19 +119,19 @@ public class GroqLlmExtractor(
         byte[]? imageBytes = null,
         CancellationToken ct = default)
     {
+        var startTimeUtc = DateTime.UtcNow;
+
         if (!hasConsent)
         {
             logger.LogInformation("Tenant consent for Tier 3 AI processing not granted. Using rule-based fallback.");
-            return FallbackRuleBasedExtraction(rawOcrText, fileName);
+            return await FallbackRuleBasedExtractionWithTraceAsync(rawOcrText, fileName, "TenantConsentNotGranted", startTimeUtc, ct);
         }
 
         if (string.IsNullOrWhiteSpace(_apiKey))
         {
             logger.LogWarning("Groq API key not configured. Using rule-based semantic parser fallback.");
-            return FallbackRuleBasedExtraction(rawOcrText, fileName);
+            return await FallbackRuleBasedExtractionWithTraceAsync(rawOcrText, fileName, "GroqApiKeyMissing", startTimeUtc, ct);
         }
-
-        var startTimeUtc = DateTime.UtcNow;
 
         // 1. Try Groq Vision model if image bytes are available
         if (imageBytes != null && imageBytes.Length > 0 && IsSupportedImage(fileName, contentType))
@@ -347,7 +347,7 @@ public class GroqLlmExtractor(
                         ct);
                 }
 
-                return FallbackRuleBasedExtraction(rawOcrText, fileName);
+                return await FallbackRuleBasedExtractionWithTraceAsync(rawOcrText, fileName, $"GroqHttpError_{(int)response.StatusCode}", startTimeUtc, ct);
             }
 
             var responseJson = await response.Content.ReadAsStringAsync(ct);
@@ -360,13 +360,13 @@ public class GroqLlmExtractor(
 
             if (string.IsNullOrWhiteSpace(contentString))
             {
-                return FallbackRuleBasedExtraction(rawOcrText, fileName);
+                return await FallbackRuleBasedExtractionWithTraceAsync(rawOcrText, fileName, "EmptyLlmResponse", startTimeUtc, ct);
             }
 
             var parsed = JsonSerializer.Deserialize<GroqBillExtractionResult>(contentString, JsonOptions);
             if (parsed == null)
             {
-                return FallbackRuleBasedExtraction(rawOcrText, fileName);
+                return await FallbackRuleBasedExtractionWithTraceAsync(rawOcrText, fileName, "JsonDeserializationFailed", startTimeUtc, ct);
             }
 
             // If quantity was missing from OCR text but amount exists, estimate reasonably
@@ -433,8 +433,51 @@ public class GroqLlmExtractor(
                     ct);
             }
 
-            return FallbackRuleBasedExtraction(rawOcrText, fileName);
+            return await FallbackRuleBasedExtractionWithTraceAsync(rawOcrText, fileName, $"Exception_{ex.GetType().Name}", startTimeUtc, ct);
         }
+    }
+
+    private async Task<OcrExtractionResult> FallbackRuleBasedExtractionWithTraceAsync(
+        string rawText,
+        string? fileName,
+        string reason,
+        DateTime startTimeUtc,
+        CancellationToken ct)
+    {
+        var result = FallbackRuleBasedExtraction(rawText, fileName);
+        if (langSmithTracer != null)
+        {
+            var vendor = result.Fields.FirstOrDefault(f => f.FieldName == "Vendor")?.RawValue;
+            var qty = result.Fields.FirstOrDefault(f => f.FieldName == "Quantity")?.RawValue;
+            var unit = result.Fields.FirstOrDefault(f => f.FieldName == "Unit")?.RawValue;
+            var amount = result.Fields.FirstOrDefault(f => f.FieldName == "AmountBdt")?.RawValue;
+
+            await langSmithTracer.TraceRunAsync(
+                "RuleBasedSemanticParser",
+                "chain",
+                new { fileName, rawOcrLength = rawText.Length, reason },
+                new
+                {
+                    detectedDocType = result.DetectedDocumentType,
+                    vendor,
+                    quantity = qty,
+                    unit,
+                    amountBdt = amount,
+                    fieldsCount = result.Fields.Count
+                },
+                startTimeUtc,
+                DateTime.UtcNow,
+                new Dictionary<string, object>
+                {
+                    ["extractor"] = "RuleBasedSemanticParser",
+                    ["reason"] = reason,
+                    ["fileName"] = fileName ?? "unknown",
+                    ["detectedDocType"] = result.DetectedDocumentType ?? "GeneralDocument"
+                },
+                null,
+                ct);
+        }
+        return result;
     }
 
     private static OcrExtractionResult BuildResult(GroqBillExtractionResult parsed, string rawOcrText, int tierUsed)

@@ -7,22 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace CarbonBill.Modules.Extraction.Services.Tracing;
 
-public interface ILangSmithTracer
-{
-    bool IsEnabled { get; }
-    Task<string?> TraceRunAsync(
-        string name,
-        string runType,
-        object inputs,
-        object? outputs,
-        DateTime startTimeUtc,
-        DateTime endTimeUtc,
-        Dictionary<string, object>? metadata = null,
-        string? errorMessage = null,
-        CancellationToken ct = default);
-}
-
-public sealed class LangSmithTracer : ILangSmithTracer
+public sealed class LangSmithTracer : CarbonBill.SharedKernel.Providers.ILangSmithTracer
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
