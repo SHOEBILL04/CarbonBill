@@ -130,7 +130,7 @@ public static class AuthEndpoints
                 Email = email,
                 PhoneNumber = request.PhoneNumber?.Trim(),
                 PasswordHash = passwordHasher.HashPassword(request.Password),
-                PreferredLanguage = "bn",
+                PreferredLanguage = "en",
                 IsActive = true
             };
             dbContext.Users.Add(user);

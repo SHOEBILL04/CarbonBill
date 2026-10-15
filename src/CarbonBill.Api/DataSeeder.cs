@@ -389,7 +389,7 @@ public static class DataSeeder
                     FullName = fullName,
                     PhoneNumber = phone,
                     PasswordHash = passwordHasher.HashPassword("Pass1234!"),
-                    PreferredLanguage = "bn",
+                    PreferredLanguage = "en",
                     IsActive = true
                 };
                 identityDb.Users.Add(user);
@@ -404,6 +404,10 @@ public static class DataSeeder
                 if (string.IsNullOrWhiteSpace(user.PhoneNumber) || user.PhoneNumber != phone)
                 {
                     user.PhoneNumber = phone;
+                }
+                if (user.PreferredLanguage != "en")
+                {
+                    user.PreferredLanguage = "en";
                 }
                 await identityDb.SaveChangesAsync();
             }

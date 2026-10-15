@@ -19,7 +19,7 @@ public class User : AggregateRoot
     public string FullName { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;
     public string? PhoneNumber { get; set; }
-    public string PreferredLanguage { get; set; } = "bn"; // Bangla-first
+    public string PreferredLanguage { get; set; } = "en"; // English by default
     public bool IsActive { get; set; } = true;
 
     // Password Reset
