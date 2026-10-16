@@ -20,6 +20,7 @@ public class User : AggregateRoot
     public string PasswordHash { get; set; } = string.Empty;
     public string? PhoneNumber { get; set; }
     public string PreferredLanguage { get; set; } = "en"; // English by default
+    public string Role { get; set; } = "Accountant";
     public bool IsActive { get; set; } = true;
 
     // Password Reset
@@ -38,6 +39,7 @@ public class Membership : BaseEntity, ITenantScopedEntity
     public Guid OrgId { get; set; }
     public Organization Organization { get; set; } = null!;
 
+    public string Role { get; set; } = "Accountant";
     public bool IsActive { get; set; } = true;
 }
 

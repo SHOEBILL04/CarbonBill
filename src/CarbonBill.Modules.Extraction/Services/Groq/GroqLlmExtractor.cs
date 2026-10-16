@@ -26,6 +26,7 @@ public record GroqBillExtractionResult(
     [property: JsonPropertyName("powerFactorPenaltyBdt")] decimal? PowerFactorPenaltyBdt,
     [property: JsonPropertyName("demandChargePenaltyBdt")] decimal? DemandChargePenaltyBdt,
     [property: JsonPropertyName("confidence")] float Confidence,
+    [property: JsonPropertyName("fieldConfidences")] Dictionary<string, float>? FieldConfidences,
     [property: JsonPropertyName("reasoning")] string? Reasoning);
 
 public interface IGroqLlmExtractor
@@ -158,7 +159,17 @@ public class GroqLlmExtractor(
                   "consumerNumber": "string or null",
                   "powerFactorPenaltyBdt": 0.00,
                   "demandChargePenaltyBdt": 0.00,
-                  "confidence": 0.95,
+                  "confidence": 0.00,
+                  "fieldConfidences": {
+                    "vendor": 0.00,
+                    "billNumber": 0.00,
+                    "billingPeriod": 0.00,
+                    "quantity": 0.00,
+                    "unit": 0.00,
+                    "amountBdt": 0.00,
+                    "meterNumber": 0.00,
+                    "consumerNumber": 0.00
+                  },
                   "reasoning": "brief explanation"
                 }
 
@@ -167,7 +178,13 @@ public class GroqLlmExtractor(
                 2. Extract the electricity consumed quantity (e.g. Consumed Unit / Used Units / present reading minus previous reading) and canonical unit (kWh for electricity, m3 for natural gas, litre for diesel).
                 3. Extract total amount to be paid / net payable in Bangladeshi Taka (BDT) (look for Amount to be Paid, Bill Month Total, Balance, Net Payable, Total Amount).
                 4. Extract bill number, meter number, consumer number, and billing period in YYYY-MM format.
-                5. Return ONLY a single raw JSON object matching the schema. No markdown formatting, no code fences.
+                5. Provide actual, calibrated confidence scores (between 0.00 and 1.00) based on visual clarity, resolution, and legibility for overall 'confidence' and each field in 'fieldConfidences':
+                   - 0.90 to 0.99: Crisp digital scan, high resolution, printed text with 100% unambiguous numbers.
+                   - 0.75 to 0.89: Good clarity with minor creases, slight blur, or mild glare, but clearly readable.
+                   - 0.50 to 0.74: Carbon-copy slip, handwriting, heavy fold/crease, or when a value had to be inferred.
+                   - Below 0.50: Barely legible or uncertain value.
+                   Do NOT default to 0.95. Give an honest, calculated assessment.
+                6. Return ONLY a single raw JSON object matching the schema. No markdown formatting, no code fences.
                 """;
 
                 var visionRequestBody = new
@@ -289,7 +306,13 @@ public class GroqLlmExtractor(
             5. Extract total net/payable amount in Bangladeshi Taka (BDT) (e.g. Amount to be Paid, Bill Month Total, Net Payable, Balance, সর্বমোট প্রদেয় টাকা, মোট বিল).
             6. Identify meter number and consumer number if present.
             7. Identify any power factor penalty or demand charge surcharges if present.
-            8. Return ONLY valid JSON matching this schema:
+            8. Provide realistic, calibrated confidence scores (0.00 to 1.00) based on OCR match accuracy and textual clarity for 'confidence' and 'fieldConfidences':
+               - 0.90 to 0.99: Exact, unambiguous match with clean digits and clear labels.
+               - 0.75 to 0.89: Readable despite minor OCR typos or noisy characters.
+               - 0.50 to 0.74: Ambiguous OCR text, partial match, or value had to be inferred/estimated.
+               - Below 0.50: Low confidence, garbled text, or guessed.
+               Do NOT use a static default like 0.95. Give an actual evaluation score.
+            9. Return ONLY valid JSON matching this schema:
             {
               "vendor": "string",
               "billNumber": "string",
@@ -302,7 +325,17 @@ public class GroqLlmExtractor(
               "consumerNumber": "string or null",
               "powerFactorPenaltyBdt": 0.00,
               "demandChargePenaltyBdt": 0.00,
-              "confidence": 0.95,
+              "confidence": 0.00,
+              "fieldConfidences": {
+                "vendor": 0.00,
+                "billNumber": 0.00,
+                "billingPeriod": 0.00,
+                "quantity": 0.00,
+                "unit": 0.00,
+                "amountBdt": 0.00,
+                "meterNumber": 0.00,
+                "consumerNumber": 0.00
+              },
               "reasoning": "brief explanation"
             }
             """;
@@ -369,6 +402,7 @@ public class GroqLlmExtractor(
                 return await FallbackRuleBasedExtractionWithTraceAsync(rawOcrText, fileName, "JsonDeserializationFailed", startTimeUtc, ct);
             }
 
+            var quantityWasEstimated = false;
             // If quantity was missing from OCR text but amount exists, estimate reasonably
             if (parsed.Quantity <= 0 && parsed.AmountBdt > 0)
             {
@@ -380,6 +414,7 @@ public class GroqLlmExtractor(
                     _ => 0.0m
                 };
                 parsed = parsed with { Quantity = estimatedQty };
+                quantityWasEstimated = true;
             }
 
             if (langSmithTracer != null)
@@ -413,7 +448,7 @@ public class GroqLlmExtractor(
                     ct);
             }
 
-            return BuildResult(parsed, rawOcrText, 3);
+            return BuildResult(parsed, rawOcrText, 3, quantityWasEstimated);
         }
         catch (Exception ex)
         {
@@ -480,41 +515,106 @@ public class GroqLlmExtractor(
         return result;
     }
 
-    private static OcrExtractionResult BuildResult(GroqBillExtractionResult parsed, string rawOcrText, int tierUsed)
+    private static float ResolveFieldConfidence(
+        GroqBillExtractionResult parsed,
+        string fieldKey,
+        bool isEstimated = false,
+        bool isEmpty = false)
     {
+        if (isEmpty) return 0.35f;
+        if (isEstimated) return 0.60f;
+
+        if (parsed.FieldConfidences != null)
+        {
+            foreach (var kvp in parsed.FieldConfidences)
+            {
+                if (string.Equals(kvp.Key, fieldKey, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (kvp.Value > 0.0f)
+                    {
+                        return (float)Math.Round(Math.Clamp(kvp.Value, 0.10f, 1.0f), 2);
+                    }
+                }
+            }
+        }
+
+        if (parsed.Confidence > 0.0f)
+        {
+            return (float)Math.Round(Math.Clamp(parsed.Confidence, 0.10f, 1.0f), 2);
+        }
+
+        return 0.80f;
+    }
+
+    private static OcrExtractionResult BuildResult(
+        GroqBillExtractionResult parsed,
+        string rawOcrText,
+        int tierUsed,
+        bool quantityWasEstimated = false)
+    {
+        var vendorConf = ResolveFieldConfidence(parsed, "vendor", isEmpty: string.IsNullOrWhiteSpace(parsed.Vendor) || parsed.Vendor == "Unknown");
+        var billNumConf = ResolveFieldConfidence(parsed, "billNumber", isEmpty: string.IsNullOrWhiteSpace(parsed.BillNumber) || parsed.BillNumber == "N/A");
+        var periodConf = ResolveFieldConfidence(parsed, "billingPeriod", isEmpty: string.IsNullOrWhiteSpace(parsed.BillingPeriod));
+        var qtyConf = ResolveFieldConfidence(parsed, "quantity", isEstimated: quantityWasEstimated, isEmpty: parsed.Quantity <= 0);
+        var unitConf = ResolveFieldConfidence(parsed, "unit", isEmpty: string.IsNullOrWhiteSpace(parsed.Unit));
+        var amountConf = ResolveFieldConfidence(parsed, "amountBdt", isEmpty: parsed.AmountBdt <= 0);
+
         var fields = new List<ExtractedFieldResult>
         {
-            new("Vendor", parsed.Vendor ?? "Unknown", parsed.Vendor, parsed.Confidence, tierUsed),
-            new("BillNumber", parsed.BillNumber ?? "N/A", parsed.BillNumber, parsed.Confidence, tierUsed),
-            new("BillingPeriod", parsed.BillingPeriod ?? DateTime.UtcNow.ToString("yyyy-MM", CultureInfo.InvariantCulture), parsed.BillingPeriod, parsed.Confidence, tierUsed),
-            new("Quantity", parsed.Quantity.ToString("F2", CultureInfo.InvariantCulture), parsed.Quantity.ToString("F2", CultureInfo.InvariantCulture), parsed.Confidence, tierUsed),
-            new("Unit", parsed.Unit ?? "kWh", parsed.Unit, parsed.Confidence, tierUsed),
-            new("AmountBdt", parsed.AmountBdt.ToString("F2", CultureInfo.InvariantCulture), parsed.AmountBdt.ToString("F2", CultureInfo.InvariantCulture), parsed.Confidence, tierUsed)
+            new("Vendor", parsed.Vendor ?? "Unknown", parsed.Vendor, vendorConf, tierUsed),
+            new("BillNumber", parsed.BillNumber ?? "N/A", parsed.BillNumber, billNumConf, tierUsed),
+            new("BillingPeriod", parsed.BillingPeriod ?? DateTime.UtcNow.ToString("yyyy-MM", CultureInfo.InvariantCulture), parsed.BillingPeriod, periodConf, tierUsed),
+            new("Quantity", parsed.Quantity.ToString("F2", CultureInfo.InvariantCulture), parsed.Quantity.ToString("F2", CultureInfo.InvariantCulture), qtyConf, tierUsed),
+            new("Unit", parsed.Unit ?? "kWh", parsed.Unit, unitConf, tierUsed),
+            new("AmountBdt", parsed.AmountBdt.ToString("F2", CultureInfo.InvariantCulture), parsed.AmountBdt.ToString("F2", CultureInfo.InvariantCulture), amountConf, tierUsed)
         };
 
         if (!string.IsNullOrWhiteSpace(parsed.MeterNumber))
         {
-            fields.Add(new("MeterNumber", parsed.MeterNumber, parsed.MeterNumber, parsed.Confidence, tierUsed));
+            var meterConf = ResolveFieldConfidence(parsed, "meterNumber");
+            fields.Add(new("MeterNumber", parsed.MeterNumber, parsed.MeterNumber, meterConf, tierUsed));
         }
 
         if (!string.IsNullOrWhiteSpace(parsed.ConsumerNumber))
         {
-            fields.Add(new("ConsumerNumber", parsed.ConsumerNumber, parsed.ConsumerNumber, parsed.Confidence, tierUsed));
+            var consumerConf = ResolveFieldConfidence(parsed, "consumerNumber");
+            fields.Add(new("ConsumerNumber", parsed.ConsumerNumber, parsed.ConsumerNumber, consumerConf, tierUsed));
         }
 
         if (parsed.PowerFactorPenaltyBdt.HasValue && parsed.PowerFactorPenaltyBdt.Value > 0)
         {
-            fields.Add(new("PowerFactorPenaltyBdt", parsed.PowerFactorPenaltyBdt.Value.ToString("F2", CultureInfo.InvariantCulture), parsed.PowerFactorPenaltyBdt.Value.ToString("F2", CultureInfo.InvariantCulture), parsed.Confidence, tierUsed));
+            var pfConf = ResolveFieldConfidence(parsed, "powerFactorPenaltyBdt");
+            fields.Add(new("PowerFactorPenaltyBdt", parsed.PowerFactorPenaltyBdt.Value.ToString("F2", CultureInfo.InvariantCulture), parsed.PowerFactorPenaltyBdt.Value.ToString("F2", CultureInfo.InvariantCulture), pfConf, tierUsed));
         }
 
         if (parsed.DemandChargePenaltyBdt.HasValue && parsed.DemandChargePenaltyBdt.Value > 0)
         {
-            fields.Add(new("DemandChargePenaltyBdt", parsed.DemandChargePenaltyBdt.Value.ToString("F2", CultureInfo.InvariantCulture), parsed.DemandChargePenaltyBdt.Value.ToString("F2", CultureInfo.InvariantCulture), parsed.Confidence, tierUsed));
+            var dcConf = ResolveFieldConfidence(parsed, "demandChargePenaltyBdt");
+            fields.Add(new("DemandChargePenaltyBdt", parsed.DemandChargePenaltyBdt.Value.ToString("F2", CultureInfo.InvariantCulture), parsed.DemandChargePenaltyBdt.Value.ToString("F2", CultureInfo.InvariantCulture), dcConf, tierUsed));
         }
 
         if (!string.IsNullOrWhiteSpace(rawOcrText))
         {
-            fields.Add(new("ExtractedText", rawOcrText, rawOcrText, parsed.Confidence, tierUsed));
+            var textConf = parsed.Confidence > 0 ? (float)Math.Round(Math.Clamp(parsed.Confidence, 0.10f, 1.0f), 2) : 0.80f;
+            fields.Add(new("ExtractedText", rawOcrText, rawOcrText, textConf, tierUsed));
+        }
+
+        // Compute overall confidence honestly from the AI confidence and extracted fields
+        float overallConfidence;
+        if (parsed.Confidence > 0.0f)
+        {
+            overallConfidence = (float)Math.Round(Math.Clamp(parsed.Confidence, 0.10f, 1.0f), 2);
+            if (quantityWasEstimated)
+            {
+                overallConfidence = Math.Min(overallConfidence, 0.70f);
+            }
+        }
+        else
+        {
+            var coreFields = fields.Where(f => f.FieldName != "ExtractedText").ToList();
+            overallConfidence = coreFields.Count > 0
+                ? (float)Math.Round(coreFields.Average(f => f.Confidence), 2)
+                : 0.75f;
         }
 
         return new OcrExtractionResult(
@@ -522,7 +622,8 @@ public class GroqLlmExtractor(
             DetectedDocumentType: parsed.DocType,
             Fields: fields,
             ErrorMessage: null,
-            TierUsed: tierUsed);
+            TierUsed: tierUsed,
+            OverallConfidence: overallConfidence);
     }
 
     public static OcrExtractionResult FallbackRuleBasedExtraction(string rawText, string? fileName = null)
@@ -773,6 +874,7 @@ public class GroqLlmExtractor(
             }
         }
 
+        bool isQtyDerived = !extractedQty.HasValue && extractedAmount.HasValue && extractedAmount.Value > 0;
         // If quantity is still not found, derive based on the actual extracted bill amount and standard utility tariffs
         if (!extractedQty.HasValue && extractedAmount.HasValue && extractedAmount.Value > 0)
         {
@@ -788,30 +890,40 @@ public class GroqLlmExtractor(
         var finalQty = extractedQty ?? 0.00m;
         var finalBillNo = extractedBillNo ?? "N/A";
 
-        fields.Add(new("Vendor", finalVendor, finalVendor, 0.95f, 1));
-        fields.Add(new("BillNumber", finalBillNo, finalBillNo, 0.92f, 1));
-        fields.Add(new("BillingPeriod", finalPeriod, finalPeriod, 0.94f, 1));
-        fields.Add(new("Quantity", finalQty.ToString("F2", CultureInfo.InvariantCulture), finalQty.ToString("F2", CultureInfo.InvariantCulture), 0.91f, 1));
-        fields.Add(new("Unit", unit, unit, 0.96f, 1));
-        fields.Add(new("AmountBdt", finalAmount.ToString("F2", CultureInfo.InvariantCulture), finalAmount.ToString("F2", CultureInfo.InvariantCulture), 0.95f, 1));
+        float vendorConf = extractedVendor != null ? 0.88f : 0.50f;
+        float billNumConf = extractedBillNo != null ? 0.85f : 0.40f;
+        float periodConf = extractedPeriod != null ? 0.88f : 0.50f;
+        float qtyConf = isQtyDerived ? 0.62f : (extractedQty.HasValue ? 0.88f : 0.30f);
+        float unitConf = extractedQty.HasValue ? 0.90f : 0.70f;
+        float amountConf = extractedAmount.HasValue ? 0.89f : 0.30f;
+
+        fields.Add(new("Vendor", finalVendor, finalVendor, vendorConf, 1));
+        fields.Add(new("BillNumber", finalBillNo, finalBillNo, billNumConf, 1));
+        fields.Add(new("BillingPeriod", finalPeriod, finalPeriod, periodConf, 1));
+        fields.Add(new("Quantity", finalQty.ToString("F2", CultureInfo.InvariantCulture), finalQty.ToString("F2", CultureInfo.InvariantCulture), qtyConf, 1));
+        fields.Add(new("Unit", unit, unit, unitConf, 1));
+        fields.Add(new("AmountBdt", finalAmount.ToString("F2", CultureInfo.InvariantCulture), finalAmount.ToString("F2", CultureInfo.InvariantCulture), amountConf, 1));
 
         if (!string.IsNullOrWhiteSpace(extractedMeterNo))
         {
-            fields.Add(new("MeterNumber", extractedMeterNo, extractedMeterNo, 0.90f, 1));
+            fields.Add(new("MeterNumber", extractedMeterNo, extractedMeterNo, 0.85f, 1));
         }
 
         if (!string.IsNullOrWhiteSpace(extractedConsumerNo))
         {
-            fields.Add(new("ConsumerNumber", extractedConsumerNo, extractedConsumerNo, 0.90f, 1));
+            fields.Add(new("ConsumerNumber", extractedConsumerNo, extractedConsumerNo, 0.85f, 1));
         }
 
-        fields.Add(new("ExtractedText", normalized, normalized, 0.90f, 1));
+        fields.Add(new("ExtractedText", normalized, normalized, 0.80f, 1));
+
+        var overallConf = (float)Math.Round((vendorConf + billNumConf + periodConf + qtyConf + unitConf + amountConf) / 6.0, 2);
 
         return new OcrExtractionResult(
             Success: true,
             DetectedDocumentType: docType,
             Fields: fields,
             ErrorMessage: null,
-            TierUsed: 1);
+            TierUsed: 1,
+            OverallConfidence: overallConf);
     }
 }

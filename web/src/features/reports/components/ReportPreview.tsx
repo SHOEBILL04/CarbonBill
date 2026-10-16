@@ -478,9 +478,14 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
                         <CheckCircle2 size={11} className="text-emerald-700" />
                         {isBangla ? `${toBanglaDigits(item.ocrConfidence)}% কনফিডেন্স` : `${item.ocrConfidence}% OCR`}
                       </span>
-                      <p className="text-[9px] text-slate-400 mt-0.5 truncate max-w-[120px]" title={item.confirmedBy}>
-                        {item.confirmedBy}
-                      </p>
+                      <div className="mt-1 bg-slate-50 border border-slate-200 rounded px-1.5 py-0.5 max-w-[150px] mx-auto text-left shadow-2xs" title={item.confirmedBy}>
+                        <span className="text-[8px] text-slate-400 font-bold uppercase tracking-wider block">
+                          {isBangla ? 'যাচাইকারী (Reviewer):' : 'Reviewed by:'}
+                        </span>
+                        <p className="text-[10px] font-bold text-teal-900 truncate">
+                          {item.confirmedBy}
+                        </p>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -536,10 +541,14 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
           <p className="font-mono text-[11px] text-slate-800 break-all select-all bg-white/80 p-2 rounded-lg border border-emerald-200">
             {report.contentHashSha256}
           </p>
-          <div className="flex items-center justify-between text-[11px] text-emerald-900 pt-1">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between text-[11px] text-emerald-900 pt-1 gap-2 border-t border-emerald-200/60 mt-1">
             <span>
-              {isBangla ? 'ডিজিটাল স্বাক্ষরকারী: ' : 'Authorized Signatory: '}
-              <strong>{report.approvedBy || 'Managing Director (Apex Textiles)'}</strong>
+              {isBangla ? 'চালান যাচাইকারী (Reviewer): ' : 'Verified by Reviewer: '}
+              <strong>{lineItems.find((i) => i.confirmedBy)?.confirmedBy || 'Rahim Mia (Accountant)'}</strong>
+            </span>
+            <span>
+              {isBangla ? 'অনুমোদনকারী (Signatory): ' : 'Authorized Signatory: '}
+              <strong>{report.approvedBy || 'Kabir Ahmed (Owner)'}</strong>
             </span>
             <span>
               {isBangla ? 'তারিখ: ' : 'Date: '}

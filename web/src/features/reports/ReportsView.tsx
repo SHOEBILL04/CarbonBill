@@ -39,6 +39,15 @@ export const ReportsView: React.FC = () => {
 
   useEffect(() => {
     loadData();
+
+    const handleUserUpdated = () => {
+      loadData();
+    };
+
+    window.addEventListener('carbonbill:user-updated', handleUserUpdated);
+    return () => {
+      window.removeEventListener('carbonbill:user-updated', handleUserUpdated);
+    };
   }, []);
 
   // Filter audit records strictly based on the selected duration

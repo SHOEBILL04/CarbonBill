@@ -4,7 +4,8 @@ export interface AuthUser {
   fullName: string;
   activeOrgId: string;
   activeOrgName: string;
-  memberships: Array<{ orgId: string; orgName: string }>;
+  role?: string;
+  memberships: Array<{ orgId: string; orgName: string; role?: string }>;
 }
 
 const TOKEN_KEY = 'carbonbill_token';
@@ -102,3 +103,44 @@ export const apiClient = {
     }),
   delete: <T>(url: string) => apiFetch<T>(url, { method: 'DELETE' }),
 };
+
+export interface TeamUser {
+  id: string;
+  fullName: string;
+  email: string;
+  phoneNumber?: string;
+  role: string;
+  isActive: boolean;
+  createdAtUtc: string;
+}
+
+export async function fetchTeamUsers(): Promise<TeamUser[]> {
+  try {
+    return await apiFetch<TeamUser[]>('/api/v1/auth/users');
+  } catch (err) {
+    console.warn('Failed to fetch team users:', err);
+    return [];
+  }
+}
+
+export async function updateMyProfile(payload: {
+  userId?: string;
+  fullName?: string;
+  phoneNumber?: string;
+  role?: string;
+}): Promise<{ success: boolean; fullName?: string; role?: string }> {
+  return await apiFetch('/api/v1/auth/profile', {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateUserRole(
+  userId: string,
+  role: string
+): Promise<{ success: boolean; userId: string; role: string }> {
+  return await apiFetch(`/api/v1/auth/users/${userId}/role`, {
+    method: 'PUT',
+    body: JSON.stringify({ role }),
+  });
+}

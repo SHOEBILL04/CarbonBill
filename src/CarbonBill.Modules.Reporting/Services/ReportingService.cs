@@ -346,7 +346,9 @@ public class ReportingService(
                     d.DocType,
                     d.CapturedAtUtc,
                     run.OverallConfidence,
+                    u.FullName AS ReviewerFullName,
                     u.Email AS ReviewerEmail,
+                    COALESCE(m.Role, u.Role, 'Accountant') AS ReviewerRole,
                     dec.DecidedAtUtc,
                     ef.Vendor,
                     ef.BillNumber,
@@ -369,6 +371,7 @@ public class ReportingService(
                 ) ef ON d.Id = ef.DocumentId
                 LEFT JOIN Decisions dec ON d.Id = dec.DocumentId
                 LEFT JOIN Users u ON dec.ReviewerUserId = u.Id
+                LEFT JOIN Memberships m ON (u.Id = m.UserId AND m.OrgId = er.OrgId)
                 ORDER BY er.CalculatedAtUtc DESC;
             ";
 
@@ -393,7 +396,12 @@ public class ReportingService(
                 var calculatedAt = reader["CalculatedAtUtc"] != DBNull.Value ? reader["CalculatedAtUtc"].ToString()! : DateTime.UtcNow.ToString("o", CultureInfo.InvariantCulture);
                 var capturedAt = reader["CapturedAtUtc"] != DBNull.Value ? reader["CapturedAtUtc"].ToString()! : DateTime.UtcNow.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
                 var confVal = reader["OverallConfidence"] != DBNull.Value ? Convert.ToDouble(reader["OverallConfidence"], CultureInfo.InvariantCulture) : 0.95;
-                var reviewer = reader["ReviewerEmail"]?.ToString() ?? "accountant@apex.local";
+                var reviewerFullName = reader["ReviewerFullName"]?.ToString();
+                var reviewerRole = reader["ReviewerRole"]?.ToString() ?? "Accountant";
+                var reviewerEmail = reader["ReviewerEmail"]?.ToString();
+                var reviewer = !string.IsNullOrWhiteSpace(reviewerFullName)
+                    ? $"{reviewerFullName} ({reviewerRole})"
+                    : (!string.IsNullOrWhiteSpace(reviewerEmail) ? $"{reviewerEmail} ({reviewerRole})" : $"Reviewed by {reviewerRole}");
 
                 var vendorFromDb = reader["Vendor"] != DBNull.Value ? reader["Vendor"]?.ToString() : null;
                 var billNumberFromDb = reader["BillNumber"] != DBNull.Value ? reader["BillNumber"]?.ToString() : null;
@@ -539,6 +547,25 @@ public class ReportingService(
         }
 
         // Add standard baseline items so the factory's full inventory is represented
+        string rahimRole = "Accountant";
+        string nusratRole = "Compliance Officer";
+        try
+        {
+            var conn2 = dbContext.Database.GetDbConnection();
+            if (conn2.State != System.Data.ConnectionState.Open) await conn2.OpenAsync(ct);
+            using var cmdRoles = conn2.CreateCommand();
+            cmdRoles.CommandText = "SELECT Email, COALESCE(Role, 'Accountant') AS Role FROM Users WHERE Email IN ('accountant@apex.local', 'compliance@apex.local');";
+            using var roleReader = await cmdRoles.ExecuteReaderAsync(ct);
+            while (await roleReader.ReadAsync(ct))
+            {
+                var rEmail = roleReader["Email"]?.ToString();
+                var rRole = roleReader["Role"]?.ToString();
+                if (rEmail == "accountant@apex.local" && !string.IsNullOrWhiteSpace(rRole)) rahimRole = rRole;
+                if (rEmail == "compliance@apex.local" && !string.IsNullOrWhiteSpace(rRole)) nusratRole = rRole;
+            }
+        }
+        catch { /* Fallback to default roles */ }
+
         var baselineItems = new List<AuditorLineItemDto>
         {
             new(
@@ -555,7 +582,7 @@ public class ReportingService(
                 "Padma Oil Co. Diesel Slip",
                 "2026-08-14",
                 96.8,
-                "Rahim Mia (Accounts Clerk)",
+                $"Rahim Mia ({rahimRole})",
                 "2026-08-15T09:12:00Z",
                 "IPCC Guidelines for National GHG Inventories (Diesel Stationary Combustion)",
                 2.68m,
@@ -584,7 +611,7 @@ public class ReportingService(
                 "Titas Gas Transmission Bill",
                 "2026-08-28",
                 94.2,
-                "Rahim Mia (Accounts Clerk)",
+                $"Rahim Mia ({rahimRole})",
                 "2026-08-29T11:45:00Z",
                 "Department of Environment (DoE) Bangladesh / IPCC Natural Gas EF",
                 2.0187m,
@@ -613,7 +640,7 @@ public class ReportingService(
                 "DESCO Industrial Tariff Bill",
                 "2026-08-31",
                 99.1,
-                "Nusrat Jahan (Compliance Officer)",
+                $"Nusrat Jahan ({nusratRole})",
                 "2026-09-02T16:20:00Z",
                 "SREDA / DoE Bangladesh National Grid Emission Factor (Location-Based)",
                 0.640288m,
@@ -642,7 +669,7 @@ public class ReportingService(
                 "Export Container Trucking Challan",
                 "2026-08-25",
                 89.5,
-                "Rahim Mia (Accounts Clerk)",
+                $"Rahim Mia ({rahimRole})",
                 "2026-08-27T10:15:00Z",
                 "UK DEFRA / GLEC Framework Freight Transport Factor (Heavy Goods Vehicle)",
                 0.254054m,

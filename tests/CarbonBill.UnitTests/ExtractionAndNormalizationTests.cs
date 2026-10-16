@@ -109,4 +109,40 @@ public class ExtractionAndNormalizationTests
         Assert.False(isAcceptable);
         Assert.True(score < 0.60);
     }
+
+    [Fact]
+    public void FallbackRuleBasedExtraction_ComputesCalibratedConfidenceScores_NotFixed95Percent()
+    {
+        // Text with clear provider, amount and quantity
+        var text = "BPDB Electricity Bill 2026-08 Bill No: 172938491 Amount: 54000 BDT Consumed Unit: 4500 kWh";
+        var result = CarbonBill.Modules.Extraction.Services.Groq.GroqLlmExtractor.FallbackRuleBasedExtraction(text, "bpdb.pdf");
+
+        Assert.True(result.Success);
+        Assert.NotNull(result.OverallConfidence);
+        // Should not be hardcoded 0.95
+        Assert.NotEqual(0.95f, result.OverallConfidence.Value);
+        Assert.True(result.OverallConfidence.Value >= 0.70f && result.OverallConfidence.Value <= 0.95f);
+
+        // Core fields should have individual calibrated scores
+        var vendorField = result.Fields.FirstOrDefault(f => f.FieldName == "Vendor");
+        Assert.NotNull(vendorField);
+        Assert.Equal(0.88f, vendorField.Confidence);
+    }
+
+    [Fact]
+    public void FallbackRuleBasedExtraction_WhenQuantityIsDerived_LowersConfidence()
+    {
+        // Bill with amount but without explicit kWh or meter readings
+        var text = "BPDB Electricity Bill 2026-08 Bill No: 172938491 Amount: 5500.00 BDT";
+        var result = CarbonBill.Modules.Extraction.Services.Groq.GroqLlmExtractor.FallbackRuleBasedExtraction(text, "bpdb.pdf");
+
+        Assert.True(result.Success);
+        Assert.NotNull(result.OverallConfidence);
+        var qtyField = result.Fields.FirstOrDefault(f => f.FieldName == "Quantity");
+        Assert.NotNull(qtyField);
+        // Derived quantity must have lower confidence score (0.62) indicating it was estimated from tariffs
+        Assert.Equal(0.62f, qtyField.Confidence);
+        Assert.True(result.OverallConfidence!.Value < 0.85f);
+    }
 }
+

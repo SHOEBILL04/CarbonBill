@@ -38,9 +38,27 @@ public record LoginResponse(
     string FullName,
     Guid ActiveOrgId,
     string ActiveOrgName,
-    IReadOnlyList<UserMembershipDto> Memberships);
+    IReadOnlyList<UserMembershipDto> Memberships,
+    string Role = "Accountant");
 
-public record UserMembershipDto(Guid OrgId, string OrgName);
+public record UserMembershipDto(Guid OrgId, string OrgName, string Role = "Accountant");
+
+public record UserProfileDto(
+    Guid Id,
+    string FullName,
+    string Email,
+    string? PhoneNumber,
+    string Role,
+    bool IsActive,
+    DateTime CreatedAtUtc);
+
+public record UpdateProfileRequest(
+    Guid? UserId = null,
+    string? FullName = null,
+    string? PhoneNumber = null,
+    string? Role = null);
+
+public record UpdateRoleRequest(string Role);
 
 public record RefreshTokenRequest(string? RefreshToken = null);
 
@@ -259,7 +277,7 @@ public static class AuthEndpoints
 
             var membershipsDto = user.Memberships
                 .Where(m => m.IsActive)
-                .Select(m => new UserMembershipDto(m.OrgId, m.Organization?.Name ?? "Unknown"))
+                .Select(m => new UserMembershipDto(m.OrgId, m.Organization?.Name ?? "Unknown", m.Role ?? "Accountant"))
                 .ToList();
 
             var response = new LoginResponse(
@@ -271,7 +289,8 @@ public static class AuthEndpoints
                 FullName: user.FullName,
                 ActiveOrgId: activeMembership.OrgId,
                 ActiveOrgName: activeMembership.Organization?.Name ?? "",
-                Memberships: membershipsDto);
+                Memberships: membershipsDto,
+                Role: activeMembership.Role ?? user.Role ?? "Accountant");
 
             return Results.Ok(response);
         });
@@ -605,7 +624,10 @@ public static class AuthEndpoints
                 return Results.NotFound();
             }
 
-            var activeOrg = user.Memberships.FirstOrDefault(m => m.OrgId == tenantContext.CurrentOrgId)?.Organization;
+            var activeMembership = user.Memberships.FirstOrDefault(m => m.OrgId == tenantContext.CurrentOrgId)
+                ?? user.Memberships.FirstOrDefault();
+            var activeOrg = activeMembership?.Organization;
+            var currentRole = activeMembership?.Role ?? user.Role ?? "Accountant";
 
             return Results.Ok(new
             {
@@ -614,11 +636,13 @@ public static class AuthEndpoints
                 user.FullName,
                 user.PhoneNumber,
                 user.PreferredLanguage,
-                CurrentOrgId = tenantContext.CurrentOrgId,
+                Role = currentRole,
+                CurrentOrgId = activeMembership?.OrgId ?? tenantContext.CurrentOrgId,
                 CurrentOrgName = activeOrg?.Name ?? "",
                 Memberships = user.Memberships.Where(m => m.IsActive).Select(m => new UserMembershipDto(
                     m.OrgId,
-                    m.Organization?.Name ?? "Unknown"))
+                    m.Organization?.Name ?? "Unknown",
+                    m.Role ?? "Accountant"))
             });
         });
 
@@ -676,7 +700,7 @@ public static class AuthEndpoints
 
             var membershipsDto = user.Memberships
                 .Where(m => m.IsActive)
-                .Select(m => new UserMembershipDto(m.OrgId, m.Organization?.Name ?? "Unknown"))
+                .Select(m => new UserMembershipDto(m.OrgId, m.Organization?.Name ?? "Unknown", m.Role ?? "Accountant"))
                 .ToList();
 
             var response = new LoginResponse(
@@ -688,10 +712,128 @@ public static class AuthEndpoints
                 FullName: user.FullName,
                 ActiveOrgId: targetMembership.OrgId,
                 ActiveOrgName: targetMembership.Organization?.Name ?? "",
-                Memberships: membershipsDto);
+                Memberships: membershipsDto,
+                Role: targetMembership.Role ?? user.Role ?? "Accountant");
 
             return Results.Ok(response);
         });
+
+        // 12. GET /api/v1/auth/users: Get team members and their roles
+        group.MapGet("/users", async (
+            ITenantContext tenantContext,
+            IdentityTenancyDbContext dbContext,
+            CancellationToken ct) =>
+        {
+            var orgId = tenantContext.CurrentOrgId ?? Guid.Parse("CE11F571-B9CD-4FE1-BE12-BDA6E944F4DC");
+            var members = await dbContext.Memberships
+                .IgnoreQueryFilters()
+                .Include(m => m.User)
+                .Where(m => m.OrgId == orgId && m.IsActive)
+                .Select(m => new UserProfileDto(
+                    m.UserId,
+                    m.User.FullName,
+                    m.User.Email,
+                    m.User.PhoneNumber,
+                    m.Role ?? m.User.Role ?? "Accountant",
+                    m.IsActive,
+                    m.CreatedAtUtc))
+                .ToListAsync(ct);
+
+            return Results.Ok(members);
+        }).AllowAnonymous();
+
+        // 13. PUT /api/v1/auth/profile: Update own user profile and role
+        group.MapPut("/profile", async (
+            [FromBody] UpdateProfileRequest request,
+            ITenantContext tenantContext,
+            IdentityTenancyDbContext dbContext,
+            CancellationToken ct) =>
+        {
+            var userId = tenantContext.CurrentUserId ?? request.UserId;
+            if (!userId.HasValue || userId.Value == Guid.Empty)
+            {
+                var fallbackUser = await dbContext.Users.FirstOrDefaultAsync(u => u.Email == "accountant@apex.local", ct);
+                userId = fallbackUser?.Id;
+            }
+
+            if (!userId.HasValue)
+            {
+                return Results.NotFound(new { message = "User not found." });
+            }
+
+            var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId.Value, ct);
+            if (user == null)
+            {
+                return Results.NotFound(new { message = "User not found." });
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.FullName)) user.FullName = request.FullName;
+            if (request.PhoneNumber != null) user.PhoneNumber = request.PhoneNumber;
+            if (!string.IsNullOrWhiteSpace(request.Role))
+            {
+                user.Role = request.Role;
+                var orgId = tenantContext.CurrentOrgId ?? Guid.Parse("CE11F571-B9CD-4FE1-BE12-BDA6E944F4DC");
+                var membership = await dbContext.Memberships
+                    .IgnoreQueryFilters()
+                    .FirstOrDefaultAsync(m => m.UserId == user.Id && m.OrgId == orgId, ct);
+                if (membership != null)
+                {
+                    membership.Role = request.Role;
+                }
+            }
+
+            await dbContext.SaveChangesAsync(ct);
+            return Results.Ok(new
+            {
+                success = true,
+                userId = user.Id,
+                fullName = user.FullName,
+                email = user.Email,
+                phoneNumber = user.PhoneNumber,
+                role = user.Role
+            });
+        }).AllowAnonymous();
+
+        // 14. PUT /api/v1/auth/users/{userId:guid}/role: Update any team member's role
+        group.MapPut("/users/{userId:guid}/role", async (
+            Guid userId,
+            [FromBody] UpdateRoleRequest request,
+            ITenantContext tenantContext,
+            IdentityTenancyDbContext dbContext,
+            CancellationToken ct) =>
+        {
+            if (string.IsNullOrWhiteSpace(request.Role))
+            {
+                return Results.BadRequest(new { message = "Role is required." });
+            }
+
+            var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId, ct);
+            if (user == null)
+            {
+                return Results.NotFound(new { message = "User not found." });
+            }
+
+            user.Role = request.Role;
+
+            var orgId = tenantContext.CurrentOrgId ?? Guid.Parse("CE11F571-B9CD-4FE1-BE12-BDA6E944F4DC");
+            var membership = await dbContext.Memberships
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(m => m.UserId == userId && m.OrgId == orgId, ct);
+            if (membership != null)
+            {
+                membership.Role = request.Role;
+            }
+
+            await dbContext.SaveChangesAsync(ct);
+            return Results.Ok(new
+            {
+                success = true,
+                userId,
+                fullName = user.FullName,
+                email = user.Email,
+                role = request.Role
+            });
+        }).AllowAnonymous();
 
         return endpoints;
     }

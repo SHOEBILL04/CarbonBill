@@ -367,18 +367,18 @@ public static class DataSeeder
             await identityDb.SaveChangesAsync();
         }
 
-        // Factory Team Users (All have identical full access to Apex Org)
+        // Factory Team Users with roles
         var demoUsers = new[]
         {
-            ("owner@apex.local", "Kabir Ahmed", "01711111111"),
-            ("accountant@apex.local", "Rahim Mia", "01722222222"),
-            ("compliance@apex.local", "Nusrat Jahan", "01733333333"),
-            ("floor@apex.local", "Jahid Hasan", "01744444444"),
-            ("admin@carbonbill.local", "Platform Administrator", "01700000000")
+            ("owner@apex.local", "Kabir Ahmed", "01711111111", "Owner"),
+            ("accountant@apex.local", "Rahim Mia", "01722222222", "Accountant"),
+            ("compliance@apex.local", "Nusrat Jahan", "01733333333", "Compliance"),
+            ("floor@apex.local", "Jahid Hasan", "01744444444", "FloorStaff"),
+            ("admin@carbonbill.local", "Platform Administrator", "01700000000", "PlatformAdmin")
         };
 
         var seededUsers = new List<User>();
-        foreach (var (email, fullName, phone) in demoUsers)
+        foreach (var (email, fullName, phone, role) in demoUsers)
         {
             var user = await identityDb.Users.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Email == email);
             if (user == null)
@@ -388,6 +388,7 @@ public static class DataSeeder
                     Email = email,
                     FullName = fullName,
                     PhoneNumber = phone,
+                    Role = role,
                     PasswordHash = passwordHasher.HashPassword("Pass1234!"),
                     PreferredLanguage = "en",
                     IsActive = true
@@ -409,20 +410,30 @@ public static class DataSeeder
                 {
                     user.PreferredLanguage = "en";
                 }
+                if (string.IsNullOrWhiteSpace(user.Role))
+                {
+                    user.Role = role;
+                }
                 await identityDb.SaveChangesAsync();
             }
             seededUsers.Add(user);
 
-            var hasMembership = await identityDb.Memberships.IgnoreQueryFilters()
-                .AnyAsync(m => m.UserId == user.Id && m.OrgId == apexOrg.Id);
-            if (!hasMembership)
+            var membership = await identityDb.Memberships.IgnoreQueryFilters()
+                .FirstOrDefaultAsync(m => m.UserId == user.Id && m.OrgId == apexOrg.Id);
+            if (membership == null)
             {
                 identityDb.Memberships.Add(new Membership
                 {
                     UserId = user.Id,
                     OrgId = apexOrg.Id,
+                    Role = role,
                     IsActive = true
                 });
+                await identityDb.SaveChangesAsync();
+            }
+            else if (string.IsNullOrWhiteSpace(membership.Role))
+            {
+                membership.Role = role;
                 await identityDb.SaveChangesAsync();
             }
         }

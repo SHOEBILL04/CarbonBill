@@ -41,6 +41,7 @@ public class IdentityTenancyDbContext(
             entity.Property(e => e.FullName).IsRequired().HasMaxLength(200);
             entity.Property(e => e.PasswordHash).IsRequired();
             entity.Property(e => e.PreferredLanguage).IsRequired().HasMaxLength(10);
+            entity.Property(e => e.Role).HasMaxLength(50).HasDefaultValue("Accountant");
             entity.Property(e => e.PasswordResetTokenHash).HasMaxLength(256);
             entity.HasIndex(e => e.Email).IsUnique();
         });
@@ -50,6 +51,7 @@ public class IdentityTenancyDbContext(
         {
             entity.ToTable("Memberships");
             entity.HasKey(e => e.Id);
+            entity.Property(e => e.Role).HasMaxLength(50).HasDefaultValue("Accountant");
             entity.HasIndex(e => new { e.UserId, e.OrgId }).IsUnique();
 
             entity.HasOne(e => e.User)

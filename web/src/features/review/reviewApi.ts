@@ -94,6 +94,19 @@ export async function bulkConfirmDocuments(
   }
 }
 
+export async function requestRetake(
+  documentId: string,
+  reason?: string
+): Promise<boolean> {
+  try {
+    await apiClient.post(`/api/v1/documents/${documentId}/retake`, { reason });
+    return true;
+  } catch (err) {
+    console.error('Request retake failed:', err);
+    return false;
+  }
+}
+
 export async function fetchReviewSettings(): Promise<OrgReviewSettings> {
   try {
     return await apiClient.get<OrgReviewSettings>('/api/v1/review/settings');

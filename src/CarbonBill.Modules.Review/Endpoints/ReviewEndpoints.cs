@@ -116,6 +116,28 @@ public static class ReviewEndpoints
             return Results.Ok(res.Value);
         });
 
+        // POST /api/v1/documents/{id:guid}/retake
+        group.MapPost("/documents/{id:guid}/retake", async (
+            Guid id,
+            [FromBody] RetakeRequestDto? request,
+            IReviewService reviewService,
+            ITenantContext tenantContext,
+            CancellationToken ct) =>
+        {
+            var userId = tenantContext.CurrentUserId ?? Guid.Empty;
+            var reason = request?.Reason ?? "Blurry or unreadable document";
+            var result = await reviewService.RequestRetakeAsync(id, reason, userId, ct);
+            if (!result.IsSuccess)
+            {
+                return Results.Problem(
+                    detail: result.Error,
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "Retake Request Failed");
+            }
+
+            return Results.Ok(new { success = true, documentId = id, status = "ReuploadRequested" });
+        }).AllowAnonymous();
+
         return endpoints;
     }
 }
@@ -124,3 +146,5 @@ public record ReviewSettingsUpdateDto(
     bool? AutoConfirmEnabled = null,
     float? AutoConfirmThreshold = null,
     float? SamplingRate = null);
+
+public record RetakeRequestDto(string? Reason = null);

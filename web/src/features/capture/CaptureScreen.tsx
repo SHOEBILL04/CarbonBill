@@ -22,6 +22,7 @@ import {
   X,
   RotateCcw,
   Trash2,
+  AlertTriangle,
 } from 'lucide-react';
 import {
   enqueueCapture,
@@ -234,6 +235,8 @@ export function CaptureScreen({
             mappedStatus = 'calculated';
           } else if (doc.status === 'NeedsReview' || doc.status === 'Uploaded' || doc.status === 'Extracting') {
             mappedStatus = 'needs_review';
+          } else if (doc.status === 'ReuploadRequested') {
+            mappedStatus = 'needs_retake';
           } else if (doc.status === 'Duplicate') {
             mappedStatus = 'duplicate';
           } else if (doc.status === 'Failed') {
@@ -1146,6 +1149,25 @@ export function CaptureScreen({
                                 <ExternalLink size={11} /> {isBangla ? 'যাচাই' : 'Verify'}
                               </a>
                             </>
+                          )}
+                          {sub.status === 'needs_retake' && (
+                            <div className="flex items-center gap-1.5">
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                                <AlertTriangle size={12} className="text-amber-700" />
+                                {isBangla ? 'ছবি পুনরায় তুলুন' : 'Retake Requested'}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (sub.category) setSelectedCategory(sub.category);
+                                  startCamera();
+                                }}
+                                className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-600 hover:bg-amber-700 text-white flex items-center gap-1 shadow-2xs transition active:scale-95 cursor-pointer"
+                                title={isBangla ? 'ক্যামেরা দিয়ে নতুন ছবি তুলুন' : 'Take replacement photo'}
+                              >
+                                <Camera size={11} /> {isBangla ? 'ছবি তুলুন' : 'Retake'}
+                              </button>
+                            </div>
                           )}
                           {sub.status === 'duplicate' && (
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-purple-100 text-purple-800 border border-purple-200">
