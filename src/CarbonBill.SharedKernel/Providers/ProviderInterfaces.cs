@@ -15,7 +15,8 @@ public record OcrExtractionResult(
     string? DetectedDocumentType,
     IReadOnlyList<ExtractedFieldResult> Fields,
     string? ErrorMessage,
-    int TierUsed);
+    int TierUsed,
+    float? OverallConfidence = null);
 
 public interface IOcrProvider
 {

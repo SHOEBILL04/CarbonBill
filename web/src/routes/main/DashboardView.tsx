@@ -19,6 +19,7 @@ import { toBanglaDigits } from '../../shared';
 import { RecommendationsView } from '../../features/recommendations';
 import { ReportsView } from '../../features/reports';
 import { AuditorView } from '../../features/auditor';
+import { UserProfileModal } from '../../features/profile';
 
 export type MainTab = 'dashboard' | 'flags' | 'recommendations' | 'reports' | 'auditor';
 
@@ -35,6 +36,8 @@ export default function DashboardView({ user, onGoToFloor, onGoToReview, onLogou
 
   const [activeTab, setActiveTab] = useState<MainTab>('dashboard');
   const [openFlagsCount, setOpenFlagsCount] = useState<number | null>(null);
+  const [currentUser, setCurrentUser] = useState<AuthUser>(user);
+  const [isProfileOpen, setIsProfileOpen] = useState<boolean>(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -138,18 +141,34 @@ export default function DashboardView({ user, onGoToFloor, onGoToReview, onLogou
 
             {/* User Profile & Logout */}
             <div className="flex items-center gap-2 border-l pl-3">
-              <div className="text-right">
-                <p className="text-xs font-bold text-slate-800">{user.fullName}</p>
-                <span className="text-[10px] text-teal-700 font-semibold px-1.5 py-0.5 bg-teal-50 rounded">
-                  {user.activeOrgName || 'Apex Textiles'}
-                </span>
-              </div>
+              <button
+                type="button"
+                onClick={() => setIsProfileOpen(true)}
+                className="text-right hover:opacity-90 transition cursor-pointer flex items-center gap-2.5 group p-1 -m-1 rounded-xl hover:bg-slate-50"
+                title={isBangla ? 'প্রোফাইল ও টিম রোল ম্যানেজমেন্ট' : 'Profile & Team Role Management'}
+              >
+                <div className="w-8 h-8 rounded-full bg-teal-800 text-white flex items-center justify-center font-bold text-xs ring-2 ring-teal-600/30 group-hover:ring-teal-700 transition shadow-2xs">
+                  {currentUser.fullName ? currentUser.fullName.slice(0, 2).toUpperCase() : 'CB'}
+                </div>
+                <div className="text-right">
+                  <p className="text-xs font-bold text-slate-800 group-hover:text-teal-900 transition flex items-center justify-end gap-1.5">
+                    <span>{currentUser.fullName}</span>
+                    <span className="text-[10px] text-teal-800 font-bold px-1.5 py-0.2 bg-teal-50 border border-teal-200 rounded-md">
+                      {currentUser.role || 'Accountant'}
+                    </span>
+                  </p>
+                  <span className="text-[10px] text-slate-500 font-medium block">
+                    {currentUser.activeOrgName || 'Apex Textiles'}
+                  </span>
+                </div>
+              </button>
+
               <button
                 onClick={() => {
                   clearSession();
                   onLogout();
                 }}
-                className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg transition"
+                className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg transition cursor-pointer ml-1"
                 title={t('nav.logout')}
               >
                 <LogOut size={18} />
@@ -252,6 +271,16 @@ export default function DashboardView({ user, onGoToFloor, onGoToReview, onLogou
 
         {activeTab === 'auditor' && <AuditorView />}
       </main>
+
+      {/* User Profile & Team Roles Modal */}
+      <UserProfileModal
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+        currentUser={currentUser}
+        onUserUpdated={(updated) => {
+          setCurrentUser(updated);
+        }}
+      />
     </div>
   );
 }

@@ -117,9 +117,11 @@ public static class DocumentsEndpoints
         })
         .AllowAnonymous();
 
-        // GET /api/v1/documents/{id:guid}/file (Serve Document Image / PDF)
+        // GET /api/v1/documents/{id:guid}/file (Serve Document Image / PDF inline for preview)
         group.MapGet("/{id:guid}/file", async (
             Guid id,
+            [FromQuery] bool? download,
+            HttpContext httpContext,
             IDocumentService documentService,
             CancellationToken ct) =>
         {
@@ -130,7 +132,13 @@ public static class DocumentsEndpoints
             }
 
             var (fileStream, contentType, fileName) = result.Value;
-            return Results.File(fileStream, contentType, fileName, enableRangeProcessing: true);
+            if (download == true)
+            {
+                return Results.File(fileStream, contentType, fileName, enableRangeProcessing: true);
+            }
+
+            httpContext.Response.Headers.ContentDisposition = $"inline; filename=\"{fileName}\"";
+            return Results.File(fileStream, contentType, enableRangeProcessing: true);
         })
         .AllowAnonymous();
 

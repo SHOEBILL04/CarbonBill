@@ -4,6 +4,7 @@ import {
   fetchReviewQueue,
   confirmDocument,
   bulkConfirmDocuments,
+  requestRetake,
   fetchReviewSettings,
   ReviewQueueItem,
   ReviewField,
@@ -103,15 +104,19 @@ export function ReviewWorkspace({ onBack }: ReviewWorkspaceProps) {
   const handleRejectRetake = useCallback(
     async (reason: string) => {
       if (!currentDoc) return;
+      const currId = currentDoc.documentId;
+      await requestRetake(currId, reason);
+      setQueue((prev) => prev.filter((d) => d.documentId !== currId));
+      setSelectedDocId(null);
+      setActiveField(null);
       setBannerMessage(
         isBangla
           ? `ফ্লোরে ছবি পুনরায় তোলার অনুরোধ পাঠানো হয়েছে (${reason})`
           : `Retake requested from floor (${reason})`
       );
       setTimeout(() => setBannerMessage(null), 3000);
-      handleNextDocument();
     },
-    [currentDoc, handleNextDocument, isBangla]
+    [currentDoc, isBangla]
   );
 
   const handleBulkConfirm = useCallback(async () => {

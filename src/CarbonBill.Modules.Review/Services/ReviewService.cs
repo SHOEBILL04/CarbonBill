@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.Json;
 using CarbonBill.Modules.Audit.Services;
 using CarbonBill.Modules.Documents.Domain;
 using CarbonBill.Modules.Documents.Persistence;
@@ -44,6 +45,12 @@ public interface IReviewService
         bool? autoConfirmEnabled = null,
         float? threshold = null,
         float? samplingRate = null,
+        CancellationToken ct = default);
+
+    Task<Result<bool>> RequestRetakeAsync(
+        Guid documentId,
+        string reason,
+        Guid reviewerUserId,
         CancellationToken ct = default);
 }
 
@@ -467,5 +474,67 @@ public class ReviewService(
 
         await reviewDb.SaveChangesAsync(ct);
         return Result.Success(setting);
+    }
+
+    public async Task<Result<bool>> RequestRetakeAsync(
+        Guid documentId,
+        string reason,
+        Guid reviewerUserId,
+        CancellationToken ct = default)
+    {
+        var orgId = await GetEffectiveOrgIdAsync(ct);
+        if (reviewerUserId == Guid.Empty) reviewerUserId = Guid.Parse("22222222-2222-2222-2222-222222222222");
+
+        var doc = await documentsDb.Documents
+            .FirstOrDefaultAsync(d => (d.OrgId == orgId || !tenantContext.CurrentOrgId.HasValue) && d.Id == documentId, ct);
+
+        if (doc == null)
+        {
+            return Result.Failure<bool>("Document not found.");
+        }
+
+        doc.Status = DocumentStatuses.ReuploadRequested;
+        doc.FailureReason = reason;
+
+        var decision = new ReviewDecision
+        {
+            Id = Guid.NewGuid(),
+            OrgId = doc.OrgId,
+            DocumentId = doc.Id,
+            ReviewerUserId = reviewerUserId,
+            Mode = ReviewModes.Manual,
+            Decision = ReviewDecisions.Rejected,
+            Notes = reason,
+            DecidedAtUtc = DateTime.UtcNow
+        };
+        reviewDb.Decisions.Add(decision);
+
+        await documentsDb.SaveChangesAsync(ct);
+        await reviewDb.SaveChangesAsync(ct);
+
+        await auditLogService.LogAsync(new AuditLogEntry(
+            OrgId: doc.OrgId,
+            Action: "RetakeRequested",
+            EntityType: "Document",
+            EntityId: doc.Id.ToString(),
+            UserId: reviewerUserId,
+            Details: new { Reason = reason }), ct);
+
+        if (eventPublisher != null)
+        {
+            await eventPublisher.PublishAsync(new DocumentRetakeRequestedEvent(
+                doc.Id,
+                doc.OrgId,
+                doc.UploadedByUserId,
+                doc.FileName,
+                reason,
+                DateTime.UtcNow
+            ), ct);
+        }
+
+        logger.LogInformation("Document {DocId} marked as ReuploadRequested by Reviewer {ReviewerId}. Reason: {Reason}",
+            documentId, reviewerUserId, reason);
+
+        return Result.Success(true);
     }
 }

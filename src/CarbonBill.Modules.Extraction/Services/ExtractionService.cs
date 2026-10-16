@@ -102,6 +102,13 @@ public class ExtractionService(
 
         // 4. Save ExtractionRun and ExtractedFields
         var extractionRunId = Guid.NewGuid();
+
+        // Calculate actual overall confidence from AI extraction result or core fields
+        var coreFields = groqResult.Fields.Where(f => f.FieldName != "ExtractedText").ToList();
+        var overallConfidence = groqResult.OverallConfidence.HasValue && groqResult.OverallConfidence.Value > 0
+            ? (float)Math.Round(Math.Clamp(groqResult.OverallConfidence.Value, 0.05f, 1.0f), 2)
+            : (coreFields.Count > 0 ? (float)Math.Round(coreFields.Average(f => f.Confidence), 2) : 0.75f);
+
         var extractionRun = new ExtractionRun
         {
             Id = extractionRunId,
@@ -109,7 +116,7 @@ public class ExtractionService(
             DocumentId = documentId,
             TierUsed = groqResult.TierUsed,
             Status = "Completed",
-            OverallConfidence = 0.95f,
+            OverallConfidence = overallConfidence,
             ProcessedAtUtc = DateTime.UtcNow,
             RawOutputJson = JsonSerializer.Serialize(new
             {
