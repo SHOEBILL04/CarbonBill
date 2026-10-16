@@ -1,10 +1,19 @@
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
 
-export type CaptureQueueStatus = 'queued' | 'uploading' | 'received' | 'needs_retake' | 'failed';
+export type CaptureQueueStatus =
+  | 'queued'
+  | 'uploading'
+  | 'received'
+  | 'needs_retake'
+  | 'failed'
+  | 'needs_review'
+  | 'calculated'
+  | 'confirmed'
+  | 'duplicate';
 
 export interface CaptureQueueItem {
   id: string; // Client GUID idempotency key
-  category: 'diesel' | 'gas' | 'electricity' | 'shipment';
+  category: 'diesel' | 'gas' | 'electricity' | 'shipment' | 'other';
   blob?: Blob;
   fileName?: string;
   fileSizeBytes?: number;
@@ -192,6 +201,8 @@ function mapCategoryToDocType(category: string): string {
       return 'ElectricityBill';
     case 'shipment':
       return 'ShippingChallan';
+    case 'other':
+      return 'GeneralDocument';
     default:
       return 'GeneralDocument';
   }
@@ -218,6 +229,15 @@ export async function retryCaptureItem(id: string): Promise<void> {
   item.error = undefined;
   await db.put('captureQueue', item);
   await processQueueUploads();
+}
+
+export async function deleteCaptureItem(id: string): Promise<void> {
+  try {
+    const db = await getDb();
+    await db.delete('captureQueue', id);
+  } catch (err) {
+    console.warn('Could not delete capture item from local IndexedDB:', err);
+  }
 }
 
 // Auto-register window online listener

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RoleType, DashboardSummary, TrendDataPoint, IntensityData, ClientOrgSummary } from './types';
 import {
@@ -11,6 +11,8 @@ import { RoleDashboard } from './components/RoleDashboard';
 import { TrendChart } from './components/TrendChart';
 import { ScopeBreakdownChart } from './components/ScopeBreakdownChart';
 import { IntensityChart } from './components/IntensityChart';
+import { DashboardReceiptUploader } from './components/DashboardReceiptUploader';
+import { RecentReceiptsImpact } from './components/RecentReceiptsImpact';
 import { AuthUser } from '../../lib/apiClient';
 import {
   Leaf,
@@ -28,7 +30,7 @@ interface DashboardFeatureProps {
   user: AuthUser;
   onNavigateTab: (tab: 'dashboard' | 'flags' | 'recommendations' | 'reports' | 'auditor') => void;
   onGoToFloor?: () => void;
-  onGoToReview?: () => void;
+  onGoToReview?: (docId?: string) => void;
 }
 
 export const DashboardFeature: React.FC<DashboardFeatureProps> = ({
@@ -40,7 +42,7 @@ export const DashboardFeature: React.FC<DashboardFeatureProps> = ({
   const { i18n } = useTranslation();
   const isBangla = i18n.language === 'bn';
 
-  const [selectedPeriod, setSelectedPeriod] = useState<string>('2026-09');
+  const [selectedPeriod, setSelectedPeriod] = useState<string>('all');
 
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [trend, setTrend] = useState<TrendDataPoint[]>([]);
@@ -48,32 +50,36 @@ export const DashboardFeature: React.FC<DashboardFeatureProps> = ({
   const [clientOrgs, setClientOrgs] = useState<ClientOrgSummary[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
-  useEffect(() => {
-    let isMounted = true;
-    async function load() {
-      setLoading(true);
-      try {
-        const [sumRes, trendRes, intRes, clientRes] = await Promise.all([
-          fetchDashboardSummary(selectedPeriod),
-          fetchDashboardTrend('2026-04', '2026-09'),
-          fetchIntensityData(selectedPeriod),
-          fetchConsultantClients(),
-        ]);
-        if (isMounted) {
-          setSummary(sumRes);
-          setTrend(trendRes);
-          setIntensity(intRes);
-          setClientOrgs(clientRes);
-        }
-      } finally {
-        if (isMounted) setLoading(false);
-      }
+  // Extract all unique periods from user's uploaded receipts
+  const receiptPeriods = React.useMemo(() => {
+    if (!summary?.recentReceipts) return [];
+    const set = new Set<string>();
+    for (const r of summary.recentReceipts) {
+      if (r.period) set.add(r.period);
     }
-    load();
-    return () => {
-      isMounted = false;
-    };
+    return Array.from(set).sort().reverse();
+  }, [summary?.recentReceipts]);
+
+  const loadData = useCallback(async () => {
+    try {
+      const [sumRes, trendRes, intRes, clientRes] = await Promise.all([
+        fetchDashboardSummary(selectedPeriod),
+        fetchDashboardTrend(selectedPeriod),
+        fetchIntensityData(selectedPeriod === 'all' ? (receiptPeriods[0] || '2026-03') : selectedPeriod),
+        fetchConsultantClients(),
+      ]);
+      setSummary(sumRes);
+      setTrend(trendRes);
+      setIntensity(intRes);
+      setClientOrgs(clientRes);
+    } finally {
+      setLoading(false);
+    }
   }, [selectedPeriod]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   if (loading || !summary || !intensity) {
     return (
@@ -106,12 +112,27 @@ export const DashboardFeature: React.FC<DashboardFeatureProps> = ({
             onChange={(e) => setSelectedPeriod(e.target.value)}
             className="text-xs font-bold px-2.5 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-slate-800"
           >
+            <option value="all">
+              {isBangla ? 'সার্বিক হিসাব (সবগুলো রসিদ সহ)' : 'All Time (Cumulative Footprint)'}
+            </option>
+            {receiptPeriods.map((p) => (
+              <option key={p} value={p}>
+                {p} ({isBangla ? 'রসিদের সময়কাল' : 'Receipt Evidence Period'})
+              </option>
+            ))}
             <option value="2026-09">{isBangla ? 'সেপ্টেম্বর ২০২৬' : 'September 2026'}</option>
             <option value="2026-08">{isBangla ? 'আগস্ট ২০২৬' : 'August 2026'}</option>
             <option value="2026-07">{isBangla ? 'জুলাই ২০২৬' : 'July 2026'}</option>
           </select>
         </div>
       </div>
+
+      {/* Live Receipt Ingestion Dropzone */}
+      <DashboardReceiptUploader
+        isBangla={isBangla}
+        onReceiptUploaded={loadData}
+        onGoToReview={onGoToReview}
+      />
 
       {/* Unified Executive Overview */}
       <RoleDashboard
@@ -122,6 +143,16 @@ export const DashboardFeature: React.FC<DashboardFeatureProps> = ({
         onNavigateTab={onNavigateTab}
         onGoToReview={onGoToReview}
       />
+
+      {/* Evidence Receipts & Inventory Impact */}
+      {summary.recentReceipts && summary.recentReceipts.length > 0 && (
+        <RecentReceiptsImpact
+          receipts={summary.recentReceipts}
+          isBangla={isBangla}
+          onReceiptUpdated={loadData}
+          onGoToReview={onGoToReview}
+        />
+      )}
 
       {/* Analytical Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

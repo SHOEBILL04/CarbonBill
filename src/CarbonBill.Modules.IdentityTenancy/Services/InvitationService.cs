@@ -92,7 +92,7 @@ public class InvitationService(
                 FullName = request.FullName,
                 PhoneNumber = request.PhoneNumber,
                 PasswordHash = passwordHasher.HashPassword(request.Password),
-                PreferredLanguage = "bn"
+                PreferredLanguage = "en"
             };
             dbContext.Users.Add(user);
             await dbContext.SaveChangesAsync(cancellationToken);

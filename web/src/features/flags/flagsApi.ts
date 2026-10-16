@@ -1,4 +1,4 @@
-import { Flag, FlagState } from './types';
+import { Flag, FlagState, FlagSeverity } from './types';
 import { apiFetch } from '../../lib/apiClient';
 
 export const mockFlagsList: Flag[] = [
@@ -104,13 +104,133 @@ export const mockFlagsList: Flag[] = [
   },
 ];
 
+const ruleTitleDictionary: Record<string, { bn: string; en: string }> = {
+  MISSING_DOCUMENT: {
+    bn: 'অনুপস্থিত চালান বা বিল',
+    en: 'Missing Bill or Meter Slip',
+  },
+  LOW_OCR_CONFIDENCE: {
+    bn: 'কম ওলসিআর কনফিডেন্স যাচাই',
+    en: 'Low OCR Confidence Verification',
+  },
+  DUPLICATE_SUSPECTED: {
+    bn: 'সম্ভাব্য ডুপ্লিকেট চালান সনাক্ত',
+    en: 'Duplicate Slip Suspected',
+  },
+  IMPLAUSIBLE_VALUE: {
+    bn: 'অস্বাভাবিক ডেটা মান (IQR সীমার বাইরে)',
+    en: 'Implausible Metric (Outside IQR Bounds)',
+  },
+  ESTIMATED_SHARE_HIGH: {
+    bn: 'উচ্চ অনুমাননির্ভর ডেটা (>১০%)',
+    en: 'High Estimated Footprint Share',
+  },
+  SPIKE_MOM: {
+    bn: 'মাসিক ব্যবহারে অস্বাভাবিক বৃদ্ধি (স্পাইক)',
+    en: 'Month-on-Month Consumption Surge',
+  },
+  HOTSPOT_DETECTED: {
+    bn: 'কার্বন হটস্পট সনাক্তকরণ',
+    en: 'Major Carbon Hotspot Detected',
+  },
+  GENSET_RELIANCE: {
+    bn: 'ডিজেল জেনারেটরের উপর অতিরিক্ত নির্ভরতা',
+    en: 'High Diesel Generator Reliance',
+  },
+  POWER_FACTOR_PENALTY: {
+    bn: 'পাওয়ার ফ্যাক্টর সারচার্জ জরিমানা সনাক্তকরণ',
+    en: 'Low Power Factor Surcharge Detected on Bill',
+  },
+  REPORT_NOT_READY: {
+    bn: 'রিপোর্ট অডিট-উপযোগী নয়',
+    en: 'Report Not Audit-Ready',
+  },
+  FACTOR_OUTDATED: {
+    bn: 'পুরোনো নির্গমন ফ্যাক্টর সেট',
+    en: 'Outdated Emission Factor Set',
+  },
+};
+
+export function mapBackendFlag(raw: any): Flag {
+  const titles = ruleTitleDictionary[raw.ruleCode] || {
+    bn: raw.explanationBn?.slice(0, 45) || 'কার্বন সতর্কতা',
+    en: raw.explanationEn?.slice(0, 45) || 'Carbon Flag',
+  };
+
+  const sevLower = String(raw.severity || '').toLowerCase();
+  let severity: FlagSeverity = 'Warning';
+  if (sevLower === 'red' || sevLower === 'critical') severity = 'Critical';
+  else if (sevLower === 'info') severity = 'Info';
+
+  let evidence: any = {};
+  if (raw.evidenceJson) {
+    try {
+      const parsed = typeof raw.evidenceJson === 'string' ? JSON.parse(raw.evidenceJson) : raw.evidenceJson;
+      if (parsed.missingDocuments && Array.isArray(parsed.missingDocuments) && parsed.missingDocuments.length > 0) {
+        evidence.assetName = parsed.missingDocuments[0]?.assetName || 'Utility Meter';
+        evidence.expectedValue = parsed.missingDocuments.length;
+        evidence.unit = 'Slips';
+      } else if (parsed.powerFactor !== undefined) {
+        evidence.measuredValue = parsed.powerFactor;
+        evidence.unit = 'Power Factor (PF)';
+        evidence.documentId = parsed.documentId;
+      } else if (parsed.penaltyAmount !== undefined) {
+        evidence.measuredValue = parsed.penaltyAmount;
+        evidence.unit = 'BDT Penalty';
+        evidence.documentId = parsed.documentId;
+      } else if (parsed.currentMonthValue !== undefined) {
+        evidence.measuredValue = Math.round(parsed.currentMonthValue);
+        evidence.expectedValue = Math.round(parsed.trailingMedian || 0);
+        evidence.unit = 'kg CO₂e';
+        evidence.ratio = parsed.ratio;
+      } else if (parsed.percentage !== undefined) {
+        evidence.measuredValue = parsed.percentage;
+        evidence.unit = '% share';
+      } else if (parsed.lowConfidenceDocuments && Array.isArray(parsed.lowConfidenceDocuments) && parsed.lowConfidenceDocuments.length > 0) {
+        evidence.documentId = parsed.lowConfidenceDocuments[0]?.documentId;
+        evidence.measuredValue = Math.round((parsed.lowConfidenceDocuments[0]?.minConfidence || 0.6) * 100);
+        evidence.unit = '% OCR Confidence';
+      } else {
+        evidence = parsed;
+      }
+    } catch {
+      evidence = {};
+    }
+  }
+
+  return {
+    id: raw.id,
+    ruleId: raw.ruleId || raw.id,
+    ruleCode: raw.ruleCode,
+    severity,
+    period: raw.period || '2026-09',
+    titleBn: raw.titleBn || titles.bn,
+    titleEn: raw.titleEn || titles.en,
+    explanationBn: raw.explanationBn || titles.bn,
+    explanationEn: raw.explanationEn || titles.en,
+    suggestedActionBn: raw.suggestedActionBn || '',
+    suggestedActionEn: raw.suggestedActionEn || '',
+    state: (raw.state || 'Open') as FlagState,
+    evidence,
+    dismissedReason: raw.dismissedReason,
+    expiresAt: raw.dismissedUntil,
+  };
+}
+
 let inMemoryFlags = [...mockFlagsList];
 
 export async function fetchFlags(state?: string, period?: string): Promise<Flag[]> {
   try {
-    const url = `/api/v1/flags${state ? `?state=${encodeURIComponent(state)}` : ''}`;
-    const data = await apiFetch<Flag[]>(url);
-    return data;
+    const params = new URLSearchParams();
+    if (state && state !== 'all') params.append('state', state);
+    if (period && period !== 'all') params.append('period', period);
+    const qs = params.toString();
+    const url = `/api/v1/flags${qs ? `?${qs}` : ''}`;
+    const rawList = await apiFetch<any[]>(url);
+    if (Array.isArray(rawList) && rawList.length > 0) {
+      return rawList.map(mapBackendFlag);
+    }
+    return inMemoryFlags;
   } catch {
     let filtered = [...inMemoryFlags];
     if (state && state !== 'all') {
@@ -123,6 +243,20 @@ export async function fetchFlags(state?: string, period?: string): Promise<Flag[
   }
 }
 
+export async function triggerFlagEvaluation(period: string = '2026-09'): Promise<void> {
+  try {
+    await fetch(`/api/v1/flags/evaluate?period=${encodeURIComponent(period)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('carbonbill:flags-updated'));
+    }
+  } catch {
+    // Ignore error
+  }
+}
+
 export async function acknowledgeFlag(id: string): Promise<boolean> {
   try {
     await apiFetch(`/api/v1/flags/${encodeURIComponent(id)}/acknowledge`, { method: 'POST' });
@@ -130,6 +264,9 @@ export async function acknowledgeFlag(id: string): Promise<boolean> {
     // fallback
   }
   inMemoryFlags = inMemoryFlags.map((f) => (f.id === id ? { ...f, state: 'Acknowledged' } : f));
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('carbonbill:flags-updated'));
+  }
   return true;
 }
 
@@ -157,6 +294,9 @@ export async function dismissFlag(id: string, reason: string): Promise<boolean> 
         }
       : f
   );
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('carbonbill:flags-updated'));
+  }
   return true;
 }
 
@@ -180,5 +320,8 @@ export async function snoozeFlag(id: string, days: number, reason: string): Prom
         }
       : f
   );
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('carbonbill:flags-updated'));
+  }
   return true;
 }

@@ -23,12 +23,13 @@ public class DualOcrEngine(ILogger<DualOcrEngine> logger) : IDualOcrEngine
         // Bengali utility keywords
         "টাকা", "বিল", "ইউনিট", "মিটার", "কিলোওয়াট", "লিটার", "গ্যাস", "ডিজেল",
         "চালান", "তারিখ", "মোট", "বকেয়া", "ভ্যাট", "হিসাব", "বিদ্যুৎ", "ডেসকো",
-        "ডিপিডিসি", "পিডিবি", "তিতাস", "কর্ণফুলী", "বাখরাবাদ", "পদ্মা", "মেঘনা", "যমুনা",
+        "ডিপিডিসি", "পিডিবি", "তিতাস", "কর্ণফুলী", "বাখরাবাদ", "জালালাবাদ", "পদ্মা", "মেঘনা", "যমুনা",
         // English utility keywords
         "bill", "unit", "kwh", "meter", "kw", "dpdc", "desco", "bpdb", "breb",
-        "nesco", "titas", "kgdcl", "diesel", "fuel", "petrol", "octane", "litre",
+        "nesco", "wzpdcl", "titas", "kgdcl", "diesel", "fuel", "petrol", "octane", "litre",
         "liter", "m3", "amount", "total", "vat", "challan", "invoice", "date",
-        "consumption", "reading", "bdt", "tk"
+        "consumption", "reading", "bdt", "tk", "board", "power", "development",
+        "consumer", "balance", "charge", "principal", "payable", "arrear", "adjustment"
     ];
 
     private static readonly char[] WordSeparators = [' ', '\t', '\r', '\n'];

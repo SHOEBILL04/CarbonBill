@@ -36,3 +36,37 @@ public class EmissionCalculatedEventHandler(
         await _flagEngine.EvaluateOrgPeriodAsync(domainEvent.OrgId, domainEvent.Period, domainEvent.SiteId, cancellationToken);
     }
 }
+
+public class DocumentUploadedFlagEventHandler(
+    IFlagEngine flagEngine,
+    ILogger<DocumentUploadedFlagEventHandler> logger) : IDomainEventHandler<DocumentUploadedEvent>
+{
+    private readonly IFlagEngine _flagEngine = flagEngine;
+    private readonly ILogger<DocumentUploadedFlagEventHandler> _logger = logger;
+
+    public async Task HandleAsync(DocumentUploadedEvent domainEvent, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("DocumentUploadedEvent received in Flags: DocId={DocId}, OrgId={OrgId}",
+            domainEvent.DocumentId, domainEvent.OrgId);
+
+        var period = domainEvent.BillingPeriod ?? DateTime.UtcNow.ToString("yyyy-MM", System.Globalization.CultureInfo.InvariantCulture);
+        await _flagEngine.EvaluateOrgPeriodAsync(domainEvent.OrgId, period, domainEvent.SiteId, cancellationToken);
+    }
+}
+
+public class DocumentExtractedFlagEventHandler(
+    IFlagEngine flagEngine,
+    ILogger<DocumentExtractedFlagEventHandler> logger) : IDomainEventHandler<DocumentExtractedEvent>
+{
+    private readonly IFlagEngine _flagEngine = flagEngine;
+    private readonly ILogger<DocumentExtractedFlagEventHandler> _logger = logger;
+
+    public async Task HandleAsync(DocumentExtractedEvent domainEvent, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("DocumentExtractedEvent received in Flags: DocId={DocId}, OrgId={OrgId}",
+            domainEvent.DocumentId, domainEvent.OrgId);
+
+        var period = DateTime.UtcNow.ToString("yyyy-MM", System.Globalization.CultureInfo.InvariantCulture);
+        await _flagEngine.EvaluateOrgPeriodAsync(domainEvent.OrgId, period, null, cancellationToken);
+    }
+}

@@ -11,7 +11,7 @@ import {
   Keyboard,
 } from 'lucide-react';
 import { ReviewField, ReviewQueueItem, ConfirmRequest } from './reviewApi';
-import { formatBdt, toBanglaDigits } from '../../shared/formatters';
+import { toBanglaDigits } from '../../shared/formatters';
 
 interface ReviewFieldsFormProps {
   document: ReviewQueueItem;
@@ -20,6 +20,7 @@ interface ReviewFieldsFormProps {
   onConfirm: (payload: ConfirmRequest) => Promise<void>;
   onRejectRetake: (reason: string) => Promise<void>;
   onNextDocument: () => void;
+  isBangla?: boolean;
 }
 
 export function ReviewFieldsForm({
@@ -29,6 +30,7 @@ export function ReviewFieldsForm({
   onConfirm,
   onRejectRetake,
   onNextDocument,
+  isBangla = false,
 }: ReviewFieldsFormProps) {
   const [corrections, setCorrections] = useState<Record<string, string>>({});
   const [isEstimated, setIsEstimated] = useState<boolean>(document.isEstimated);
@@ -164,7 +166,7 @@ export function ReviewFieldsForm({
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 text-xs font-black rounded-full bg-slate-100 text-slate-800 uppercase tracking-wider">
-              {document.docType || 'ডকুমেন্ট'}
+              {document.docType || (isBangla ? 'ডকুমেন্ট' : 'Document')}
             </span>
             <span
               className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-bold rounded-full ${
@@ -176,7 +178,7 @@ export function ReviewFieldsForm({
               }`}
             >
               <Sparkles size={12} />
-              আত্মবিশ্বাস: {toBanglaDigits(confidencePct)}%
+              {isBangla ? 'আত্মবিশ্বাস' : 'Confidence'}: {isBangla ? toBanglaDigits(confidencePct) : confidencePct}%
             </span>
           </div>
           <h2 className="text-base font-black text-slate-900 mt-1 truncate">
@@ -187,20 +189,20 @@ export function ReviewFieldsForm({
         {/* Keyboard Quick Guide */}
         <div className="hidden lg:flex items-center gap-1.5 text-[11px] text-slate-400 bg-slate-50 border border-slate-200 px-2 py-1 rounded-lg">
           <Keyboard size={13} />
-          <span>Enter = অনুমোদন | N = পরবর্তী</span>
+          <span>{isBangla ? 'Enter = অনুমোদন | N = পরবর্তী' : 'Enter = Confirm | N = Next'}</span>
         </div>
       </div>
 
       {/* Quick Summary Pill Banner for Consumption & Amount */}
       <div className="flex items-center justify-between bg-emerald-50/70 border border-emerald-200 rounded-xl px-3.5 py-2 mb-3.5">
         <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-950">
-          <span className="text-emerald-700">ব্যবহার:</span>
+          <span className="text-emerald-700">{isBangla ? 'ব্যবহার:' : 'Consumption:'}</span>
           <span className="font-mono font-black text-slate-900">
             {corrections['Quantity'] || '—'} {corrections['Unit'] || ''}
           </span>
         </div>
         <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-950">
-          <span className="text-emerald-700">মোট টাকা:</span>
+          <span className="text-emerald-700">{isBangla ? 'মোট টাকা:' : 'Total Amount:'}</span>
           <span className="font-mono font-black text-emerald-800 text-sm">
             ৳ {corrections['AmountBdt'] || '—'}
           </span>
@@ -228,7 +230,7 @@ export function ReviewFieldsForm({
             >
               <div className="flex items-center justify-between mb-1.5">
                 <span className="text-xs font-black text-slate-700 uppercase tracking-wider">
-                  {translateField(field.fieldName)}
+                  {translateField(field.fieldName, isBangla)}
                 </span>
 
                 <div className="flex items-center gap-1.5">
@@ -237,7 +239,7 @@ export function ReviewFieldsForm({
                       isLow ? 'bg-amber-200 text-amber-900' : 'bg-slate-100 text-slate-600'
                     }`}
                   >
-                    {toBanglaDigits(Math.round(field.confidence * 100))}%
+                    {isBangla ? toBanglaDigits(Math.round(field.confidence * 100)) : Math.round(field.confidence * 100)}%
                   </span>
                   {field.sourceTier === 3 && (
                     <span className="text-[10px] font-bold bg-purple-100 text-purple-800 px-1 rounded">
@@ -251,7 +253,7 @@ export function ReviewFieldsForm({
                 ref={isLow && idx === 0 ? firstLowConfidenceInputRef : null}
                 type="text"
                 value={val}
-                placeholder={getFieldPlaceholder(field.fieldName)}
+                placeholder={getFieldPlaceholder(field.fieldName, isBangla)}
                 onFocus={() => onSelectField(field as any)}
                 onChange={(e) => handleFieldChange(field.fieldName, e.target.value)}
                 className="w-full px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-semibold text-slate-900 focus:outline-hidden focus:border-emerald-600 bg-white"
@@ -259,7 +261,7 @@ export function ReviewFieldsForm({
 
               {field.rawValue && field.rawValue !== val && (
                 <p className="text-[10px] text-emerald-700 font-medium mt-1">
-                  মূল ও সি আর: <span className="font-mono">{field.rawValue}</span>
+                  {isBangla ? 'মূল ও সি আর:' : 'Raw OCR:'} <span className="font-mono">{field.rawValue}</span>
                 </p>
               )}
             </div>
@@ -275,7 +277,9 @@ export function ReviewFieldsForm({
               onChange={(e) => setIsEstimated(e.target.checked)}
               className="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4"
             />
-            অনুপস্থিত মাসের আনুমানিক হিসাব (Is Estimated Data)
+            {isBangla
+              ? 'অনুপস্থিত মাসের আনুমানিক হিসাব (Is Estimated Data)'
+              : 'Estimated Data / Proxy Calculation'}
           </label>
         </div>
       </div>
@@ -289,7 +293,9 @@ export function ReviewFieldsForm({
             className="flex-1 py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-black text-sm rounded-xl shadow-md transition flex items-center justify-center gap-2 disabled:opacity-50"
           >
             <ShieldCheck size={18} />
-            {isSubmitting ? 'অনুমোদন হচ্ছে...' : 'অনুমোদন করুন (Enter)'}
+            {isSubmitting
+              ? isBangla ? 'অনুমোদন হচ্ছে...' : 'Confirming...'
+              : isBangla ? 'অনুমোদন করুন (Enter)' : 'Confirm & Save (Enter)'}
           </button>
 
           <button
@@ -297,63 +303,115 @@ export function ReviewFieldsForm({
             onClick={onNextDocument}
             className="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm rounded-xl transition"
           >
-            পরবর্তী (N)
+            {isBangla ? 'পরবর্তী (N)' : 'Next (N)'}
           </button>
         </div>
 
         <button
           type="button"
-          onClick={() => onRejectRetake('ছবি অস্পষ্ট বা কাটা পড়েছে')}
+          onClick={() =>
+            onRejectRetake(
+              isBangla
+                ? 'ছবি অস্পষ্ট বা কাটা পড়েছে'
+                : 'Image is blurry or damaged; please retake'
+            )
+          }
           className="w-full py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs rounded-lg transition flex items-center justify-center gap-1.5"
         >
           <RotateCcw size={14} />
-          ফ্লোরে পুনরায় তোলার অনুরোধ পাঠান (Retake Request)
+          {isBangla
+            ? 'ফ্লোরে পুনরায় তোলার অনুরোধ পাঠান (Retake Request)'
+            : 'Request Photo Retake from Floor'}
         </button>
       </div>
     </form>
   );
 }
 
-function translateField(fieldName: string): string {
+function translateField(fieldName: string, isBangla: boolean): string {
+  if (isBangla) {
+    switch (fieldName) {
+      case 'Vendor':
+        return 'সরবরাহকারী প্রতিষ্ঠান (Vendor)';
+      case 'BillNumber':
+        return 'বিল / চালান নম্বর (Bill No)';
+      case 'BillingPeriod':
+        return 'বিলিং পিরিয়ড / মাস (Period)';
+      case 'Quantity':
+        return 'ব্যবহারের পরিমাণ (Quantity)';
+      case 'Unit':
+        return 'একক (Unit)';
+      case 'AmountBdt':
+        return 'মোট প্রদেয় টাকা (Amount BDT)';
+      case 'MeterNumber':
+        return 'মিটার নম্বর (Meter No)';
+      case 'PowerFactorPenalty':
+        return 'পাওয়ার ফ্যাক্টর জরিমানা (Penalty)';
+      default:
+        return fieldName;
+    }
+  }
+
   switch (fieldName) {
     case 'Vendor':
-      return 'সরবরাহকারী প্রতিষ্ঠান (Vendor)';
+      return 'Vendor / Utility Provider';
     case 'BillNumber':
-      return 'বিল / চালান নম্বর (Bill No)';
+      return 'Bill / Invoice Number';
     case 'BillingPeriod':
-      return 'বিলিং পিরিয়ড / মাস (Period)';
+      return 'Billing Period / Month';
     case 'Quantity':
-      return 'ব্যবহারের পরিমাণ (Quantity)';
+      return 'Consumption Quantity';
     case 'Unit':
-      return 'একক (Unit)';
+      return 'Unit of Measure';
     case 'AmountBdt':
-      return 'মোট প্রদেয় টাকা (Amount BDT)';
+      return 'Billed Amount (BDT)';
     case 'MeterNumber':
-      return 'মিটার নম্বর (Meter No)';
+      return 'Meter Serial Number';
     case 'PowerFactorPenalty':
-      return 'পাওয়ার ফ্যাক্টর জরিমানা (Penalty)';
+      return 'Power Factor Surcharge (BDT)';
     default:
       return fieldName;
   }
 }
 
-function getFieldPlaceholder(fieldName: string): string {
+function getFieldPlaceholder(fieldName: string, isBangla: boolean): string {
+  if (isBangla) {
+    switch (fieldName) {
+      case 'Vendor':
+        return 'যেমন: DPDC, DESCO, Titas Gas';
+      case 'BillNumber':
+        return 'যেমন: 25128075';
+      case 'BillingPeriod':
+        return 'যেমন: 2026-09';
+      case 'Quantity':
+        return 'যেমন: 439.00';
+      case 'Unit':
+        return 'যেমন: kWh, m3, litre';
+      case 'AmountBdt':
+        return 'যেমন: 4445.00';
+      case 'MeterNumber':
+        return 'যেমন: 167564';
+      default:
+        return 'মান লিখুন...';
+    }
+  }
+
   switch (fieldName) {
     case 'Vendor':
-      return 'উদা: DPDC, DESCO, Titas Gas';
+      return 'e.g. DPDC, DESCO, Titas Gas';
     case 'BillNumber':
-      return 'উদা: 25128075';
+      return 'e.g. 25128075';
     case 'BillingPeriod':
-      return 'উদা: 2026-09';
+      return 'e.g. 2026-09';
     case 'Quantity':
-      return 'উদা: 439.00';
+      return 'e.g. 439.00';
     case 'Unit':
-      return 'উদা: kWh, m3, litre';
+      return 'e.g. kWh, m3, litre';
     case 'AmountBdt':
-      return 'উদা: 4445.00';
+      return 'e.g. 4445.00';
     case 'MeterNumber':
-      return 'উদা: 167564';
+      return 'e.g. 167564';
     default:
-      return 'মান লিখুন...';
+      return 'Enter value...';
   }
 }

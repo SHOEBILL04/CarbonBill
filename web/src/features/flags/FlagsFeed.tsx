@@ -52,6 +52,7 @@ export const FlagsFeed: React.FC<FlagsFeedProps> = ({ onGoToReview }) => {
     if (filter === 'warning') return flags.filter((f) => f.severity === 'Warning');
     if (filter === 'acknowledged') return flags.filter((f) => f.state === 'Acknowledged');
     if (filter === 'dismissed') return flags.filter((f) => f.state === 'Dismissed');
+    if (filter === 'resolved') return flags.filter((f) => f.state === 'Resolved');
     return flags;
   }, [flags, filter]);
 
@@ -127,6 +128,7 @@ export const FlagsFeed: React.FC<FlagsFeedProps> = ({ onGoToReview }) => {
             { id: 'critical', bn: 'জটিল (Critical)', en: 'Critical' },
             { id: 'warning', bn: 'সতর্কতা (Warning)', en: 'Warning' },
             { id: 'acknowledged', bn: 'স্বীকৃত', en: 'Acknowledged' },
+            { id: 'resolved', bn: 'রসিদে সমাধানকৃত (Resolved)', en: 'Resolved by Slip' },
             { id: 'dismissed', bn: 'বাতিলকৃত', en: 'Dismissed' },
           ].map((tab) => (
             <button

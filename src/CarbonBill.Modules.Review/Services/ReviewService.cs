@@ -8,6 +8,7 @@ using CarbonBill.Modules.Review.Domain;
 using CarbonBill.Modules.Review.Persistence;
 using CarbonBill.SharedKernel.Contracts;
 using CarbonBill.SharedKernel.Domain;
+using CarbonBill.SharedKernel.Events;
 using CarbonBill.SharedKernel.Tenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -53,7 +54,8 @@ public class ReviewService(
     IActivityWriter activityWriter,
     IAuditLogService auditLogService,
     ITenantContext tenantContext,
-    ILogger<ReviewService> logger) : IReviewService
+    ILogger<ReviewService> logger,
+    IDomainEventPublisher? eventPublisher = null) : IReviewService
 {
 
     private static readonly Guid DefaultPilotOrgId = Guid.Parse("f0ee71e0-717b-4b5e-af05-a443c6430a8f");
@@ -383,6 +385,27 @@ public class ReviewService(
             }), ct);
 
         logger.LogInformation("Document {DocId} successfully confirmed and calculated by User {UserId}", documentId, reviewerUserId);
+
+        if (eventPublisher != null)
+        {
+            try
+            {
+                await eventPublisher.PublishAsync(new DocumentConfirmedEvent(
+                    DocumentId: documentId,
+                    OrgId: orgId,
+                    SiteId: document.SiteId,
+                    AssetId: document.AssetId,
+                    DocType: document.DocType,
+                    Period: effectivePeriod,
+                    OccurredOnUtc: DateTime.UtcNow
+                ), ct);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Failed to publish DocumentConfirmedEvent for Doc {DocId}", documentId);
+            }
+        }
+
         return Result.Success(documentId);
     }
 

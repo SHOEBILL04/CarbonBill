@@ -196,7 +196,7 @@ public static class NotificationEndpoints
             {
                 UserId = userId,
                 OrgId = tenantContext.CurrentOrgId,
-                PreferredLanguage = string.IsNullOrWhiteSpace(request.PreferredLanguage) ? "bn" : request.PreferredLanguage,
+                PreferredLanguage = string.IsNullOrWhiteSpace(request.PreferredLanguage) ? "en" : request.PreferredLanguage,
                 InAppEnabled = request.InAppEnabled,
                 WebPushEnabled = request.WebPushEnabled,
                 EmailEnabled = request.EmailEnabled,

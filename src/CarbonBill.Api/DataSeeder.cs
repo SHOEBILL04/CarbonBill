@@ -69,6 +69,36 @@ public static class DataSeeder
             reportingDb
         };
 
+        var existingTables = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        try
+        {
+            var connection = identityDb.Database.GetDbConnection();
+            var wasOpen = connection.State == System.Data.ConnectionState.Open;
+            if (!wasOpen)
+            {
+                await connection.OpenAsync();
+            }
+
+            using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = "SELECT name FROM sqlite_master WHERE type='table';";
+                using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    existingTables.Add(reader.GetString(0));
+                }
+            }
+
+            if (!wasOpen)
+            {
+                await connection.CloseAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogDebug("Could not inspect existing tables: {Msg}", ex.Message);
+        }
+
         foreach (var ctx in contexts)
         {
             try
@@ -76,15 +106,119 @@ public static class DataSeeder
                 var script = ctx.Database.GenerateCreateScript();
                 var safeScript = System.Text.RegularExpressions.Regex.Replace(
                     script,
-                    @"\bCREATE\s+TABLE\s+",
+                    @"\bCREATE\s+TABLE\s+(?!IF\s+NOT\s+EXISTS\b)",
                     "CREATE TABLE IF NOT EXISTS ",
                     System.Text.RegularExpressions.RegexOptions.IgnoreCase);
 
+                safeScript = System.Text.RegularExpressions.Regex.Replace(
+                    safeScript,
+                    @"\bCREATE\s+(UNIQUE\s+)?INDEX\s+(?!IF\s+NOT\s+EXISTS\b)",
+                    "CREATE $1INDEX IF NOT EXISTS ",
+                    System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
                 await ctx.Database.ExecuteSqlRawAsync(safeScript);
+
+                // Auto-migrate schema: ensure newly added entity properties exist as columns in SQLite
+                var connection = ctx.Database.GetDbConnection();
+                var wasOpen = connection.State == System.Data.ConnectionState.Open;
+                if (!wasOpen) await connection.OpenAsync();
+
+                foreach (var entityType in ctx.Model.GetEntityTypes())
+                {
+                    var tableName = entityType.GetTableName();
+                    if (string.IsNullOrEmpty(tableName)) continue;
+
+                    var tableCols = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                    using (var cmd = connection.CreateCommand())
+                    {
+                        cmd.CommandText = $"PRAGMA table_info(\"{tableName}\");";
+                        using var reader = await cmd.ExecuteReaderAsync();
+                        while (await reader.ReadAsync())
+                        {
+                            tableCols.Add(reader.GetString(1));
+                        }
+                    }
+
+                    if (tableCols.Count == 0) continue;
+
+                    // Drop obsolete NOT NULL columns that no longer exist in EF Core model
+                    var modelColNames = entityType.GetProperties()
+                        .Select(p => p.GetColumnName())
+                        .Where(p => !string.IsNullOrEmpty(p))
+                        .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+                    var obsoleteNotNullCols = new List<string>();
+                    using (var cmd = connection.CreateCommand())
+                    {
+                        cmd.CommandText = $"PRAGMA table_info(\"{tableName}\");";
+                        using var reader = await cmd.ExecuteReaderAsync();
+                        while (await reader.ReadAsync())
+                        {
+                            var cName = reader.GetString(1);
+                            var notNull = reader.GetInt32(3);
+                            var isPk = reader.GetInt32(5);
+                            if (isPk == 0 && notNull == 1 && !modelColNames.Contains(cName))
+                            {
+                                obsoleteNotNullCols.Add(cName);
+                            }
+                        }
+                    }
+
+                    foreach (var obsCol in obsoleteNotNullCols)
+                    {
+                        try
+                        {
+#pragma warning disable EF1002
+                            await ctx.Database.ExecuteSqlRawAsync($"ALTER TABLE \"{tableName}\" DROP COLUMN \"{obsCol}\";");
+#pragma warning restore EF1002
+                            tableCols.Remove(obsCol);
+                            logger.LogInformation("Dropped obsolete NOT NULL column {Column} from table {Table}", obsCol, tableName);
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.LogDebug("Could not drop column {Col} from {Table}: {Msg}", obsCol, tableName, ex.Message);
+                        }
+                    }
+
+                    foreach (var prop in entityType.GetProperties())
+                    {
+                        var colName = prop.GetColumnName();
+                        if (string.IsNullOrEmpty(colName) || tableCols.Contains(colName)) continue;
+
+                        var colType = prop.GetColumnType();
+                        if (string.IsNullOrWhiteSpace(colType))
+                        {
+                            var clr = Nullable.GetUnderlyingType(prop.ClrType) ?? prop.ClrType;
+                            if (clr == typeof(int) || clr == typeof(long) || clr == typeof(short) || clr == typeof(bool) || clr.IsEnum)
+                                colType = "INTEGER";
+                            else if (clr == typeof(decimal) || clr == typeof(double) || clr == typeof(float))
+                                colType = "NUMERIC";
+                            else if (clr == typeof(byte[]))
+                                colType = "BLOB";
+                            else
+                                colType = "TEXT";
+                        }
+
+                        try
+                        {
+#pragma warning disable EF1002
+                            var alterSql = $"ALTER TABLE \"{tableName}\" ADD COLUMN \"{colName}\" {colType} NULL;";
+                            await ctx.Database.ExecuteSqlRawAsync(alterSql);
+#pragma warning restore EF1002
+                            logger.LogInformation("Added missing column {Column} ({Type}) to table {Table}", colName, colType, tableName);
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.LogDebug("Could not add column {Col} to {Table}: {Msg}", colName, tableName, ex.Message);
+                        }
+                    }
+                }
+
+                if (!wasOpen) await connection.CloseAsync();
             }
             catch (Exception ex)
             {
-                logger.LogDebug("Table creation check for {Context}: {Msg}", ctx.GetType().Name, ex.Message);
+                logger.LogDebug("Table/schema sync for {Context}: {Msg}", ctx.GetType().Name, ex.Message);
             }
         }
 
@@ -219,86 +353,103 @@ public static class DataSeeder
         }
 
         // 3. Seed Organizations, Users, Sites & Assets if missing
-        if (await identityDb.Organizations.AnyAsync())
+        var apexOrg = await identityDb.Organizations.IgnoreQueryFilters().FirstOrDefaultAsync(o => o.Slug == "apex-textiles");
+        if (apexOrg == null)
         {
-            logger.LogInformation("Database already contains seed data. Skipping seeding.");
-            return;
+            apexOrg = new Organization
+            {
+                Name = "Apex Textile & Garments Ltd.",
+                Slug = "apex-textiles",
+                Sector = "RMG",
+                IsActive = true
+            };
+            identityDb.Organizations.Add(apexOrg);
+            await identityDb.SaveChangesAsync();
         }
 
-        logger.LogInformation("Seeding development organizations, users, memberships, sites, and demo invitation...");
-
-        // Create Demo Organization
-        var apexOrg = new Organization
-        {
-            Name = "Apex Textile & Garments Ltd.",
-            Slug = "apex-textiles",
-            Sector = "RMG",
-            IsActive = true
-        };
-        identityDb.Organizations.Add(apexOrg);
-
         // Factory Team Users (All have identical full access to Apex Org)
-        var ownerUser = new User
+        var demoUsers = new[]
         {
-            Email = "owner@apex.local",
-            FullName = "Kabir Ahmed",
-            PhoneNumber = "01711111111",
-            PasswordHash = passwordHasher.HashPassword("Pass1234!"),
-            PreferredLanguage = "bn"
+            ("owner@apex.local", "Kabir Ahmed", "01711111111"),
+            ("accountant@apex.local", "Rahim Mia", "01722222222"),
+            ("compliance@apex.local", "Nusrat Jahan", "01733333333"),
+            ("floor@apex.local", "Jahid Hasan", "01744444444"),
+            ("admin@carbonbill.local", "Platform Administrator", "01700000000")
         };
-        identityDb.Users.Add(ownerUser);
 
-        var accountantUser = new User
+        var seededUsers = new List<User>();
+        foreach (var (email, fullName, phone) in demoUsers)
         {
-            Email = "accountant@apex.local",
-            FullName = "Rahim Mia",
-            PhoneNumber = "01722222222",
-            PasswordHash = passwordHasher.HashPassword("Pass1234!"),
-            PreferredLanguage = "bn"
-        };
-        identityDb.Users.Add(accountantUser);
+            var user = await identityDb.Users.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Email == email);
+            if (user == null)
+            {
+                user = new User
+                {
+                    Email = email,
+                    FullName = fullName,
+                    PhoneNumber = phone,
+                    PasswordHash = passwordHasher.HashPassword("Pass1234!"),
+                    PreferredLanguage = "en",
+                    IsActive = true
+                };
+                identityDb.Users.Add(user);
+                await identityDb.SaveChangesAsync();
+            }
+            else
+            {
+                if (!passwordHasher.VerifyPassword("Pass1234!", user.PasswordHash))
+                {
+                    user.PasswordHash = passwordHasher.HashPassword("Pass1234!");
+                }
+                if (string.IsNullOrWhiteSpace(user.PhoneNumber) || user.PhoneNumber != phone)
+                {
+                    user.PhoneNumber = phone;
+                }
+                if (user.PreferredLanguage != "en")
+                {
+                    user.PreferredLanguage = "en";
+                }
+                await identityDb.SaveChangesAsync();
+            }
+            seededUsers.Add(user);
 
-        var complianceUser = new User
+            var hasMembership = await identityDb.Memberships.IgnoreQueryFilters()
+                .AnyAsync(m => m.UserId == user.Id && m.OrgId == apexOrg.Id);
+            if (!hasMembership)
+            {
+                identityDb.Memberships.Add(new Membership
+                {
+                    UserId = user.Id,
+                    OrgId = apexOrg.Id,
+                    IsActive = true
+                });
+                await identityDb.SaveChangesAsync();
+            }
+        }
+
+        var ownerUser = seededUsers[0];
+
+        // Create Demo Teammate Invitation Links if missing
+        var demoTokens = new[] { "apex-team-invite-demo", "apex-floor-demo" };
+        foreach (var tok in demoTokens)
         {
-            Email = "compliance@apex.local",
-            FullName = "Nusrat Jahan",
-            PhoneNumber = "01733333333",
-            PasswordHash = passwordHasher.HashPassword("Pass1234!"),
-            PreferredLanguage = "bn"
-        };
-        identityDb.Users.Add(complianceUser);
+            var hasInv = await identityDb.Invitations.IgnoreQueryFilters().AnyAsync(i => i.Token == tok);
+            if (!hasInv)
+            {
+                identityDb.Invitations.Add(new Invitation
+                {
+                    OrgId = apexOrg.Id,
+                    Token = tok,
+                    ExpiresAtUtc = DateTime.UtcNow.AddYears(1),
+                    CreatedByUserId = ownerUser.Id,
+                    MaxUses = 1000
+                });
+                await identityDb.SaveChangesAsync();
+            }
+        }
 
-        var floorUser = new User
+        if (!await onboardingDb.Sites.IgnoreQueryFilters().AnyAsync(s => s.OrgId == apexOrg.Id))
         {
-            Email = "floor@apex.local",
-            FullName = "Jahid Hasan",
-            PhoneNumber = "01744444444",
-            PasswordHash = passwordHasher.HashPassword("Pass1234!"),
-            PreferredLanguage = "bn"
-        };
-        identityDb.Users.Add(floorUser);
-
-        await identityDb.SaveChangesAsync();
-
-        // Assign Memberships (Every user has identical full access to the organization)
-        identityDb.Memberships.AddRange([
-            new Membership { UserId = ownerUser.Id, OrgId = apexOrg.Id, IsActive = true },
-            new Membership { UserId = accountantUser.Id, OrgId = apexOrg.Id, IsActive = true },
-            new Membership { UserId = complianceUser.Id, OrgId = apexOrg.Id, IsActive = true },
-            new Membership { UserId = floorUser.Id, OrgId = apexOrg.Id, IsActive = true }
-        ]);
-
-        // Create Demo Teammate Invitation Link
-        var invitation = new Invitation
-        {
-            OrgId = apexOrg.Id,
-            Token = "apex-team-invite-demo",
-            ExpiresAtUtc = DateTime.UtcNow.AddYears(1),
-            CreatedByUserId = ownerUser.Id,
-            MaxUses = 100
-        };
-        identityDb.Invitations.Add(invitation);
-        await identityDb.SaveChangesAsync();
 
         // Seed Onboarding Site & Assets for Apex
         var site = new Site
@@ -360,21 +511,25 @@ public static class DataSeeder
             ProductionUnit = "piece",
             UpdatedAtUtc = DateTime.UtcNow
         });
-        await onboardingDb.SaveChangesAsync();
+            await onboardingDb.SaveChangesAsync();
+        }
 
         // Seed Dataset Version
-        adminDb.DatasetVersions.Add(new DatasetVersion
+        if (!await adminDb.DatasetVersions.AnyAsync())
         {
-            Kind = "Factors",
-            Version = "2024.1",
-            Description = "Bangladesh Grid + IPCC AR6 Seed Factors",
-            RecordCount = 7,
-            ChecksumSha256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-            UploadedByUserId = ownerUser.Id,
-            UploadedAtUtc = DateTime.UtcNow,
-            IsActive = true
-        });
-        await adminDb.SaveChangesAsync();
+            adminDb.DatasetVersions.Add(new DatasetVersion
+            {
+                Kind = "Factors",
+                Version = "2024.1",
+                Description = "Bangladesh Grid + IPCC AR6 Seed Factors",
+                RecordCount = 7,
+                ChecksumSha256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                UploadedByUserId = ownerUser.Id,
+                UploadedAtUtc = DateTime.UtcNow,
+                IsActive = true
+            });
+            await adminDb.SaveChangesAsync();
+        }
 
         // Seed Flags Rules from seeds/flags/flag_rules.json
         await flagSeedLoader.SeedFlagRulesAsync();
@@ -382,8 +537,49 @@ public static class DataSeeder
         // Seed Insights Benchmark Sets
         await insightsSeedLoader.SeedDefaultBenchmarksAsync();
 
+        // Seed Production Metrics for Apex
+        if (!await insightsDb.ProductionMetrics.IgnoreQueryFilters().AnyAsync(m => m.OrgId == apexOrg.Id))
+        {
+            insightsDb.ProductionMetrics.AddRange([
+                new CarbonBill.Modules.Insights.Domain.ProductionMetric { OrgId = apexOrg.Id, Period = "2026-03", Unit = "piece", Quantity = 100000m },
+                new CarbonBill.Modules.Insights.Domain.ProductionMetric { OrgId = apexOrg.Id, Period = "2025-12", Unit = "piece", Quantity = 100000m },
+                new CarbonBill.Modules.Insights.Domain.ProductionMetric { OrgId = apexOrg.Id, Period = "2026-09", Unit = "piece", Quantity = 100000m }
+            ]);
+            await insightsDb.SaveChangesAsync();
+        }
+
         // Seed Recommendations Measures and Sources
         await recommendationsSeedLoader.SeedDefaultMeasuresAsync();
+
+        // Run Recommendations Pipeline for apexOrg
+        var recService = scope.ServiceProvider.GetService<CarbonBill.Modules.Recommendations.Services.RecommendationsService>();
+        if (recService != null)
+        {
+            try
+            {
+                await recService.GenerateAndSaveRecommendationsAsync(apexOrg.Id);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning("Could not pre-generate recommendations: {Msg}", ex.Message);
+            }
+        }
+
+        // Run Flag Engine for apexOrg
+        var flagEngine = scope.ServiceProvider.GetService<CarbonBill.Modules.Flags.Services.IFlagEngine>();
+        if (flagEngine != null)
+        {
+            try
+            {
+                await flagEngine.EvaluateOrgPeriodAsync(apexOrg.Id, "2026-03");
+                await flagEngine.EvaluateOrgPeriodAsync(apexOrg.Id, "2025-12");
+                await flagEngine.EvaluateOrgPeriodAsync(apexOrg.Id, "2026-09");
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning("Could not pre-evaluate flags: {Msg}", ex.Message);
+            }
+        }
 
         logger.LogInformation("Database seeding completed successfully!");
     }

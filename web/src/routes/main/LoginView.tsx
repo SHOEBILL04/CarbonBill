@@ -334,7 +334,7 @@ export default function LoginView({ onLoginSuccess, onGoToFloor }: LoginViewProp
                   required
                   value={regOrgName}
                   onChange={e => setRegOrgName(e.target.value)}
-                  placeholder="যেমন: বেঙ্গল ফ্যাশন লিমিটেড"
+                  placeholder={i18n.language === 'bn' ? 'যেমন: বেঙ্গল ফ্যাশন লিমিটেড' : 'e.g. Bengal Fashion Ltd'}
                   className="w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-teal-600"
                 />
               </div>
@@ -351,7 +351,7 @@ export default function LoginView({ onLoginSuccess, onGoToFloor }: LoginViewProp
                   required
                   value={regFullName}
                   onChange={e => setRegFullName(e.target.value)}
-                  placeholder="যেমন: মোহাম্মদ রফিক"
+                  placeholder={i18n.language === 'bn' ? 'যেমন: মোহাম্মদ রফিক' : 'e.g. Rafiqul Islam'}
                   className="w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-teal-600"
                 />
               </div>
@@ -383,11 +383,11 @@ export default function LoginView({ onLoginSuccess, onGoToFloor }: LoginViewProp
                 onChange={e => setRegFacilityType(e.target.value)}
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-teal-600"
               >
-                <option value="RMG_Woven">RMG Woven (ওভেন পোশাক)</option>
-                <option value="RMG_Knit">RMG Knit (নিটওয়্যার পোশাক)</option>
-                <option value="Textile_Dyeing">Textile Dyeing (ডাইং ও ওয়াশিং)</option>
-                <option value="Jute_Spinning">Jute Spinning (পাট শিল্প)</option>
-                <option value="Leather_Tannery">Leather Tannery (চামড়া শিল্প)</option>
+                <option value="RMG_Woven">{i18n.language === 'bn' ? 'ওভেন পোশাক (RMG Woven)' : 'RMG Woven Apparel'}</option>
+                <option value="RMG_Knit">{i18n.language === 'bn' ? 'নিটওয়্যার পোশাক (RMG Knit)' : 'RMG Knitwear'}</option>
+                <option value="Textile_Dyeing">{i18n.language === 'bn' ? 'ডাইং ও ওয়াশিং (Textile Dyeing)' : 'Textile Dyeing & Finishing'}</option>
+                <option value="Jute_Spinning">{i18n.language === 'bn' ? 'পাট শিল্প (Jute Spinning)' : 'Jute & Spinning'}</option>
+                <option value="Leather_Tannery">{i18n.language === 'bn' ? 'চামড়া শিল্প (Leather Tannery)' : 'Leather & Tannery'}</option>
               </select>
             </div>
 
@@ -402,7 +402,7 @@ export default function LoginView({ onLoginSuccess, onGoToFloor }: LoginViewProp
                   required
                   value={regPassword}
                   onChange={e => setRegPassword(e.target.value)}
-                  placeholder="কমপক্ষে ৮ অক্ষর (যেমন: Pass1234!)"
+                  placeholder={i18n.language === 'bn' ? 'কমপক্ষে ৮ অক্ষর (যেমন: Pass1234!)' : 'Minimum 8 characters (e.g. Pass1234!)'}
                   className="w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-teal-600"
                 />
               </div>
@@ -482,7 +482,7 @@ export default function LoginView({ onLoginSuccess, onGoToFloor }: LoginViewProp
             onClick={onGoToFloor}
             className="text-xs text-teal-700 font-bold hover:underline inline-flex items-center gap-1"
           >
-            📱 {i18n.language === 'bn' ? 'ফ্লোর ক্যামেরা ক্যাপচার মোড (Capture Bill)' : 'Floor Camera Capture Mode'} <ArrowRight size={12} />
+            📱 {i18n.language === 'bn' ? 'ফ্লোর ক্যামেরা ক্যাপচার মোড' : 'Floor Camera Capture Mode'} <ArrowRight size={12} />
           </button>
         </div>
       </div>

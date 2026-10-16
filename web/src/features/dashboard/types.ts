@@ -1,5 +1,41 @@
 export type RoleType = 'Owner' | 'Accountant' | 'Compliance' | 'Consultant' | 'FloorStaff' | 'PlatformAdmin';
 
+export interface ReceiptImpactItem {
+  documentId: string;
+  fileName: string;
+  docType: string;
+  status: string;
+  vendor?: string;
+  billNumber?: string;
+  quantity?: number;
+  unit?: string;
+  amountBdt?: number;
+  emissionsTco2e: number;
+  scope?: number;
+  capturedAtUtc: string;
+  confidence?: number;
+  isEstimated?: boolean;
+  period?: string;
+}
+
+export interface DashboardFlagItem {
+  ruleCode: string;
+  severity: string;
+  period: string;
+  explanationBn: string;
+  explanationEn: string;
+  suggestedActionBn: string;
+  suggestedActionEn: string;
+}
+
+export interface DashboardRecommendationItem {
+  nameEn: string;
+  nameBn: string;
+  category: string;
+  savingsBdt: number;
+  paybackYears: number;
+}
+
 export interface DashboardSummary {
   period: string;
   scope1Emissions: number;
@@ -12,6 +48,13 @@ export interface DashboardSummary {
   status: string;
   activeFlagsCount: number;
   missingDocsCount: number;
+  recentReceipts?: ReceiptImpactItem[];
+  totalSpendBdt?: number;
+  totalElectricityKwh?: number;
+  totalDieselLitres?: number;
+  potentialAnnualSavingsBdt?: number;
+  topFlags?: DashboardFlagItem[];
+  topRecommendations?: DashboardRecommendationItem[];
 }
 
 export interface TrendDataPoint {
