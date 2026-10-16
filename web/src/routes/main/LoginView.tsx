@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Leaf, Lock, Mail, Building, User, Phone, CheckCircle, ArrowRight } from 'lucide-react';
+import { Lock, Mail, Building, User, Phone, CheckCircle, ArrowRight } from 'lucide-react';
 import { setSession } from '../../lib/apiClient';
 
 interface LoginViewProps {
@@ -169,9 +169,9 @@ export default function LoginView({ onLoginSuccess, onGoToFloor }: LoginViewProp
       <div className="max-w-md w-full bg-white rounded-3xl p-6 md:p-8 text-slate-900 shadow-2xl space-y-6">
         {/* Branding & Language */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="p-2.5 bg-teal-600 rounded-2xl text-white shadow-md">
-              <Leaf size={28} />
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-teal-950/5 border border-teal-800/10 flex items-center justify-center p-1.5 shadow-xs">
+              <img src="/logo-icon.png" alt="CarbonBill Logo" className="w-9 h-9 object-contain" />
             </div>
             <div>
               <h1 className="text-2xl font-black text-teal-900">{t('appName')}</h1>

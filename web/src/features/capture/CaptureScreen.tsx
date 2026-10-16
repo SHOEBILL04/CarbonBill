@@ -597,18 +597,23 @@ export function CaptureScreen({
                 <span className="hidden sm:inline">{isBangla ? 'ফিরে যান' : 'Back'}</span>
               </button>
             )}
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xl font-black text-emerald-800 tracking-tight">
-                  {isBangla ? 'কার্বনবিল' : 'CarbonBill'}
-                </span>
-                <span className="hidden sm:inline text-xs font-bold px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-md border border-emerald-200">
-                  {isBangla ? 'ইনজেশন পোর্টাল' : 'Ingestion Portal'}
-                </span>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-950/5 border border-emerald-800/10 flex items-center justify-center p-1 shadow-2xs">
+                <img src="/logo-icon.png" alt="CarbonBill" className="w-8 h-8 object-contain" />
               </div>
-              <p className="text-xs font-medium text-slate-500">
-                {isBangla ? 'ফ্যাক্টরি ফ্লোর চালান ও ইউটিলিটি বিল ইনজেশন' : 'Factory Floor Challan & Utility Bill Ingestion'}
-              </p>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xl font-black text-emerald-800 tracking-tight">
+                    {isBangla ? 'কার্বনবিল' : 'CarbonBill'}
+                  </span>
+                  <span className="hidden sm:inline text-xs font-bold px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-md border border-emerald-200">
+                    {isBangla ? 'ইনজেশন পোর্টাল' : 'Ingestion Portal'}
+                  </span>
+                </div>
+                <p className="text-xs font-medium text-slate-500">
+                  {isBangla ? 'ফ্যাক্টরি ফ্লোর চালান ও ইউটিলিটি বিল ইনজেশন' : 'Factory Floor Challan & Utility Bill Ingestion'}
+                </p>
+              </div>
             </div>
           </div>
 

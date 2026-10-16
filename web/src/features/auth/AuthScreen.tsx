@@ -125,8 +125,8 @@ export const AuthScreen: React.FC = () => {
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#0f172a', padding: '1rem', fontFamily: 'system-ui, sans-serif' }}>
       <div style={{ maxWidth: '440px', width: '100%', backgroundColor: '#1e293b', borderRadius: '1rem', border: '1px solid #334155', padding: '2rem', color: '#f8fafc', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)' }}>
         <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '48px', height: '48px', borderRadius: '12px', backgroundColor: '#10b981', color: '#fff', fontSize: '24px', fontWeight: 'bold', marginBottom: '0.75rem' }}>
-            🌱
+          <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '56px', height: '56px', borderRadius: '14px', backgroundColor: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', padding: '6px', marginBottom: '0.75rem' }}>
+            <img src="/logo-icon.png" alt="CarbonBill Logo" style={{ width: '42px', height: '42px', objectFit: 'contain' }} />
           </div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: '0 0 0.25rem 0' }}>CarbonBill</h1>
           <p style={{ fontSize: '0.875rem', color: '#94a3b8', margin: 0 }}>বাংলাদেশি পোশাক ও উৎপাদন শিল্পের কার্বন হিসাব প্ল্যাটফর্ম</p>
