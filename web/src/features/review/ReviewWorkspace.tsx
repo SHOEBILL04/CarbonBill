@@ -170,6 +170,9 @@ export function ReviewWorkspace({ onBack }: ReviewWorkspaceProps) {
               <ArrowLeft size={18} />
             </button>
           )}
+          <div className="w-8 h-8 rounded-lg bg-teal-950/5 border border-teal-800/10 flex items-center justify-center p-1 shadow-2xs">
+            <img src="/logo-icon.png" alt="CarbonBill" className="w-6 h-6 object-contain" />
+          </div>
           <div>
             <h1 className="text-base font-black text-slate-900 tracking-tight">
               {isBangla

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AuthUser, clearSession } from '../../lib/apiClient';
 import {
-  Leaf,
   LayoutDashboard,
   AlertCircle,
   TrendingDown,
@@ -102,8 +101,8 @@ export default function DashboardView({ user, onGoToFloor, onGoToReview, onLogou
       <header className="bg-white border-b border-slate-200 sticky top-0 z-20 shadow-2xs">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-teal-800 rounded-xl text-white shadow-xs">
-              <Leaf size={22} />
+            <div className="w-10 h-10 rounded-xl bg-teal-950/5 border border-teal-800/10 flex items-center justify-center p-1 shadow-2xs">
+              <img src="/logo-icon.png" alt="CarbonBill" className="w-8 h-8 object-contain" />
             </div>
             <div>
               <h1 className="text-lg font-black text-teal-900">{t('appName')}</h1>
