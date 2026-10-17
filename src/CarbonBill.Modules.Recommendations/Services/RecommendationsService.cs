@@ -161,6 +161,78 @@ public class RecommendationsService(
         return profile;
     }
 
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<Guid, int> _lastProcessedDocCounts = new();
+
+    public async Task<(string Status, bool HasNewDocuments, int NewDocCount, string Message)> CheckNewDocumentsAndRecalculateAsync(
+        Guid orgId,
+        Guid? siteId = null,
+        CancellationToken ct = default)
+    {
+        int currentDocCount = 0;
+        int currentActivityCount = 0;
+
+        try
+        {
+            var conn = dbContext.Database.GetDbConnection();
+            if (conn.State != System.Data.ConnectionState.Open)
+            {
+                await conn.OpenAsync(ct);
+            }
+
+            // Check Documents table
+            using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = "SELECT COUNT(*) FROM Documents WHERE OrgId = @orgId COLLATE NOCASE;";
+                var p = cmd.CreateParameter();
+                p.ParameterName = "@orgId";
+                p.Value = orgId.ToString();
+                cmd.Parameters.Add(p);
+                var docObj = await cmd.ExecuteScalarAsync(ct);
+                if (docObj != null && docObj != DBNull.Value)
+                {
+                    currentDocCount = Convert.ToInt32(docObj, System.Globalization.CultureInfo.InvariantCulture);
+                }
+            }
+
+            // Check ActivityRecords table
+            using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = "SELECT COUNT(*) FROM ActivityRecords WHERE OrgId = @orgId COLLATE NOCASE;";
+                var p = cmd.CreateParameter();
+                p.ParameterName = "@orgId";
+                p.Value = orgId.ToString();
+                cmd.Parameters.Add(p);
+                var actObj = await cmd.ExecuteScalarAsync(ct);
+                if (actObj != null && actObj != DBNull.Value)
+                {
+                    currentActivityCount = Convert.ToInt32(actObj, System.Globalization.CultureInfo.InvariantCulture);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogDebug(ex, "Could not check document counts for org {OrgId}.", orgId);
+        }
+
+        int totalDataItems = currentDocCount + currentActivityCount;
+        bool isInitial = !_lastProcessedDocCounts.ContainsKey(orgId);
+        int lastCount = _lastProcessedDocCounts.GetValueOrDefault(orgId, 0);
+
+        if (isInitial || totalDataItems > lastCount)
+        {
+            // New documents / records present! Recalculate RAG and recommendations
+            _lastProcessedDocCounts[orgId] = totalDataItems;
+            await GenerateAndSaveRecommendationsAsync(orgId, siteId, ct);
+            int newItems = isInitial ? totalDataItems : (totalDataItems - lastCount);
+            return ("Recalculated", true, newItems, $"New verified document/activity data detected ({newItems} new items). RAG recommendations recalibrated.");
+        }
+        else
+        {
+            // No new document present! Stays same as it is
+            return ("Unchanged", false, 0, "No new documents found. Current recommendations remain up to date.");
+        }
+    }
+
     public async Task<List<Recommendation>> GenerateAndSaveRecommendationsAsync(
         Guid orgId,
         Guid? siteId = null,

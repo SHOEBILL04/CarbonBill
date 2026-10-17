@@ -1,4 +1,4 @@
-import { Recommendation, RecommendationStatus, EvidenceGrade } from './types';
+import { Recommendation, RecommendationStatus, EvidenceGrade, RagAskResponse, RagCorpusSummary, DedicatedBreakdownResponse, RecalculateResponse } from './types';
 import { apiFetch } from '../../lib/apiClient';
 
 export const mockRecommendationsList: Recommendation[] = [
@@ -239,13 +239,44 @@ export async function updateRecommendationStatus(
   return true;
 }
 
-export async function recalculateRecommendations(): Promise<boolean> {
+export async function recalculateRecommendations(): Promise<RecalculateResponse> {
   try {
-    await apiFetch('/api/v1/recommendations/recalculate', {
+    return await apiFetch<RecalculateResponse>('/api/v1/recommendations/recalculate', {
       method: 'POST',
     });
-    return true;
   } catch {
-    return false;
+    return {
+      status: 'Error',
+      hasNewDocuments: false,
+      newDocCount: 0,
+      message: 'Failed to communicate with recalculation server.',
+    };
   }
 }
+
+export async function askRagRecommendations(
+  query: string,
+  topK = 4
+): Promise<RagAskResponse> {
+  return await apiFetch<RagAskResponse>('/api/v1/recommendations/rag/ask', {
+    method: 'POST',
+    body: JSON.stringify({ query, topK }),
+  });
+}
+
+export async function fetchRagCorpusSummary(): Promise<RagCorpusSummary | null> {
+  try {
+    return await apiFetch<RagCorpusSummary>('/api/v1/recommendations/rag/corpus-summary');
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchDedicatedRagBreakdown(): Promise<DedicatedBreakdownResponse | null> {
+  try {
+    return await apiFetch<DedicatedBreakdownResponse>('/api/v1/recommendations/rag/breakdown');
+  } catch {
+    return null;
+  }
+}
+

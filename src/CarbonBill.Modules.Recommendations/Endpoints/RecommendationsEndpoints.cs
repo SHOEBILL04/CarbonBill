@@ -124,11 +124,13 @@ public static class RecommendationsEndpoints
                 return Results.Unauthorized();
             }
 
-            var recommendations = await service.GenerateAndSaveRecommendationsAsync(tenantContext.CurrentOrgId.Value, siteId, ct);
+            var result = await service.CheckNewDocumentsAndRecalculateAsync(tenantContext.CurrentOrgId.Value, siteId, ct);
             return Results.Ok(new
             {
-                status = "Recalculated",
-                count = recommendations.Count
+                status = result.Status,
+                hasNewDocuments = result.HasNewDocuments,
+                newDocCount = result.NewDocCount,
+                message = result.Message
             });
         });
 
@@ -154,6 +156,65 @@ public static class RecommendationsEndpoints
         })
         .WithName("GetAiRecommendationBrief")
         .WithSummary("Get dynamic AI-generated decarbonization executive brief based on confirmed facility bills and operational flags.");
+
+        // POST /api/v1/recommendations/rag/ask
+        group.MapPost("/recommendations/rag/ask", async (
+            [FromBody] RagAskRequest request,
+            ITenantContext tenantContext,
+            IRagRecommendationService ragService,
+            CancellationToken ct) =>
+        {
+            if (!tenantContext.IsAuthenticated || !tenantContext.CurrentOrgId.HasValue)
+            {
+                return Results.Unauthorized();
+            }
+
+            try
+            {
+                var response = await ragService.AskAsync(tenantContext.CurrentOrgId.Value, request.Query, request.TopK, ct);
+                return Results.Ok(response);
+            }
+            catch (ArgumentException ex)
+            {
+                return Results.BadRequest(new { message = ex.Message });
+            }
+        })
+        .WithName("AskRagRecommendations")
+        .WithSummary("Query factory utility records, active operational flags, and IFC PaCT corpus using Groq RAG AI.");
+
+        // GET /api/v1/recommendations/rag/corpus-summary
+        group.MapGet("/recommendations/rag/corpus-summary", async (
+            ITenantContext tenantContext,
+            IRagRecommendationService ragService,
+            CancellationToken ct) =>
+        {
+            if (!tenantContext.IsAuthenticated || !tenantContext.CurrentOrgId.HasValue)
+            {
+                return Results.Unauthorized();
+            }
+
+            var summary = await ragService.GetCorpusSummaryAsync(tenantContext.CurrentOrgId.Value, ct);
+            return Results.Ok(summary);
+        })
+        .WithName("GetRagCorpusSummary")
+        .WithSummary("Get summary statistics of indexed RAG corpus items (bills, flags, measures, profile).");
+
+        // GET /api/v1/recommendations/rag/breakdown
+        group.MapGet("/recommendations/rag/breakdown", async (
+            ITenantContext tenantContext,
+            IRagRecommendationService ragService,
+            CancellationToken ct) =>
+        {
+            if (!tenantContext.IsAuthenticated || !tenantContext.CurrentOrgId.HasValue)
+            {
+                return Results.Unauthorized();
+            }
+
+            var breakdown = await ragService.GetDedicatedBreakdownAsync(tenantContext.CurrentOrgId.Value, ct);
+            return Results.Ok(breakdown);
+        })
+        .WithName("GetDedicatedRagBreakdown")
+        .WithSummary("Get overall and individual category recommendations (electricity, transport, diesel, gas) grounded in factory data.");
 
         return endpoints;
     }
