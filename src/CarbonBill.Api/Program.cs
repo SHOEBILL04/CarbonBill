@@ -44,6 +44,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
 builder.Configuration.AddEnvironmentVariables();
 
+// Render and Cloud Port Binding (Render dynamically sets PORT)
+var cloudPort = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrEmpty(cloudPort))
+{
+    builder.WebHost.UseUrls($"http://+:{cloudPort}");
+}
+
 // Configure Serilog
 builder.Host.UseSerilog((ctx, lc) =>
 {
@@ -75,6 +82,11 @@ else
     // Real INotifier and IReportRenderer are registered by AddNotificationsModule and AddReportingModule
 }
 
+// Ensure SQLite target directories exist before registering contexts
+var defaultConn = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? "Data Source=carbonbill.db;Cache=Shared";
+EnsureSqliteDirectoryExists(defaultConn);
+
 // Register Domain Modules
 builder.Services.AddIdentityTenancyModule(builder.Configuration);
 builder.Services.AddAuditModule(builder.Configuration);
@@ -94,15 +106,16 @@ builder.Services.AddPlatformAdminModule(builder.Configuration);
 builder.Services.AddInsightsModule(builder.Configuration);
 
 // Background Jobs (Hangfire + SQLite)
-var hangfireConn = builder.Configuration.GetConnectionString("HangfireConnection")
-    ?? "Data Source=hangfire.db;Cache=Shared";
+var rawHangfireConn = builder.Configuration.GetConnectionString("HangfireConnection")
+    ?? "hangfire.db";
+var hangfireDbPath = ResolveHangfireDbPath(rawHangfireConn);
 
 builder.Services.AddHangfire(config =>
 {
     config.SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
           .UseSimpleAssemblyNameTypeSerializer()
           .UseRecommendedSerializerSettings()
-          .UseSQLiteStorage(hangfireConn, new SQLiteStorageOptions
+          .UseSQLiteStorage(hangfireDbPath, new SQLiteStorageOptions
           {
               QueuePollInterval = TimeSpan.FromSeconds(5)
           });
@@ -113,7 +126,11 @@ builder.Services.AddScoped<IDatabaseBackupJob, DatabaseBackupJob>();
 builder.Services.AddScoped<ISampleRecurringJob, SampleRecurringJob>();
 
 // JWT Authentication
-var jwtKey = builder.Configuration["Jwt:Key"] ?? "CarbonBill-SuperSecret-Development-Key-2026-VeryLongKeyNeeded-AtLeast32Bytes";
+var jwtKey = builder.Configuration["Jwt:Key"]
+    ?? builder.Configuration["Jwt:Secret"]
+    ?? builder.Configuration["JWT_SECRET"]
+    ?? builder.Configuration["JWT__SECRET"]
+    ?? "CarbonBill-SuperSecret-Development-Key-2026-VeryLongKeyNeeded-AtLeast32Bytes";
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "CarbonBill";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "CarbonBillClients";
 
@@ -159,6 +176,10 @@ builder.Services.AddRateLimiter(options =>
 builder.Services.AddProblemDetails();
 builder.Services.AddHealthChecks();
 
+// Render Anti-Sleep Keep-Alive Background Service
+builder.Services.AddHttpClient("KeepAliveClient");
+builder.Services.AddHostedService<CarbonBill.Api.Services.RenderKeepAliveWorker>();
+
 // Swagger / OpenAPI
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -201,7 +222,7 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "http://localhost:3000")
+        policy.SetIsOriginAllowed(_ => true)
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -219,11 +240,8 @@ if (args.Contains("--seed"))
     return;
 }
 
-// Seed Database in Development
-if (app.Environment.IsDevelopment())
-{
-    await DataSeeder.SeedDevelopmentDataAsync(app.Services);
-}
+// Ensure database tables and initial datasets exist on container startup (Production & Development)
+await DataSeeder.SeedDevelopmentDataAsync(app.Services);
 
 // Middleware Pipeline
 app.UseExceptionHandler();
@@ -287,17 +305,30 @@ using (var scope = app.Services.CreateScope())
 
 // Health checks
 app.MapHealthChecks("/healthz");
+app.MapHealthChecks("/health");
 
-// Root endpoint
-app.MapGet("/", () => Results.Ok(new
+// Serve compiled frontend SPA if wwwroot/index.html is present
+var webRoot = builder.Environment.WebRootPath ?? Path.Combine(AppContext.BaseDirectory, "wwwroot");
+var hasSpaIndex = File.Exists(Path.Combine(webRoot, "index.html"));
+
+if (hasSpaIndex)
 {
-    service = "CarbonBill.Api",
-    version = "1.0.0",
-    status = "healthy",
-    docs = "/swagger",
-    jobs = "/hangfire",
-    health = "/healthz"
-}));
+    app.UseDefaultFiles();
+    app.UseStaticFiles();
+}
+else
+{
+    // Standalone API root endpoint (when running backend without frontend bundle)
+    app.MapGet("/", () => Results.Ok(new
+    {
+        service = "CarbonBill.Api",
+        version = "1.0.0",
+        status = "healthy",
+        docs = "/swagger",
+        jobs = "/hangfire",
+        health = "/healthz"
+    }));
+}
 
 // Map Module Minimal APIs
 app.MapAuthEndpoints();
@@ -315,6 +346,11 @@ app.MapFlagsModuleEndpoints();
 app.MapInsightsModuleEndpoints();
 app.MapRecommendationsModuleEndpoints();
 app.MapReportingModuleEndpoints();
+
+if (hasSpaIndex)
+{
+    app.MapFallbackToFile("index.html");
+}
 
 app.Run();
 
@@ -345,5 +381,82 @@ static void LoadDotEnv()
         }
         var parent = Directory.GetParent(dir);
         dir = parent?.FullName;
+    }
+}
+
+static string ResolveHangfireDbPath(string? raw)
+{
+    var path = "hangfire.db";
+    if (!string.IsNullOrWhiteSpace(raw))
+    {
+        var cleaned = raw.Trim();
+        // If it contains "Data Source=" or "DataSource=", extract the actual file path
+        if (cleaned.Contains('='))
+        {
+            var parts = cleaned.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            foreach (var part in parts)
+            {
+                var kv = part.Split('=', 2, StringSplitOptions.TrimEntries);
+                if (kv.Length == 2 && (kv[0].Equals("Data Source", StringComparison.OrdinalIgnoreCase) || kv[0].Equals("DataSource", StringComparison.OrdinalIgnoreCase)))
+                {
+                    cleaned = kv[1];
+                    break;
+                }
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(cleaned))
+        {
+            path = cleaned;
+        }
+    }
+
+    try
+    {
+        var dir = Path.GetDirectoryName(path);
+        if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+        {
+            Directory.CreateDirectory(dir);
+        }
+    }
+    catch (Exception ex)
+    {
+        Log.Warning(ex, "Failed to create directory for Hangfire DB path '{Path}'. Falling back to local 'hangfire.db'", path);
+        path = "hangfire.db";
+    }
+
+    return path;
+}
+
+static void EnsureSqliteDirectoryExists(string? connectionString)
+{
+    if (string.IsNullOrWhiteSpace(connectionString)) return;
+
+    try
+    {
+        var parts = connectionString.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        string? dbPath = null;
+        foreach (var part in parts)
+        {
+            var kv = part.Split('=', 2, StringSplitOptions.TrimEntries);
+            if (kv.Length == 2 && (kv[0].Equals("Data Source", StringComparison.OrdinalIgnoreCase) || kv[0].Equals("DataSource", StringComparison.OrdinalIgnoreCase)))
+            {
+                dbPath = kv[1];
+                break;
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(dbPath))
+        {
+            var dir = Path.GetDirectoryName(dbPath);
+            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        Log.Warning(ex, "Failed to ensure SQLite directory exists for connection string: {Conn}", connectionString);
     }
 }

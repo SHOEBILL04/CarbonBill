@@ -56,10 +56,10 @@ public class LlmRecommendationAdvisor(
     };
 
     private readonly string _geminiApiKey = ResolveApiKey(configuration, "Gemini:ApiKey", "GEMINI_API_KEY");
-    private readonly string _geminiModel = configuration["Gemini:Model"] ?? "gemini-2.5-flash";
+    private readonly string _geminiModel = ResolveGeminiModel(configuration);
     private readonly string _groqApiKey = ResolveApiKey(configuration, "VisionLlm:ApiKey", "GROQ_API_KEY");
     private readonly string _groqBaseUrl = configuration["VisionLlm:BaseUrl"] ?? "https://api.groq.com/openai/v1";
-    private readonly string _groqModel = configuration["VisionLlm:Model"] ?? "openai/gpt-oss-120b";
+    private readonly string _groqModel = ResolveGroqModel(configuration);
 
     public async Task<AiEnrichmentResult> GenerateAdviceAsync(
         CandidateMeasureEvaluation candidate,
@@ -248,14 +248,42 @@ public class LlmRecommendationAdvisor(
         request.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
 
         using var response = await httpClient.SendAsync(request, ct);
+        string json;
+        string actualModelUsed = _geminiModel;
+
         if (!response.IsSuccessStatusCode)
         {
-            var err = await response.Content.ReadAsStringAsync(ct);
-            logger.LogWarning("Gemini API returned error HTTP {StatusCode}: {Error}", response.StatusCode, err);
-            return null;
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound && _geminiModel != "gemini-1.5-flash")
+            {
+                logger.LogInformation("Gemini model {Model} returned 404, retrying with gemini-1.5-flash...", _geminiModel);
+                var fallbackUrl = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={_geminiApiKey}";
+                using var fbRequest = new HttpRequestMessage(HttpMethod.Post, fallbackUrl);
+                fbRequest.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+                using var fbResponse = await httpClient.SendAsync(fbRequest, ct);
+                if (fbResponse.IsSuccessStatusCode)
+                {
+                    json = await fbResponse.Content.ReadAsStringAsync(ct);
+                    actualModelUsed = "gemini-1.5-flash";
+                }
+                else
+                {
+                    var err = await fbResponse.Content.ReadAsStringAsync(ct);
+                    logger.LogWarning("Gemini API (fallback) returned error HTTP {StatusCode}: {Error}", fbResponse.StatusCode, err);
+                    return null;
+                }
+            }
+            else
+            {
+                var err = await response.Content.ReadAsStringAsync(ct);
+                logger.LogWarning("Gemini API returned error HTTP {StatusCode}: {Error}", response.StatusCode, err);
+                return null;
+            }
+        }
+        else
+        {
+            json = await response.Content.ReadAsStringAsync(ct);
         }
 
-        var json = await response.Content.ReadAsStringAsync(ct);
         using var doc = JsonDocument.Parse(json);
         var root = doc.RootElement;
 
@@ -279,7 +307,7 @@ public class LlmRecommendationAdvisor(
             PersonalizedExplanationBn: expBn,
             ActionRoadmapEn: roadEn,
             ActionRoadmapBn: roadBn,
-            ModelUsed: $"Gemini ({_geminiModel})",
+            ModelUsed: $"Gemini ({actualModelUsed})",
             IsAiGenerated: true);
     }
 
@@ -442,6 +470,23 @@ public class LlmRecommendationAdvisor(
         }
 
         return string.Empty;
+    }
+
+    private static string ResolveGeminiModel(IConfiguration configuration)
+    {
+        var model = configuration["Gemini:Model"] ?? configuration["GEMINI_MODEL"];
+        if (string.IsNullOrWhiteSpace(model) || model.Contains("2.5")) return "gemini-2.0-flash";
+        return model;
+    }
+
+    private static string ResolveGroqModel(IConfiguration configuration)
+    {
+        var model = configuration["VisionLlm:Model"] ?? configuration["GROQ_MODEL"];
+        if (string.IsNullOrWhiteSpace(model) || model.StartsWith("openai/", StringComparison.OrdinalIgnoreCase))
+        {
+            return "llama-3.3-70b-versatile";
+        }
+        return model;
     }
 
     private static string ToBnDigits(string input)

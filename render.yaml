@@ -1,0 +1,30 @@
+# ==============================================================================
+# Render.com Blueprint Specification for CarbonBill
+# Deploys Unified Fullstack Web Service (React Frontend + .NET 8 Backend + Tesseract)
+# Free Tier Friendly with Anti-Sleep Keep-Alive Engine
+# ==============================================================================
+
+services:
+  - type: web
+    name: carbonbill
+    env: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: singapore # Closest to Bangladesh for lowest latency (singapore/frankfurt/oregon)
+    autoDeploy: true
+    healthCheckPath: /health
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: KEEP_ALIVE_INTERVAL_MINUTES
+        value: "12"
+      - key: JWT__SECRET
+        generateValue: true
+      - key: GROQ_API_KEY
+        sync: false # Set in Render dashboard: Free API key from console.groq.com for Vision & Bill extraction
+      - key: GEMINI_API_KEY
+        sync: false # Set in Render dashboard: Free API key from aistudio.google.com for Decarbonization AI Advice
+      - key: LANGSMITH_API_KEY
+        sync: false # Optional: Set in Render dashboard: API key from smith.langchain.com for AI tracing
+      - key: OCR_PROVIDER
+        value: Tesseract

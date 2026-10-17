@@ -72,7 +72,7 @@ public class RagRecommendationService(
 {
     private readonly string _groqApiKey = ResolveApiKey(configuration, "VisionLlm:ApiKey", "GROQ_API_KEY");
     private readonly string _groqBaseUrl = configuration["VisionLlm:BaseUrl"] ?? "https://api.groq.com/openai/v1";
-    private readonly string _groqModel = configuration["VisionLlm:Model"] ?? "openai/gpt-oss-20b";
+    private readonly string _groqModel = ResolveGroqModel(configuration);
 
     public async Task<RagAskResponse> AskAsync(Guid orgId, string query, int topK = 4, CancellationToken ct = default)
     {
@@ -701,5 +701,15 @@ public class RagRecommendationService(
         }
 
         return string.Empty;
+    }
+
+    private static string ResolveGroqModel(IConfiguration configuration)
+    {
+        var model = configuration["VisionLlm:Model"] ?? configuration["GROQ_MODEL"];
+        if (string.IsNullOrWhiteSpace(model) || model.StartsWith("openai/", StringComparison.OrdinalIgnoreCase))
+        {
+            return "llama-3.3-70b-versatile";
+        }
+        return model;
     }
 }
