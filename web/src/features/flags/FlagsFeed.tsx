@@ -76,10 +76,10 @@ export const FlagsFeed: React.FC<FlagsFeedProps> = ({ onGoToReview }) => {
   return (
     <div className="space-y-6">
       {/* Header & Fatigue Controls Notice */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
+      <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs space-y-3">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-amber-500 text-white rounded-2xl shadow-sm">
+            <div className="p-2.5 bg-amber-600 text-white rounded-2xl shadow-sm">
               <AlertCircle size={22} />
             </div>
             <div>
@@ -96,7 +96,7 @@ export const FlagsFeed: React.FC<FlagsFeedProps> = ({ onGoToReview }) => {
 
           <button
             onClick={loadData}
-            className="self-start md:self-auto px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition flex items-center gap-1.5"
+            className="self-start md:self-auto px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition flex items-center gap-1.5 cursor-pointer"
           >
             <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
             {isBangla ? 'রিফ্রেশ' : 'Refresh'}
@@ -104,8 +104,8 @@ export const FlagsFeed: React.FC<FlagsFeedProps> = ({ onGoToReview }) => {
         </div>
 
         {/* Fatigue Control Banner */}
-        <div className="p-3 bg-teal-50 border border-teal-200/80 rounded-xl text-xs text-teal-900 flex items-start gap-2.5">
-          <ShieldCheck size={18} className="text-teal-700 shrink-0 mt-0.5" />
+        <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 flex items-start gap-2.5">
+          <ShieldCheck size={18} className="text-emerald-700 shrink-0 mt-0.5" />
           <div>
             <span className="font-bold">
               {isBangla
@@ -134,9 +134,9 @@ export const FlagsFeed: React.FC<FlagsFeedProps> = ({ onGoToReview }) => {
             <button
               key={tab.id}
               onClick={() => setFilter(tab.id)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
                 filter === tab.id
-                  ? 'bg-teal-900 text-white shadow-xs'
+                  ? 'bg-slate-900 text-white shadow-xs'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >

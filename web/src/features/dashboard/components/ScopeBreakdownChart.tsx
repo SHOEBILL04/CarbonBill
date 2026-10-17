@@ -38,23 +38,23 @@ export const ScopeBreakdownChart: React.FC<ScopeBreakdownChartProps> = ({
       labels: [
         isBangla ? 'স্কোপ ১ (ডিজেল ও গ্যাস)' : 'Scope 1 (Fuels & Diesel)',
         isBangla ? 'স্কোপ ২ (গ্রিড বিদ্যুৎ)' : 'Scope 2 (Grid Electricity)',
-        isBangla ? 'স্কোপ ৩ (পরিবহন ও লজিস্টিকস)' : 'Scope 3 (Freight & Value Chain)',
+        isBangla ? 'স্কোপ ৩ (পরিবহন ও লজিস্টিকস)' : 'Scope 3 (Freight & Logistics)',
       ],
       datasets: [
         {
           data: [s1, s2, s3],
           backgroundColor: [
-            effectiveScope === null || effectiveScope === 1 ? '#f97316' : '#fed7aa',
-            effectiveScope === null || effectiveScope === 2 ? '#0284c7' : '#bae6fd',
-            effectiveScope === null || effectiveScope === 3 ? '#8b5cf6' : '#ddd6fe',
+            effectiveScope === null || effectiveScope === 1 ? '#ea580c' : '#fed7aa',
+            effectiveScope === null || effectiveScope === 2 ? '#059669' : '#a7f3d0',
+            effectiveScope === null || effectiveScope === 3 ? '#64748b' : '#e2e8f0',
           ],
           borderWidth: 3,
           borderColor: '#ffffff',
-          hoverOffset: 16,
-          hoverBorderWidth: 4,
+          hoverOffset: 12,
+          hoverBorderWidth: 3,
           hoverBorderColor: '#ffffff',
-          borderRadius: 8,
-          spacing: 3,
+          borderRadius: 6,
+          spacing: 2,
         },
       ],
     };
@@ -92,7 +92,7 @@ export const ScopeBreakdownChart: React.FC<ScopeBreakdownChartProps> = ({
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: 'rgba(15, 23, 42, 0.95)',
+          backgroundColor: 'rgba(28, 25, 23, 0.95)',
           titleFont: { family: 'inherit', size: 12, weight: 700 },
           bodyFont: { family: 'inherit', size: 11, weight: 500 },
           padding: 12,
@@ -101,7 +101,7 @@ export const ScopeBreakdownChart: React.FC<ScopeBreakdownChartProps> = ({
           borderWidth: 1,
           boxPadding: 4,
           callbacks: {
-            title: () => '', // Prevents awkward duplicate / truncated title
+            title: () => '',
             label: (context: any) => {
               const val = Number(context.parsed ?? 0);
               const pct = total > 0 ? ((val / total) * 100).toFixed(1) : '0';
@@ -124,24 +124,21 @@ export const ScopeBreakdownChart: React.FC<ScopeBreakdownChartProps> = ({
   }, [effectiveScope, s1, s2, s3, total, s1Pct, s2Pct, s3Pct, isBangla]);
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm hover:shadow-md transition-all duration-300 space-y-4">
-      {/* Top Ambient Glow */}
-      <div className="absolute top-0 right-0 w-64 h-32 bg-gradient-to-bl from-sky-100/40 via-indigo-50/20 to-transparent pointer-events-none rounded-tr-3xl" />
-
+    <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs space-y-4">
       {/* Header */}
-      <div className="relative flex items-center justify-between border-b border-slate-100 pb-4">
+      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
         <div>
           <div className="flex items-center gap-2">
-            <span className="p-2 rounded-xl bg-sky-50 text-sky-700 border border-sky-200/60 shadow-sm">
-              <PieChart size={16} />
+            <span className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700">
+              <PieChart size={15} />
             </span>
-            <h3 className="font-bold text-slate-900 text-base md:text-lg tracking-tight">
-              {isBangla ? 'স্কোপভিত্তিক নির্গমন বিভাজন' : 'Scope Breakdown Analysis'}
+            <h3 className="font-bold text-slate-900 text-sm md:text-base">
+              {isBangla ? 'স্কোপভিত্তিক নির্গমন বিভাজন' : 'Scope Breakdown'}
             </h3>
           </div>
-          <p className="text-xs text-slate-500 mt-1 pl-9">
+          <p className="text-[11px] text-slate-500 mt-0.5">
             {isBangla
-              ? 'GHG প্রোটোকল কর্পোরেট অ্যাকাউন্টিং স্ট্যান্ডার্ড অনুযায়ী'
+              ? 'GHG প্রোটোকল কর্পোরেট স্ট্যান্ডার্ড অনুযায়ী'
               : 'GHG Protocol Corporate Standard classification'}
           </p>
         </div>
@@ -149,30 +146,30 @@ export const ScopeBreakdownChart: React.FC<ScopeBreakdownChartProps> = ({
         {activeScope !== null && (
           <button
             onClick={() => setActiveScope(null)}
-            className="text-[11px] font-semibold text-slate-500 hover:text-slate-800 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200"
+            className="text-[11px] font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200 cursor-pointer"
           >
-            {isBangla ? 'রিসেট ভিউ' : 'Reset View'}
+            {isBangla ? 'রিসেট' : 'Reset'}
           </button>
         )}
       </div>
 
-      {/* Interactive Donut with Center Hub */}
-      <div className="relative h-56 w-full flex items-center justify-center py-2">
+      {/* Donut with Center Value */}
+      <div className="relative h-52 w-full flex items-center justify-center py-1">
         <Doughnut data={chartData} options={options} />
 
-        {/* Center Interactive Hub with Ambient Glow Ring */}
+        {/* Center Hub */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="w-32 h-32 rounded-full border border-slate-200/60 bg-white/90 shadow-sm backdrop-blur-xs flex flex-col items-center justify-center transition-all duration-500 transform hover:scale-105">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+          <div className="w-28 h-28 rounded-full border border-slate-200 bg-white/95 shadow-xs flex flex-col items-center justify-center">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
               {centerValue.label}
             </span>
-            <span className="text-3xl font-black text-slate-900 tracking-tight mt-0.5 transition-all duration-300">
+            <span className="text-2xl font-black text-slate-900 tracking-tight mt-0.5">
               {isBangla ? toBanglaDigits(centerValue.val.toFixed(2)) : centerValue.val.toFixed(2)}
             </span>
             <div className="flex items-center gap-1 mt-0.5">
-              <span className="text-[11px] font-bold text-teal-700">tCO₂e</span>
+              <span className="text-[10px] font-bold text-emerald-700">tCO₂e</span>
               {activeScope !== null && (
-                <span className="text-[10px] font-bold px-1.5 py-0.2 bg-teal-100 text-teal-800 rounded-md animate-pulse">
+                <span className="text-[10px] font-bold px-1.5 py-0.2 bg-emerald-50 text-emerald-800 rounded">
                   {isBangla ? toBanglaDigits(centerValue.pct.toFixed(0)) : centerValue.pct.toFixed(0)}%
                 </span>
               )}
@@ -181,125 +178,113 @@ export const ScopeBreakdownChart: React.FC<ScopeBreakdownChartProps> = ({
         </div>
       </div>
 
-      {/* Rich Scope Cards */}
+      {/* Scope Breakdown Rows */}
       <div className="space-y-2 pt-1 border-t border-slate-100">
         {/* Scope 1 */}
         <div
           onClick={() => setActiveScope(activeScope === 1 ? null : 1)}
-          className={`p-3 rounded-2xl border transition-all duration-300 cursor-pointer flex flex-col gap-1.5 hover:-translate-y-0.5 ${
+          className={`p-2.5 rounded-xl border transition cursor-pointer flex flex-col gap-1.5 ${
             effectiveScope === 1
-              ? 'bg-orange-50/90 border-orange-300 shadow-md ring-2 ring-orange-200 scale-101'
-              : 'bg-slate-50/60 border-slate-200/70 hover:bg-slate-50 hover:border-orange-200'
+              ? 'bg-amber-50/70 border-amber-300 ring-1 ring-amber-200'
+              : 'bg-slate-50 border-slate-200 hover:bg-slate-100/60'
           }`}
         >
           <div className="flex items-center justify-between text-xs">
             <div className="flex items-center gap-2">
-              <span className={`p-1 rounded-lg bg-orange-100 text-orange-600 transition-transform duration-300 ${effectiveScope === 1 ? 'scale-110' : ''}`}>
-                <Flame size={13} />
+              <span className="p-1 rounded-md bg-amber-100 text-amber-800">
+                <Flame size={12} />
               </span>
               <span className="font-bold text-slate-800">
                 {isBangla ? 'স্কোপ ১: প্রত্যক্ষ জ্বালানি (ডিজেল ও গ্যাস)' : 'Scope 1: Direct Fuels (Diesel & Gas)'}
               </span>
             </div>
             <div className="flex items-center gap-1.5 font-mono">
-              <span className="font-black text-slate-900">
+              <span className="font-bold text-slate-900">
                 {isBangla ? toBanglaDigits(s1.toFixed(2)) : s1.toFixed(2)}
               </span>
-              <span className="text-[11px] text-slate-400">tCO₂e</span>
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-orange-100 text-orange-800">
+              <span className="text-[10px] text-slate-400">tCO₂e</span>
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">
                 {isBangla ? toBanglaDigits(s1Pct.toFixed(1)) : s1Pct.toFixed(1)}%
               </span>
             </div>
           </div>
-          {/* Progress Bar with Shimmer */}
-          <div className="relative w-full h-1.5 bg-slate-200/80 rounded-full overflow-hidden">
+          <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
             <div
               style={{ width: `${s1Pct}%` }}
-              className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-700 ease-out"
+              className="h-full bg-amber-600 rounded-full transition-all duration-500"
             />
-            {effectiveScope === 1 && (
-              <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/50 to-transparent animate-shimmer pointer-events-none" />
-            )}
           </div>
         </div>
 
         {/* Scope 2 */}
         <div
           onClick={() => setActiveScope(activeScope === 2 ? null : 2)}
-          className={`p-3 rounded-2xl border transition-all duration-300 cursor-pointer flex flex-col gap-1.5 hover:-translate-y-0.5 ${
+          className={`p-2.5 rounded-xl border transition cursor-pointer flex flex-col gap-1.5 ${
             effectiveScope === 2
-              ? 'bg-sky-50/90 border-sky-300 shadow-md ring-2 ring-sky-200 scale-101'
-              : 'bg-slate-50/60 border-slate-200/70 hover:bg-slate-50 hover:border-sky-200'
+              ? 'bg-emerald-50/70 border-emerald-300 ring-1 ring-emerald-200'
+              : 'bg-slate-50 border-slate-200 hover:bg-slate-100/60'
           }`}
         >
           <div className="flex items-center justify-between text-xs">
             <div className="flex items-center gap-2">
-              <span className={`p-1 rounded-lg bg-sky-100 text-sky-600 transition-transform duration-300 ${effectiveScope === 2 ? 'scale-110' : ''}`}>
-                <Zap size={13} />
+              <span className="p-1 rounded-md bg-emerald-100 text-emerald-800">
+                <Zap size={12} />
               </span>
               <span className="font-bold text-slate-800">
-                {isBangla ? 'স্কোপ ২: গ্রিড বিদ্যুৎ (DESCO / PHED)' : 'Scope 2: Grid Power (DESCO / PHED)'}
+                {isBangla ? 'স্কোপ ২: গ্রিড বিদ্যুৎ (DESCO / PHED)' : 'Scope 2: Grid Power (DESCO)'}
               </span>
             </div>
             <div className="flex items-center gap-1.5 font-mono">
-              <span className="font-black text-slate-900">
+              <span className="font-bold text-slate-900">
                 {isBangla ? toBanglaDigits(s2.toFixed(2)) : s2.toFixed(2)}
               </span>
-              <span className="text-[11px] text-slate-400">tCO₂e</span>
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-sky-100 text-sky-800">
+              <span className="text-[10px] text-slate-400">tCO₂e</span>
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">
                 {isBangla ? toBanglaDigits(s2Pct.toFixed(1)) : s2Pct.toFixed(1)}%
               </span>
             </div>
           </div>
-          {/* Progress Bar with Shimmer */}
-          <div className="relative w-full h-1.5 bg-slate-200/80 rounded-full overflow-hidden">
+          <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
             <div
               style={{ width: `${s2Pct}%` }}
-              className="h-full bg-gradient-to-r from-sky-400 to-blue-600 rounded-full transition-all duration-700 ease-out"
+              className="h-full bg-emerald-600 rounded-full transition-all duration-500"
             />
-            {effectiveScope === 2 && (
-              <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/50 to-transparent animate-shimmer pointer-events-none" />
-            )}
           </div>
         </div>
 
         {/* Scope 3 */}
         <div
           onClick={() => setActiveScope(activeScope === 3 ? null : 3)}
-          className={`p-3 rounded-2xl border transition-all duration-300 cursor-pointer flex flex-col gap-1.5 hover:-translate-y-0.5 ${
+          className={`p-2.5 rounded-xl border transition cursor-pointer flex flex-col gap-1.5 ${
             effectiveScope === 3
-              ? 'bg-purple-50/90 border-purple-300 shadow-md ring-2 ring-purple-200 scale-101'
-              : 'bg-slate-50/60 border-slate-200/70 hover:bg-slate-50 hover:border-purple-200'
+              ? 'bg-slate-100 border-slate-400 ring-1 ring-slate-300'
+              : 'bg-slate-50 border-slate-200 hover:bg-slate-100/60'
           }`}
         >
           <div className="flex items-center justify-between text-xs">
             <div className="flex items-center gap-2">
-              <span className={`p-1 rounded-lg bg-purple-100 text-purple-600 transition-transform duration-300 ${effectiveScope === 3 ? 'scale-110' : ''}`}>
-                <Truck size={13} />
+              <span className="p-1 rounded-md bg-slate-200 text-slate-700">
+                <Truck size={12} />
               </span>
               <span className="font-bold text-slate-800">
-                {isBangla ? 'স্কোপ ৩: পরিবহন ও ফ্রেইট চালান' : 'Scope 3: Freight & Transport Slips'}
+                {isBangla ? 'স্কোপ ৩: পরিবহন ও ফ্রেইট' : 'Scope 3: Freight & Logistics'}
               </span>
             </div>
             <div className="flex items-center gap-1.5 font-mono">
-              <span className="font-black text-slate-900">
+              <span className="font-bold text-slate-900">
                 {isBangla ? toBanglaDigits(s3.toFixed(2)) : s3.toFixed(2)}
               </span>
-              <span className="text-[11px] text-slate-400">tCO₂e</span>
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-purple-100 text-purple-800">
+              <span className="text-[10px] text-slate-400">tCO₂e</span>
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-200 text-slate-800">
                 {isBangla ? toBanglaDigits(s3Pct.toFixed(1)) : s3Pct.toFixed(1)}%
               </span>
             </div>
           </div>
-          {/* Progress Bar with Shimmer */}
-          <div className="relative w-full h-1.5 bg-slate-200/80 rounded-full overflow-hidden">
+          <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
             <div
               style={{ width: `${s3Pct}%` }}
-              className="h-full bg-gradient-to-r from-purple-400 to-indigo-600 rounded-full transition-all duration-700 ease-out"
+              className="h-full bg-slate-500 rounded-full transition-all duration-500"
             />
-            {effectiveScope === 3 && (
-              <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/50 to-transparent animate-shimmer pointer-events-none" />
-            )}
           </div>
         </div>
       </div>

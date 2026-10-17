@@ -157,10 +157,10 @@ export const RecommendationsView: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header & Tabs */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm space-y-4">
+      <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-teal-800 text-white rounded-2xl shadow-sm">
+            <div className="p-2.5 bg-slate-900 text-white rounded-2xl shadow-xs">
               <TrendingDown size={22} />
             </div>
             <div>
@@ -168,8 +168,8 @@ export const RecommendationsView: React.FC = () => {
                 <h2 className="text-base md:text-lg font-black text-slate-900">
                   {isBangla ? 'গতিশীল এআই ও প্রমাণভিত্তিক সুপারিশমালা' : 'Dynamic AI & Evidence-Based Recommendations'}
                 </h2>
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-violet-100 text-violet-800 border border-violet-200">
-                  <Sparkles size={11} className="text-violet-600" />
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+                  <Sparkles size={11} className="text-emerald-600" />
                   {isBangla ? 'রিয়েল-টাইম এআই চালিত' : 'Real-Time AI Powered'}
                 </span>
               </div>
@@ -186,29 +186,29 @@ export const RecommendationsView: React.FC = () => {
               type="button"
               onClick={handleRecalculate}
               disabled={recalculating || loading}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-violet-900 bg-violet-50 hover:bg-violet-100 border border-violet-200 transition disabled:opacity-50 cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition disabled:opacity-50 cursor-pointer"
               title={isBangla ? 'সর্বশেষ বিল ও ফ্ল্যাগ অনুযায়ী পুনরায় হিসাব করুন' : 'Recalculate with latest bills and flags'}
             >
-              <Sparkles size={13} className={recalculating ? 'animate-spin text-violet-600' : 'text-violet-600'} />
+              <Sparkles size={13} className={recalculating ? 'animate-spin text-emerald-600' : 'text-emerald-600'} />
               {recalculating
                 ? (isBangla ? 'হিসাব হচ্ছে...' : 'Recalculating...')
                 : (isBangla ? 'এআই পুনর্গননা' : 'Recalculate with AI')}
             </button>
 
             {/* View Switcher: Action Cards vs MACC Curve */}
-            <div className="flex bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+            <div className="flex bg-slate-100 p-1 rounded-xl text-xs font-semibold border border-slate-200">
               <button
                 type="button"
                 onClick={() => setActiveTab('cards')}
                 className={`px-3 py-1.5 rounded-lg transition cursor-pointer flex items-center gap-1.5 ${
                   activeTab === 'cards'
-                    ? 'bg-white text-teal-900 shadow-xs font-bold'
+                    ? 'bg-slate-900 text-white shadow-xs font-bold'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
                 <span>{isBangla ? 'পদক্ষেপ কার্ডসমূহ' : 'Action Cards'}</span>
                 <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                  activeTab === 'cards' ? 'bg-teal-100 text-teal-800' : 'bg-slate-200 text-slate-600'
+                  activeTab === 'cards' ? 'bg-slate-800 text-white' : 'bg-slate-200 text-slate-600'
                 }`}>
                   {isBangla ? toBanglaDigits(filtered.length) : filtered.length}
                 </span>
@@ -218,14 +218,14 @@ export const RecommendationsView: React.FC = () => {
                 onClick={() => setActiveTab('macc')}
                 className={`px-3 py-1.5 rounded-lg transition cursor-pointer flex items-center gap-1.5 ${
                   activeTab === 'macc'
-                    ? 'bg-white text-teal-900 shadow-xs font-bold'
+                    ? 'bg-slate-900 text-white shadow-xs font-bold'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
                 <BarChart2 size={13} />
                 <span>{isBangla ? 'MACC চার্ট' : 'MACC Curve'}</span>
                 <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                  activeTab === 'macc' ? 'bg-teal-100 text-teal-800' : 'bg-slate-200 text-slate-600'
+                  activeTab === 'macc' ? 'bg-slate-800 text-white' : 'bg-slate-200 text-slate-600'
                 }`}>
                   {isBangla ? toBanglaDigits(filtered.length) : filtered.length}
                 </span>
@@ -235,7 +235,7 @@ export const RecommendationsView: React.FC = () => {
             <button
               type="button"
               onClick={loadData}
-              className="p-1.5 text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-lg transition cursor-pointer"
+              className="p-1.5 text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-lg transition cursor-pointer"
               title={isBangla ? 'রিফ্রেশ' : 'Refresh'}
             >
               <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
@@ -397,15 +397,15 @@ export const RecommendationsView: React.FC = () => {
         )}
 
         {/* Honesty & Range Rules Notice */}
-        <div className="p-3 bg-teal-50 border border-teal-200 rounded-xl text-xs text-teal-900 flex items-start gap-2.5">
-          <ShieldCheck size={18} className="text-teal-700 shrink-0 mt-0.5" />
+        <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 flex items-start gap-2.5">
+          <ShieldCheck size={18} className="text-emerald-600 shrink-0 mt-0.5" />
           <div>
             <span className="font-bold">
               {isBangla
                 ? 'দায়িত্বশীল হিসাব ও পরিসীমা নীতি (Honest Ranges Protocol):'
                 : 'Scientific Range Protocol:'}
             </span>
-            <p className="text-slate-600 mt-0.5 text-[11px]">
+            <p className="text-slate-500 mt-0.5 text-[11px]">
               {isBangla
                 ? 'কার্বনবিলে কখনো অনুমাননির্ভর একক সংখ্যা দেওয়া হয় না। সাশ্রয়, পে-ব্যাক ও বিনিয়োগ সর্বদা ন্যূনতম, গড় ও সর্বোচ্চ পরিসীমায় (Low/Typical/High) প্রদর্শিত হয়।'
                 : 'Under CarbonBill engineering standards, financial savings and payback are always presented as calibrated ranges (Low, Typical, High), never deceptive single-point estimates.'}
@@ -425,7 +425,7 @@ export const RecommendationsView: React.FC = () => {
                 onClick={() => setCategoryFilter(cat.id)}
                 className={`px-3 py-1 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer ${
                   isSelected
-                    ? 'bg-teal-900 text-white shadow-xs font-bold'
+                    ? 'bg-slate-900 text-white shadow-xs font-bold'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
@@ -433,7 +433,7 @@ export const RecommendationsView: React.FC = () => {
                 <span
                   className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
                     isSelected
-                      ? 'bg-teal-800 text-teal-100'
+                      ? 'bg-slate-800 text-white'
                       : count > 0
                       ? 'bg-slate-200 text-slate-700'
                       : 'bg-slate-100 text-slate-400'
@@ -449,8 +449,8 @@ export const RecommendationsView: React.FC = () => {
 
       {/* Main View Body */}
       {loading ? (
-        <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center text-slate-500 text-xs font-semibold">
-          <RefreshCw size={20} className="animate-spin mx-auto mb-2 text-teal-700" />
+        <div className="bg-white border border-slate-200/90 rounded-2xl p-12 text-center text-slate-500 text-xs font-semibold shadow-xs">
+          <RefreshCw size={20} className="animate-spin mx-auto mb-2 text-emerald-600" />
           {isBangla ? 'সুপারিশমালা প্রস্তুত হচ্ছে...' : 'Loading recommendations...'}
         </div>
       ) : activeTab === 'macc' ? (

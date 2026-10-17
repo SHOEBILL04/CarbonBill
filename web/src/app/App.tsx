@@ -94,11 +94,11 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
+      <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-emerald-100 selection:text-emerald-900">
         {view === 'floor' && (
           <Suspense
             fallback={
-              <div className="min-h-screen flex items-center justify-center p-8 text-center text-sm font-semibold text-slate-500">
+              <div className="min-h-screen flex items-center justify-center p-8 text-center text-sm font-semibold text-slate-600">
                 {i18n.language === 'bn' ? 'ফ্লোর মোড লোড হচ্ছে...' : 'Loading Floor Mode...'}
               </div>
             }
@@ -113,7 +113,7 @@ export default function App() {
         {view === 'review' && (
           <Suspense
             fallback={
-              <div className="min-h-screen flex items-center justify-center p-8 text-center text-sm font-semibold text-slate-500">
+              <div className="min-h-screen flex items-center justify-center p-8 text-center text-sm font-semibold text-slate-600">
                 {i18n.language === 'bn' ? 'পর্যালোচনা ওয়ার্কস্পেস লোড হচ্ছে...' : 'Loading Review Workspace...'}
               </div>
             }

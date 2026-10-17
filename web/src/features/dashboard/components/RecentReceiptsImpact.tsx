@@ -59,24 +59,36 @@ export const RecentReceiptsImpact: React.FC<RecentReceiptsImpactProps> = ({
   const totalReceiptsTco2e = receipts.reduce((sum, r) => sum + (r.emissionsTco2e || 0), 0);
 
   return (
-    <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm space-y-4">
+    <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
       {/* Title & Stats */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
         <div className="flex items-center gap-2">
-          <FileText size={18} className="text-teal-700" />
+          <FileText size={17} className="text-emerald-700" />
           <h3 className="font-bold text-slate-900 text-sm md:text-base">
             {isBangla ? 'রসিদের ভিত্তিতে কার্বন নির্গমন প্রভাব' : 'Evidence Receipts & Footprint Impact'}
           </h3>
-          <span className="px-2 py-0.5 bg-teal-100 text-teal-800 text-[11px] font-bold rounded-full">
+          <span className="px-2 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] font-bold rounded-full">
             {isBangla ? `${toBanglaDigits(receipts.length)}টি রসিদ` : `${receipts.length} receipts`}
           </span>
         </div>
 
-        <div className="text-xs font-semibold text-slate-600 flex items-center gap-1.5">
-          <span>{isBangla ? 'রসিদ থেকে মোট যোগ:' : 'Total Impact from Receipts:'}</span>
-          <span className="text-teal-800 font-black">
-            +{isBangla ? toBanglaDigits(totalReceiptsTco2e.toFixed(3)) : totalReceiptsTco2e.toFixed(3)} tCO₂e
-          </span>
+        <div className="flex items-center gap-3">
+          <div className="text-xs font-semibold text-slate-600 flex items-center gap-1.5">
+            <span>{isBangla ? 'রসিদ থেকে নির্গমন:' : 'Receipt Emissions:'}</span>
+            <span className="text-emerald-700 font-black">
+              +{isBangla ? toBanglaDigits(totalReceiptsTco2e.toFixed(3)) : totalReceiptsTco2e.toFixed(3)} tCO₂e
+            </span>
+          </div>
+
+          {onGoToReview && (
+            <button
+              onClick={() => onGoToReview()}
+              className="text-xs font-bold text-emerald-700 hover:text-emerald-800 hover:underline hidden sm:inline-flex items-center gap-1 cursor-pointer"
+            >
+              <span>{isBangla ? 'সব দেখুন' : 'View all'}</span>
+              <ArrowRight size={12} />
+            </button>
+          )}
         </div>
       </div>
 
@@ -84,7 +96,7 @@ export const RecentReceiptsImpact: React.FC<RecentReceiptsImpactProps> = ({
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs text-slate-700">
           <thead>
-            <tr className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200/70 text-[11px]">
+            <tr className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200 text-[11px]">
               <th className="py-2.5 px-3">{isBangla ? 'রসিদ ও নথি' : 'Receipt & Document'}</th>
               <th className="py-2.5 px-3">{isBangla ? 'সরবরাহকারী / বিল নং' : 'Vendor / Bill No'}</th>
               <th className="py-2.5 px-3">{isBangla ? 'পরিমাণ ও খরচ' : 'Quantity & Cost'}</th>
@@ -98,7 +110,7 @@ export const RecentReceiptsImpact: React.FC<RecentReceiptsImpactProps> = ({
               const scopeLabel = r.scope ? `Scope ${r.scope}` : (r.docType?.includes('Electric') ? 'Scope 2' : 'Scope 1');
 
               return (
-                <tr key={r.documentId} className="hover:bg-slate-50/70 transition">
+                <tr key={r.documentId} className="hover:bg-slate-50/80 transition">
                   {/* File & Type */}
                   <td className="py-3 px-3">
                     <div className="flex items-center gap-2">
@@ -126,7 +138,7 @@ export const RecentReceiptsImpact: React.FC<RecentReceiptsImpactProps> = ({
                         {r.billNumber ? `#${r.billNumber}` : (isBangla ? 'বিল নং নেই' : 'No Bill #')}
                       </span>
                       {r.period && (
-                        <span className="text-[10px] font-semibold px-1.5 py-0.5 bg-teal-50 text-teal-700 rounded border border-teal-100">
+                        <span className="text-[10px] font-semibold px-1.5 py-0.5 bg-emerald-50 text-emerald-800 rounded border border-emerald-200">
                           {r.period}
                         </span>
                       )}
@@ -150,7 +162,7 @@ export const RecentReceiptsImpact: React.FC<RecentReceiptsImpactProps> = ({
                   {/* Emission Impact */}
                   <td className="py-3 px-3">
                     <div className="flex items-center gap-1.5">
-                      <span className="font-black text-teal-800 text-xs">
+                      <span className="font-black text-emerald-700 text-xs">
                         +{isBangla ? toBanglaDigits(r.emissionsTco2e.toFixed(3)) : r.emissionsTco2e.toFixed(3)} tCO₂e
                       </span>
                       <span className="text-[10px] font-bold px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded">
@@ -163,7 +175,7 @@ export const RecentReceiptsImpact: React.FC<RecentReceiptsImpactProps> = ({
                   <td className="py-3 px-3">
                     <div className="flex items-center gap-2">
                       {isVerified ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[11px] font-bold rounded-md">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-bold rounded-md">
                           <CheckCircle2 size={12} />
                           {isBangla ? 'যাচাইকৃত' : 'Verified'}
                         </span>
@@ -173,7 +185,7 @@ export const RecentReceiptsImpact: React.FC<RecentReceiptsImpactProps> = ({
                             type="button"
                             disabled={confirmingId === r.documentId}
                             onClick={() => handleQuickApprove(r.documentId)}
-                            className="inline-flex items-center gap-1 px-2 py-1 bg-teal-700 text-white text-[11px] font-bold rounded-lg hover:bg-teal-800 shadow-2xs transition disabled:opacity-50"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-600 text-white text-[11px] font-bold rounded-lg hover:bg-emerald-700 shadow-2xs transition disabled:opacity-50 cursor-pointer"
                             title={isBangla ? 'সরাসরি অনুমোদন করুন' : 'Confirm & add to verified inventory'}
                           >
                             {confirmingId === r.documentId ? (
@@ -188,7 +200,7 @@ export const RecentReceiptsImpact: React.FC<RecentReceiptsImpactProps> = ({
                             <button
                               type="button"
                               onClick={() => onGoToReview(r.documentId)}
-                              className="p-1 text-slate-400 hover:text-slate-700 transition"
+                              className="p-1 text-slate-400 hover:text-slate-700 transition cursor-pointer"
                               title={isBangla ? 'রিভিউ কিউতে সম্পাদনা করুন' : 'Edit in review queue'}
                             >
                               <ArrowRight size={14} />

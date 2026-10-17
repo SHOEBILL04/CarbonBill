@@ -562,7 +562,7 @@ export function CaptureScreen({
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-900 font-sans pb-16">
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans pb-16">
       {/* Hidden File Inputs */}
       <input
         ref={fileInputRef}
@@ -584,13 +584,13 @@ export function CaptureScreen({
       <canvas ref={canvasRef} className="hidden" />
 
       {/* Top PC Web Navigation Bar */}
-      <header className="sticky top-0 z-30 bg-white border-b border-slate-200 shadow-xs">
+      <header className="sticky top-0 z-30 bg-slate-900 border-b border-slate-800 shadow-sm text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {onBack && (
               <button
                 onClick={onBack}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-200 bg-slate-800 hover:bg-slate-700 rounded-xl border border-slate-700 transition cursor-pointer"
                 title={isBangla ? 'ড্যাশবোর্ডে ফিরে যান' : 'Back to Dashboard'}
               >
                 <ArrowLeft size={16} />
@@ -598,19 +598,19 @@ export function CaptureScreen({
               </button>
             )}
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-950/5 border border-emerald-800/10 flex items-center justify-center p-1 shadow-2xs">
+              <div className="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center p-1 shadow-inner">
                 <img src="/logo-icon.png" alt="CarbonBill" className="w-8 h-8 object-contain" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xl font-black text-emerald-800 tracking-tight">
+                  <span className="text-xl font-black text-white tracking-tight">
                     {isBangla ? 'কার্বনবিল' : 'CarbonBill'}
                   </span>
-                  <span className="hidden sm:inline text-xs font-bold px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-md border border-emerald-200">
+                  <span className="hidden sm:inline text-xs font-bold px-2 py-0.5 bg-slate-800 text-slate-300 rounded-md border border-slate-700">
                     {isBangla ? 'ইনজেশন পোর্টাল' : 'Ingestion Portal'}
                   </span>
                 </div>
-                <p className="text-xs font-medium text-slate-500">
+                <p className="text-xs font-medium text-slate-400">
                   {isBangla ? 'ফ্যাক্টরি ফ্লোর চালান ও ইউটিলিটি বিল ইনজেশন' : 'Factory Floor Challan & Utility Bill Ingestion'}
                 </p>
               </div>
@@ -621,7 +621,7 @@ export function CaptureScreen({
             {/* Language Switcher */}
             <button
               onClick={() => i18n.changeLanguage(isBangla ? 'en' : 'bn')}
-              className="text-xs font-semibold px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border border-slate-200 transition"
+              className="text-xs font-semibold px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl border border-slate-700 transition cursor-pointer"
               title="Switch Language / ভাষা পরিবর্তন"
             >
               {isBangla ? 'English' : 'বাংলা'}
@@ -630,17 +630,17 @@ export function CaptureScreen({
             {/* Batch Mode Switch */}
             <button
               onClick={() => setIsBatchMode(!isBatchMode)}
-              className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-xs ${
+              className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer ${
                 isBatchMode
-                  ? 'bg-emerald-700 text-white shadow-emerald-200'
-                  : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50'
+                  ? 'bg-emerald-600 text-white border border-emerald-500'
+                  : 'bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700'
               }`}
               title={isBangla ? 'একের পর এক একাধিক চালান স্ক্যান করতে ব্যাচ মোড ব্যবহার করুন' : 'Enable batch mode to capture multiple challans sequentially'}
             >
               <Layers size={15} />
               <span>{isBangla ? 'ব্যাচ মোড' : 'Batch Mode'}</span>
               {isBatchMode && (
-                <span className="bg-emerald-900 text-emerald-100 text-[10px] px-1.5 py-0.2 rounded-full font-mono">
+                <span className="bg-slate-950 text-emerald-300 text-[10px] px-1.5 py-0.2 rounded-full font-mono">
                   {formatLocalizedNumber(batchCount, isBangla)}
                 </span>
               )}
@@ -649,10 +649,10 @@ export function CaptureScreen({
             {/* Manual Mode Toggle */}
             <button
               onClick={() => setIsManualMode(!isManualMode)}
-              className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-xs ${
+              className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer ${
                 isManualMode
                   ? 'bg-amber-600 text-white shadow-amber-200'
-                  : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50'
+                  : 'bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700'
               }`}
             >
               <FileText size={15} />
