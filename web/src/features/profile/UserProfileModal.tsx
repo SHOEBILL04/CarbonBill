@@ -25,6 +25,10 @@ import {
   Award,
   Check,
   FileCheck,
+  Flame,
+  Zap,
+  Factory,
+  Sun,
 } from 'lucide-react';
 
 interface UserProfileModalProps {
@@ -110,7 +114,7 @@ export function UserProfileModal({
   const { i18n } = useTranslation();
   const isBangla = i18n.language === 'bn';
 
-  const [activeTab, setActiveTab] = useState<'profile' | 'team'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'team' | 'facility'>('profile');
   const [fullName, setFullName] = useState<string>(currentUser.fullName || '');
   const [phone, setPhone] = useState<string>('');
   const [selectedRole, setSelectedRole] = useState<string>(currentUser.role || 'Accountant');
@@ -121,13 +125,90 @@ export function UserProfileModal({
   const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  // Facility equipment profile state
+  const [facSector, setFacSector] = useState<string>('RMG');
+  const [facHasBoiler, setFacHasBoiler] = useState<boolean>(true);
+  const [facHasGenset, setFacHasGenset] = useState<boolean>(true);
+  const [facHasFloor, setFacHasFloor] = useState<boolean>(true);
+  const [facOwnership, setFacOwnership] = useState<string>('Owned');
+  const [facRoofArea, setFacRoofArea] = useState<number>(25000);
+  const [facBudgetBand, setFacBudgetBand] = useState<string>('Medium');
+  const [loadingFac, setLoadingFac] = useState<boolean>(false);
+  const [savingFac, setSavingFac] = useState<boolean>(false);
+
   useEffect(() => {
     if (isOpen) {
       setFullName(currentUser.fullName || '');
       setSelectedRole(currentUser.role || 'Accountant');
       loadTeam();
+      loadFacilityProfile();
     }
   }, [isOpen, currentUser]);
+
+  async function loadFacilityProfile() {
+    setLoadingFac(true);
+    try {
+      const res = await fetch('/api/v1/profile/facility', {
+        headers: {
+          Authorization: `Bearer ${getStoredToken()}`,
+        },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data) {
+          if (data.sector) setFacSector(data.sector);
+          if (typeof data.hasBoiler === 'boolean') setFacHasBoiler(data.hasBoiler);
+          if (typeof data.hasGenset === 'boolean') setFacHasGenset(data.hasGenset);
+          if (typeof data.hasProductionFloor === 'boolean') setFacHasFloor(data.hasProductionFloor);
+          if (data.buildingOwnership) setFacOwnership(data.buildingOwnership);
+          if (data.roofAreaSqft != null) setFacRoofArea(Number(data.roofAreaSqft));
+          if (data.budgetBand) setFacBudgetBand(data.budgetBand);
+        }
+      }
+    } catch {
+      // fallback
+    } finally {
+      setLoadingFac(false);
+    }
+  }
+
+  async function handleSaveFacilityProfile(e: React.FormEvent) {
+    e.preventDefault();
+    setSavingFac(true);
+    try {
+      const res = await fetch('/api/v1/profile/facility', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${getStoredToken()}`,
+        },
+        body: JSON.stringify({
+          sector: facSector,
+          hasBoiler: facHasBoiler,
+          hasGenset: facHasGenset,
+          hasProductionFloor: facHasFloor,
+          buildingOwnership: facOwnership,
+          roofAreaSqft: facRoofArea > 0 ? facRoofArea : null,
+          budgetBand: facBudgetBand,
+        }),
+      });
+
+      if (!res.ok) throw new Error('Failed to update equipment profile');
+
+      showToast(
+        isBangla
+          ? 'কারখানার যন্ত্রপাতি সফলভাবে সংরক্ষিত হয়েছে এবং প্রস্তাবনাসমূহ পুনরায় হিসাব করা হয়েছে!'
+          : 'Facility equipment profile saved and recommendations recalculated!'
+      );
+
+      // Notify recommendations and dashboard
+      window.dispatchEvent(new CustomEvent('carbonbill:recommendations-refresh'));
+    } catch (err: any) {
+      showToast(isBangla ? 'যন্ত্রপাতি সংরক্ষণে সমস্যা হয়েছে।' : `Failed to save equipment: ${err.message}`);
+    } finally {
+      setSavingFac(false);
+    }
+  }
 
   async function loadTeam() {
     setLoadingTeam(true);
@@ -321,6 +402,18 @@ export function UserProfileModal({
               <span className="px-1.5 py-0.2 bg-teal-700 text-teal-100 rounded-full text-[10px]">
                 {teamMembers.length}
               </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('facility')}
+              className={`px-4 py-2 text-xs font-bold rounded-t-xl transition flex items-center gap-2 border-b-2 cursor-pointer ${
+                activeTab === 'facility'
+                  ? 'bg-white text-teal-950 border-white'
+                  : 'text-teal-200 hover:text-white hover:bg-white/5 border-transparent'
+              }`}
+            >
+              <Factory size={15} />
+              {isBangla ? 'কারখানা ও যন্ত্রপাতি' : 'Facility & Equipment'}
             </button>
           </div>
         </div>
@@ -603,6 +696,216 @@ export function UserProfileModal({
                 </p>
               </div>
             </div>
+          )}
+
+          {/* TAB 3: FACILITY & EQUIPMENT */}
+          {activeTab === 'facility' && (
+            <form onSubmit={handleSaveFacilityProfile} className="space-y-6">
+              {loadingFac && (
+                <div className="p-3 text-xs text-teal-700 bg-teal-50 rounded-xl">
+                  {isBangla ? 'যন্ত্রপাতি তথ্য লোড হচ্ছে...' : 'Loading equipment profile...'}
+                </div>
+              )}
+
+              <div className="border border-slate-200 rounded-2xl p-5 bg-slate-50 space-y-4">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-800">
+                    {isBangla ? 'শিল্প ও উৎপাদন খাত (Sector)' : 'Industry Sector'}
+                  </h3>
+                  <p className="text-xs text-slate-500 mb-2">
+                    {isBangla ? 'আপনার কারখানার প্রাথমিক শিল্প বিভাগ।' : 'Primary industrial sub-sector.'}
+                  </p>
+                  <select
+                    value={facSector}
+                    onChange={(e) => setFacSector(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold focus:outline-none focus:border-teal-600 cursor-pointer"
+                  >
+                    <option value="RMG_Woven">{isBangla ? 'ওভেন পোশাক (RMG Woven)' : 'RMG Woven Apparel'}</option>
+                    <option value="RMG_Knit">{isBangla ? 'নিটওয়্যার পোশাক (RMG Knit)' : 'RMG Knitwear'}</option>
+                    <option value="Textile_Dyeing">{isBangla ? 'ডাইং ও ওয়াশিং (Textile Dyeing)' : 'Textile Dyeing & Finishing'}</option>
+                    <option value="Jute_Spinning">{isBangla ? 'পাট শিল্প (Jute Spinning)' : 'Jute & Spinning'}</option>
+                    <option value="Leather_Tannery">{isBangla ? 'চামড়া শিল্প (Leather Tannery)' : 'Leather & Tannery'}</option>
+                  </select>
+                </div>
+
+                {/* Equipment items */}
+                <div className="space-y-2 pt-2">
+                  <h3 className="text-sm font-bold text-slate-800">
+                    {isBangla ? 'চালু যন্ত্রপাতি ও অ্যাসেটসমূহ' : 'Active Equipment & Assets'}
+                  </h3>
+
+                  {/* Boiler */}
+                  <div
+                    onClick={() => setFacHasBoiler(!facHasBoiler)}
+                    className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
+                      facHasBoiler ? 'bg-amber-50/70 border-amber-300 ring-1 ring-amber-300' : 'bg-white border-slate-200 opacity-70'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${facHasBoiler ? 'bg-amber-500 text-white' : 'bg-slate-200 text-slate-500'}`}>
+                        <Flame size={18} />
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-slate-800">
+                          {isBangla ? 'ইন্ডাস্ট্রিয়াল বাষ্পীয় বয়লার (Steam Boiler)' : 'Industrial Steam Boiler'}
+                        </div>
+                        <div className="text-[11px] text-slate-500">
+                          {isBangla
+                            ? 'স্টিম ট্র্যাপ মেরামত ও ইকোনোমাইজারের মাধ্যমে গ্যাস/জ্বালানি সাশ্রয়'
+                            : 'Unlocks steam trap repair & boiler economizer heat recovery'}
+                        </div>
+                      </div>
+                    </div>
+                    <div className={`px-2.5 py-1 rounded-lg text-[11px] font-bold shrink-0 ml-2 ${facHasBoiler ? 'bg-amber-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
+                      {facHasBoiler ? (isBangla ? 'চালু আছে' : 'Active') : (isBangla ? 'নেই' : 'Inactive')}
+                    </div>
+                  </div>
+
+                  {/* Genset */}
+                  <div
+                    onClick={() => setFacHasGenset(!facHasGenset)}
+                    className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
+                      facHasGenset ? 'bg-blue-50/70 border-blue-300 ring-1 ring-blue-300' : 'bg-white border-slate-200 opacity-70'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${facHasGenset ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-500'}`}>
+                        <Zap size={18} />
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-slate-800">
+                          {isBangla ? 'ডিজেল ব্যাকআপ জেনারেটর (Backup Diesel Genset)' : 'Backup Diesel Generator'}
+                        </div>
+                        <div className="text-[11px] text-slate-500">
+                          {isBangla
+                            ? 'লোডশেডিং বিদ্যুৎ ও জেনারেটর অপ্টিমাইজেশন উদ্যোগ'
+                            : 'Unlocks generator right-sizing and diesel fuel efficiency'}
+                        </div>
+                      </div>
+                    </div>
+                    <div className={`px-2.5 py-1 rounded-lg text-[11px] font-bold shrink-0 ml-2 ${facHasGenset ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
+                      {facHasGenset ? (isBangla ? 'চালু আছে' : 'Active') : (isBangla ? 'নেই' : 'Inactive')}
+                    </div>
+                  </div>
+
+                  {/* Floor */}
+                  <div
+                    onClick={() => setFacHasFloor(!facHasFloor)}
+                    className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
+                      facHasFloor ? 'bg-teal-50/70 border-teal-300 ring-1 ring-teal-300' : 'bg-white border-slate-200 opacity-70'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${facHasFloor ? 'bg-teal-600 text-white' : 'bg-slate-200 text-slate-500'}`}>
+                        <Factory size={18} />
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-slate-800">
+                          {isBangla ? 'গার্মেন্টস প্রোডাকশন ফ্লোর ও সেলাই লাইন' : 'Sewing & Production Assembly Floor'}
+                        </div>
+                        <div className="text-[11px] text-slate-500">
+                          {isBangla
+                            ? 'হাই-বে LED লাইটিং ও ইনভার্টার VFD কম্প্রেসর সাশ্রয়'
+                            : 'Unlocks high-bay LED retrofit & VFD compressor inverter'}
+                        </div>
+                      </div>
+                    </div>
+                    <div className={`px-2.5 py-1 rounded-lg text-[11px] font-bold shrink-0 ml-2 ${facHasFloor ? 'bg-teal-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
+                      {facHasFloor ? (isBangla ? 'চালু আছে' : 'Active') : (isBangla ? 'নেই' : 'Inactive')}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Building Ownership & Roof area */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      {isBangla ? 'কারখানা ভবনের মালিকানা' : 'Building Ownership'}
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setFacOwnership('Owned')}
+                        className={`py-2 px-3 rounded-xl border text-xs font-bold text-center transition cursor-pointer ${
+                          facOwnership === 'Owned'
+                            ? 'bg-emerald-50 border-emerald-500 text-emerald-900 ring-1 ring-emerald-500'
+                            : 'bg-white border-slate-200 text-slate-600'
+                        }`}
+                      >
+                        {isBangla ? '🏢 নিজস্ব ভবন (Owned)' : '🏢 Owned'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFacOwnership('Rented')}
+                        className={`py-2 px-3 rounded-xl border text-xs font-bold text-center transition cursor-pointer ${
+                          facOwnership === 'Rented'
+                            ? 'bg-amber-50 border-amber-500 text-amber-900 ring-1 ring-amber-500'
+                            : 'bg-white border-slate-200 text-slate-600'
+                        }`}
+                      >
+                        {isBangla ? '🏬 ভাড়া ভবন (Rented)' : '🏬 Rented'}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      {isBangla ? 'ব্যবহারযোগ্য ছাদের আয়তন (বর্গফুট)' : 'Usable Rooftop Area (sq ft)'}
+                    </label>
+                    <div className="relative">
+                      <Sun className="absolute left-3 top-2.5 text-slate-400" size={16} />
+                      <input
+                        type="number"
+                        min="0"
+                        step="500"
+                        value={facRoofArea}
+                        onChange={(e) => setFacRoofArea(Math.max(0, parseInt(e.target.value) || 0))}
+                        className="w-full pl-9 pr-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-mono font-bold focus:outline-none focus:border-teal-600"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Budget Band */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    {isBangla ? 'বিনিয়োগ বাজেট প্রস্তুতি (Budget Preference)' : 'Investment Budget Preference'}
+                  </label>
+                  <select
+                    value={facBudgetBand}
+                    onChange={(e) => setFacBudgetBand(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold focus:outline-none focus:border-teal-600 cursor-pointer"
+                  >
+                    <option value="Low">
+                      {isBangla ? 'স্বল্প বিনিয়োগ (Quick Payback < 1 yr)' : 'Low Budget (Quick Payback < 1 yr)'}
+                    </option>
+                    <option value="Medium">
+                      {isBangla ? 'মাঝারি বাজেট (Balanced 1-3 yrs)' : 'Medium Budget (Balanced 1-3 yrs)'}
+                    </option>
+                    <option value="High">
+                      {isBangla ? 'উচ্চ বিনিয়োগ (Strategic > 3 yrs)' : 'High Budget (Strategic > 3 yrs)'}
+                    </option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <button
+                  type="submit"
+                  disabled={savingFac}
+                  className="px-6 py-2.5 bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer active:scale-98"
+                >
+                  {savingFac ? (
+                    <span>{isBangla ? 'সংরক্ষণ ও পুনর্হিসাব হচ্ছে...' : 'Saving & Recalculating...'}</span>
+                  ) : (
+                    <>
+                      <Check size={14} />
+                      <span>{isBangla ? 'যন্ত্রপাতি সংরক্ষণ ও সুপারিশ আপডেট করুন' : 'Save & Recalculate Recommendations'}</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           )}
         </div>
       </div>
