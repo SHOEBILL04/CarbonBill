@@ -91,14 +91,39 @@ public class ExtractionService(
         var documentBytes = ms.ToArray();
         ms.Position = 0;
 
-        // 1. Dual OCR (Option C: Tesseract / PaddleOCR / Windows OCR)
-        var rawOcrText = await dualOcrEngine.ExtractRawTextAsync(ms, fileName, contentType, ct);
+        OcrExtractionResult groqResult;
+        string rawOcrText = "";
+
+        var isImage = contentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase) ||
+                      fileName.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
+                      fileName.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase) ||
+                      fileName.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ||
+                      fileName.EndsWith(".webp", StringComparison.OrdinalIgnoreCase);
+
+        // Fast-path for images: Try Groq Vision first (runs in ~1s on Groq LPUs vs 30-60s on Render's 0.1 CPU Tesseract)
+        if (isImage && hasTier3Consent)
+        {
+            groqResult = await groqExtractor.ExtractAsync("", fileName, contentType, hasTier3Consent, documentBytes, ct);
+            if (groqResult.Fields.Any(f => f.FieldName != "ExtractedText" && (!string.IsNullOrWhiteSpace(f.NormalizedValue) || !string.IsNullOrWhiteSpace(f.RawValue))))
+            {
+                logger.LogInformation("Fast-path Groq Vision succeeded for {FileName} in ~1s. Bypassing slow local CPU Tesseract.", fileName);
+                rawOcrText = groqResult.Fields.FirstOrDefault(f => f.FieldName == "ExtractedText")?.RawValue ?? "";
+            }
+            else
+            {
+                // Fallback to local OCR if Vision did not produce fields
+                rawOcrText = await dualOcrEngine.ExtractRawTextAsync(ms, fileName, contentType, ct);
+                groqResult = await groqExtractor.ExtractAsync(rawOcrText, fileName, contentType, hasTier3Consent, documentBytes, ct);
+            }
+        }
+        else
+        {
+            rawOcrText = await dualOcrEngine.ExtractRawTextAsync(ms, fileName, contentType, ct);
+            groqResult = await groqExtractor.ExtractAsync(rawOcrText, fileName, contentType, hasTier3Consent, documentBytes, ct);
+        }
 
         // 2. Classify Document Type
         var classification = DocumentClassifier.Classify(rawOcrText, fileName);
-
-        // 3. Groq LLM / Vision Semantic Intelligence with consent gating
-        var groqResult = await groqExtractor.ExtractAsync(rawOcrText, fileName, contentType, hasTier3Consent, documentBytes, ct);
 
         // 4. Save ExtractionRun and ExtractedFields
         var extractionRunId = Guid.NewGuid();

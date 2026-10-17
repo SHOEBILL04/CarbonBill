@@ -232,8 +232,11 @@ public class DualOcrEngine(ILogger<DualOcrEngine> logger) : IDualOcrEngine
             using var process = Process.Start(psi);
             if (process == null) return null;
 
-            var errTask = process.StandardError.ReadToEndAsync(ct);
-            await process.WaitForExitAsync(ct);
+            using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            timeoutCts.CancelAfter(TimeSpan.FromSeconds(20));
+
+            var errTask = process.StandardError.ReadToEndAsync(timeoutCts.Token);
+            await process.WaitForExitAsync(timeoutCts.Token);
             var err = await errTask;
 
             if (File.Exists(tempSidecar))
@@ -400,9 +403,12 @@ public class DualOcrEngine(ILogger<DualOcrEngine> logger) : IDualOcrEngine
                     CreateNoWindow = true
                 }
             };
+            using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            timeoutCts.CancelAfter(TimeSpan.FromSeconds(15));
+
             process.Start();
-            var output = await process.StandardOutput.ReadToEndAsync(ct);
-            await process.WaitForExitAsync(ct);
+            var output = await process.StandardOutput.ReadToEndAsync(timeoutCts.Token);
+            await process.WaitForExitAsync(timeoutCts.Token);
 
             if (process.ExitCode == 0 && !string.IsNullOrWhiteSpace(output))
             {
