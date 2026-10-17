@@ -21,6 +21,10 @@ services:
       - key: JWT__SECRET
         generateValue: true
       - key: GROQ_API_KEY
-        sync: false # Optional: Add your Groq API key in Render dashboard for AI recommendations
+        sync: false # Set in Render dashboard: Free API key from console.groq.com for Vision & Bill extraction
+      - key: GEMINI_API_KEY
+        sync: false # Set in Render dashboard: Free API key from aistudio.google.com for Decarbonization AI Advice
+      - key: LANGSMITH_API_KEY
+        sync: false # Optional: Set in Render dashboard: API key from smith.langchain.com for AI tracing
       - key: OCR_PROVIDER
         value: Tesseract

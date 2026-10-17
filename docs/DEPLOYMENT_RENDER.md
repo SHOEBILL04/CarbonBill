@@ -61,12 +61,50 @@ If you prefer to configure it manually on the Render dashboard:
    | Key | Value | Description |
    | :--- | :--- | :--- |
    | `ASPNETCORE_ENVIRONMENT` | `Production` | Enables production mode |
-   | `OCR_PROVIDER` | `Tesseract` | Enables OCR for bills and slips |
+   | `OCR_PROVIDER` | `Tesseract` | Enables bilingual Bengali/English OCR |
    | `KEEP_ALIVE_INTERVAL_MINUTES` | `12` | Pings itself every 12 mins to stay awake |
-   | `GROQ_API_KEY` | *(your-key)* | Optional: For AI decarbonization briefs |
+   | `GROQ_API_KEY` | *(your-key)* | **AI Feature**: Powers Groq Vision & LLM bill extraction |
+   | `GEMINI_API_KEY` | *(your-key)* | **AI Feature**: Powers Gemini 2.0 decarbonization advisor |
+   | `LANGSMITH_API_KEY` | *(your-key)* | Optional: LLM observability & prompt tracing |
 6. Under **Advanced ➔ Health Check Path**, set:
    `/health`
 7. Click **"Create Web Service"**.
+
+---
+
+## 3. How to Enable All AI Features on Render (100% Free)
+
+CarbonBill includes three primary AI capabilities:
+
+### A. Bilingual OCR (Bengali & English Utility Bills) - Automatic & Free
+- **What it does**: Scans paper electricity bills (BPDB, DESCO, DPDC), gas bills (Titas), fuel challans, and meter photos.
+- **Cost**: **$0.00 (100% Free)**.
+- **Setup**: Zero setup required! We already installed native `tesseract-ocr`, `tesseract-ocr-eng`, and `tesseract-ocr-ben` inside the Docker image.
+
+### B. Groq Vision & LLM Bill Extraction (`GROQ_API_KEY`)
+- **What it does**: Parses the visual layout and text of bills to automatically extract vendor names, consumed units (kWh / m3 / litres), net payable BDT, meter numbers, power factor penalties, and confidence scores.
+- **Models Used**: `llama-3.2-11b-vision-preview` (multimodal vision) and `llama-3.3-70b-versatile` (instant semantic parser).
+- **Cost**: **Free tier available at Groq**.
+- **How to get key**:
+  1. Go to [console.groq.com](https://console.groq.com) and create a free account.
+  2. Navigate to **API Keys** ➔ **Create API Key**.
+  3. Copy your key (starts with `gsk_...`).
+  4. In Render Dashboard ➔ Your Service ➔ **Environment** ➔ Add `GROQ_API_KEY`.
+
+### C. Google Gemini Decarbonization Advisor (`GEMINI_API_KEY`)
+- **What it does**: Automatically analyzes your factory's real equipment, electricity tariffs, and emissions to generate tailored engineering recommendations (e.g., VFD compressor inverters, LED retrofit, rooftop solar PV) with exact BDT savings and bilingual English/Bengali implementation roadmaps.
+- **Model Used**: `gemini-2.0-flash` (with automatic fallback to `gemini-1.5-flash`).
+- **Cost**: **Free tier available in Google AI Studio**.
+- **How to get key**:
+  1. Go to [aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey) and log in with your Google account.
+  2. Click **Create API Key**.
+  3. Copy your key (starts with `AIzaSy...`).
+  4. In Render Dashboard ➔ Your Service ➔ **Environment** ➔ Add `GEMINI_API_KEY`.
+
+### D. LangSmith Tracing & Observability (`LANGSMITH_API_KEY`) - Optional
+- **What it does**: Monitors LLM token counts, execution latency, and extraction success rates in real-time.
+- **How to get key**: Sign up at [smith.langchain.com](https://smith.langchain.com) ➔ Settings ➔ API Keys.
+- Add `LANGSMITH_API_KEY` under Environment Variables in Render.
 
 ---
 

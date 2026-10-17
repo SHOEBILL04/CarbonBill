@@ -53,8 +53,28 @@ public class GroqLlmExtractor(
 
     private readonly string _baseUrl = configuration["VisionLlm:BaseUrl"] ?? "https://api.groq.com/openai/v1";
     private readonly string _apiKey = ResolveApiKey(configuration);
-    private readonly string _model = configuration["VisionLlm:Model"] ?? "openai/gpt-oss-120b";
-    private readonly string _visionModel = configuration["VisionLlm:VisionModel"] ?? "qwen/qwen3.8-27b";
+    private readonly string _model = ResolveGroqTextModel(configuration);
+    private readonly string _visionModel = ResolveGroqVisionModel(configuration);
+
+    private static string ResolveGroqTextModel(IConfiguration configuration)
+    {
+        var model = configuration["VisionLlm:Model"] ?? configuration["GROQ_MODEL"];
+        if (string.IsNullOrWhiteSpace(model) || model.StartsWith("openai/", StringComparison.OrdinalIgnoreCase))
+        {
+            return "llama-3.3-70b-versatile";
+        }
+        return model;
+    }
+
+    private static string ResolveGroqVisionModel(IConfiguration configuration)
+    {
+        var model = configuration["VisionLlm:VisionModel"] ?? configuration["GROQ_VISION_MODEL"];
+        if (string.IsNullOrWhiteSpace(model) || model.StartsWith("qwen/", StringComparison.OrdinalIgnoreCase))
+        {
+            return "llama-3.2-11b-vision-preview";
+        }
+        return model;
+    }
 
     private static string ResolveApiKey(IConfiguration configuration)
     {
