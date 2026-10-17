@@ -92,7 +92,7 @@ ENV ASPNETCORE_ENVIRONMENT=Production \
     OCR_PROVIDER=Tesseract \
     KEEP_ALIVE_INTERVAL_MINUTES=12
 
-# Default ports (ASP.NET Core auto-binds to $PORT on Render)
-EXPOSE 5000 10000
+# Default ports (ASP.NET Core auto-binds to $PORT on Render and Railway)
+EXPOSE 5000 8080 10000
 
 ENTRYPOINT ["dotnet", "CarbonBill.Api.dll"]

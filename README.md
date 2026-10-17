@@ -99,7 +99,16 @@ docker compose -f docker/docker-compose.yml up --build
 
 ---
 
-## 6. Running Tests
+## 6. Cloud Deployment
+
+CarbonBill includes a unified, production-ready multi-stage [Dockerfile](file:///home/rakibul/Projects/CarbonBill/Dockerfile) that packages the Vite React PWA frontend, ASP.NET Core 8 Web API, and native Tesseract OCR with Bengali language models.
+
+- **Deploy to Railway**: See the complete [Railway Deployment Guide](file:///home/rakibul/Projects/CarbonBill/docs/DEPLOYMENT_RAILWAY.md) with persistent volume support (`/data`) and zero cold starts.
+- **Deploy to Render**: See the [Render Free Tier Guide](file:///home/rakibul/Projects/CarbonBill/docs/DEPLOYMENT_RENDER.md) with built-in anti-sleep keep-alive worker.
+
+---
+
+## 7. Running Tests
 
 ```bash
 # Run all Unit, Integration, and Architecture tests

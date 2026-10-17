@@ -44,11 +44,16 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
 builder.Configuration.AddEnvironmentVariables();
 
-// Render and Cloud Port Binding (Render dynamically sets PORT)
+// Cloud Port Binding (Render and Railway dynamically set PORT)
 var cloudPort = Environment.GetEnvironmentVariable("PORT");
 if (!string.IsNullOrEmpty(cloudPort))
 {
     builder.WebHost.UseUrls($"http://+:{cloudPort}");
+}
+else if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ASPNETCORE_URLS")) &&
+         string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ASPNETCORE_HTTP_PORTS")))
+{
+    builder.WebHost.UseUrls("http://+:5000");
 }
 
 // Configure Serilog
