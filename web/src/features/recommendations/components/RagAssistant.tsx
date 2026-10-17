@@ -18,15 +18,17 @@ import { askRagRecommendations, fetchRagCorpusSummary } from '../recommendations
 
 interface RagAssistantProps {
   isBangla: boolean;
+  recalculateSignal?: number;
 }
 
-export const RagAssistant: React.FC<RagAssistantProps> = ({ isBangla }) => {
+export const RagAssistant: React.FC<RagAssistantProps> = ({ isBangla, recalculateSignal }) => {
   const [query, setQuery] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [response, setResponse] = useState<RagAskResponse | null>(null);
   const [corpus, setCorpus] = useState<RagCorpusSummary | null>(null);
   const [showEvidence, setShowEvidence] = useState<boolean>(false);
   const [isExpanded, setIsExpanded] = useState<boolean>(true);
+  const [autoTriggered, setAutoTriggered] = useState<boolean>(false);
 
   useEffect(() => {
     fetchRagCorpusSummary().then((res) => {
@@ -34,41 +36,63 @@ export const RagAssistant: React.FC<RagAssistantProps> = ({ isBangla }) => {
     });
   }, []);
 
+  // Automatically trigger multi-category RAG recalculation whenever 'Recalculate with AI' is clicked
+  useEffect(() => {
+    if (recalculateSignal && recalculateSignal > 0) {
+      setIsExpanded(true);
+      setAutoTriggered(true);
+      const auditPrompt = isBangla
+        ? 'আমাদের কারখানার বর্তমান বিদ্যুৎ, গ্যাস এবং পেট্রোল/ডিজেল ব্যবহারের সম্পূর্ণ অডিট করুন। প্রতিটি খাতে ব্যবহার হ্রাস ও জ্বালানি রূপান্তর (যেমন বিদ্যুৎ থেকে ছাদে সোলার প্যানেল, বয়লার থেকে ওয়েস্ট হিট রিকভারি, এবং পরিবহন/জেনারেটরে ডিজেল-পেট্রোল সাশ্রয়) সংক্রান্ত সুনির্দিষ্ট সুপারিশ দিন—প্রতিটি পদক্ষেপের জন্য আর্থিক সাশ্রয় (টাকা/বছর, বিনিয়োগ, পে-ব্যাক) এবং CO2 নির্গমন হ্রাস (tCO2e) উল্লেখ করুন।'
+        : 'Comprehensive Energy Reduction & Fuel-Switching Audit: Analyze our current electricity, gas, and petrol/diesel consumption. Recommend specific steps to reduce usage and switch (e.g., switch electricity to rooftop solar PV, natural gas to waste heat economizer, and optimize diesel/petrol fleet & genset), detailing both financial impact (annual BDT savings, capex, payback) and CO2 reduction (tCO2e/year) for every category.';
+
+      setQuery(auditPrompt);
+      handleAsk(auditPrompt);
+    }
+  }, [recalculateSignal]);
+
   const quickQuestions = isBangla
     ? [
         {
+          label: '☀️ সোলার প্যানেল সেটআপের ধাপ ও লোন',
+          q: 'আমাদের কারখানার ছাদে সোলার প্যানেল কীভাবে সেটআপ করব? ধাপে ধাপে ইন্সটলেশন প্রক্রিয়া, ডেসকো নেট-মিটারিং এবং ইডকল ৫.৫% লোনের সুবিধা কীভাবে পাব?',
+        },
+        {
+          label: '⛽ পেট্রোল/ডিজেল ও পরিবহন খরচ কমানো',
+          q: 'আমাদের কারখানার জেনারেটর এবং মালবাহী পরিবহনে পেট্রোল ও ডিজেল খরচ কমাতে কী কী পদক্ষেপ নেওয়া যায়? এর আর্থিক সাশ্রয় ও CO2 হ্রাস কত?',
+        },
+        {
+          label: '⚡ বিদ্যুৎ কমাতে সোলারে রূপান্তর',
+          q: 'আমাদের বিদ্যুৎ খরচ অনেক বেশি। গ্রিড বিদ্যুৎ কমিয়ে ছাদে সোলার পিভিতে রূপান্তর করলে বার্ষিক কত টাকা ও tCO2e কার্বন সাশ্রয় হবে এবং পে-ব্যাক কত?',
+        },
+        {
+          label: '🔥 বয়লারে প্রাকৃতিক গ্যাস সাশ্রয়',
+          q: 'বয়লার ফ্লু গ্যাসে ওয়েস্ট হিট রিকভারি ইকোনোমাইজার এবং স্টিম ট্র্যাপ মেরামত করে প্রাকৃতিক গ্যাস খরচ কীভাবে হ্রাস করা যাবে?',
+        },
+        {
           label: '⚡ পাওয়ার ফ্যাক্টর জরিমানা (APFC)',
-          q: 'আমাদের ডেসকো বিলের লো পাওয়ার ফ্যাক্টর জরিমানা কীভাবে দূর করব এবং এর পে-ব্যাক কত?',
-        },
-        {
-          label: '☀️ ২৫,০০০ বর্গফুট ছাদে সৌর বিদ্যুৎ',
-          q: 'আমাদের কারখানার ২৫,০০০ বর্গফুট ছাদে নেট-মিটারিং সোলার পিভি স্থাপন করলে বার্ষিক সাশ্রয় ও পে-ব্যাক কেমন হবে?',
-        },
-        {
-          label: '🏭 বয়লার স্টিম অপচয় (HOTSPOT)',
-          q: 'বয়লার লাইনে চিহ্নিত HOTSPOT_DETECTED সতর্কতা দূর করতে কোন প্রযুক্তি কার্যকর এবং আইডিবিএল/ইডকল অর্থায়ন সুবিধা কী?',
-        },
-        {
-          label: '🧵 সেলাই মেশিনে সার্ভো মোটর',
-          q: 'আমাদের সেলাই লাইনে ডিরেক্ট-ড্রাইভ সার্ভো মোটর রূপান্তরের খরচ ও জ্বালানি সাশ্রয় কত?',
+          q: 'আমাদের ডেসকো বিলের লো পাওয়ার ফ্যাক্টর জরিমানা দূর করতে APFC ক্যাপাসিটর ব্যাংক কীভাবে কাজ করবে এবং পে-ব্যাক কত?',
         },
       ]
     : [
         {
-          label: '⚡ Power Factor Penalty (APFC)',
+          label: '☀️ How to Setup Rooftop Solar',
+          q: 'How do we setup rooftop solar panels on our factory roof? Explain the step-by-step installation roadmap, DESCO net-metering approval, and IDCOL 5.5% green financing.',
+        },
+        {
+          label: '⛽ Reduce Petrol, Diesel & Fleet Costs',
+          q: 'How can we reduce our diesel, petrol, and factory transport/freight fuel costs? Provide specific actions with annual BDT savings and tCO2e reduction.',
+        },
+        {
+          label: '⚡ High Electricity: Switch to Solar PV',
+          q: 'Our electricity consumption is high. How can we switch to rooftop solar PV and APFC to reduce grid costs? Detail both financial BDT and CO2 savings.',
+        },
+        {
+          label: '🔥 Reduce Natural Gas in Boilers',
+          q: 'How can we reduce boiler natural gas consumption using waste heat recovery economizers and steam trap repairs with capex and payback?',
+        },
+        {
+          label: '⚡ Eliminate Power Factor Penalty (APFC)',
           q: 'How can our factory eliminate the low power factor penalty from our DESCO electricity bills, and what is the estimated payback?',
-        },
-        {
-          label: '☀️ Rooftop Solar PV (25k sqft)',
-          q: 'What solar PV capacity can our 25,000 sq ft factory rooftop support under net-metering and what are the financial returns?',
-        },
-        {
-          label: '🏭 Boiler Steam Hotspot (HOTSPOT)',
-          q: 'How to resolve the active HOTSPOT_DETECTED operational anomaly on boiler flue lines using IFC PaCT measures?',
-        },
-        {
-          label: '🧵 Servo Motors on Sewing Lines',
-          q: 'Evaluate the energy reduction, capex, and simple payback of direct-drive servo motors for our sewing operations.',
         },
       ];
 
@@ -78,7 +102,7 @@ export const RagAssistant: React.FC<RagAssistantProps> = ({ isBangla }) => {
 
     setLoading(true);
     try {
-      const res = await askRagRecommendations(text.trim(), 4);
+      const res = await askRagRecommendations(text.trim(), 5);
       setResponse(res);
       setShowEvidence(true);
     } catch (err) {

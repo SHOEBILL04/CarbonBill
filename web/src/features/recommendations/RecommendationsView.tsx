@@ -28,6 +28,7 @@ export const RecommendationsView: React.FC = () => {
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [recalculating, setRecalculating] = useState<boolean>(false);
+  const [ragRecalculateSignal, setRagRecalculateSignal] = useState<number>(0);
   const [activeTab, setActiveTab] = useState<'cards' | 'macc'>('cards');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
 
@@ -55,6 +56,8 @@ export const RecommendationsView: React.FC = () => {
     try {
       await recalculateRecommendations();
       await loadData();
+      // Auto-trigger RAG recalculation audit across electricity, gas, and fuel
+      setRagRecalculateSignal((prev) => prev + 1);
     } finally {
       setRecalculating(false);
     }
@@ -66,8 +69,19 @@ export const RecommendationsView: React.FC = () => {
 
   const filtered = useMemo(() => {
     const list = Array.isArray(recommendations) ? recommendations : [];
-    if (categoryFilter === 'all') return list;
-    return list.filter((r) => r.category === categoryFilter);
+    // Strictly display 'Suggested' recommendations (Planned, Done, NotFeasible are omitted from this action feed)
+    const suggestedOnly = list.filter((r) => r.status === 'Suggested');
+    if (categoryFilter === 'all') return suggestedOnly;
+
+    return suggestedOnly.filter((r) => {
+      if (r.category === categoryFilter) return true;
+      if (categoryFilter === 'Solar' && (r.category === 'SolarPV' || r.category.includes('Solar'))) return true;
+      if (categoryFilter === 'Electricity' && ['PowerFactor', 'Lighting', 'Motors', 'Electricity'].includes(r.category)) return true;
+      if (categoryFilter === 'Boiler' && (r.category === 'Boilers' || r.category.includes('Boiler'))) return true;
+      if (categoryFilter === 'Fuel_Transport' && ['Generators', 'Transport'].includes(r.category)) return true;
+      if (categoryFilter === 'CompressedAir' && (r.category === 'CompressedAir' || r.category.includes('Air'))) return true;
+      return false;
+    });
   }, [recommendations, categoryFilter]);
 
   function handleInitiateStatusChange(rec: Recommendation, newStatus: RecommendationStatus) {
@@ -276,7 +290,7 @@ export const RecommendationsView: React.FC = () => {
         )}
 
         {/* Interactive RAG Energy Advisor */}
-        <RagAssistant isBangla={isBangla} />
+        <RagAssistant isBangla={isBangla} recalculateSignal={ragRecalculateSignal} />
 
         {/* Honesty & Range Rules Notice */}
         <div className="p-3 bg-teal-50 border border-teal-200 rounded-xl text-xs text-teal-900 flex items-start gap-2.5">
@@ -295,14 +309,18 @@ export const RecommendationsView: React.FC = () => {
           </div>
         </div>
 
-        {/* Category Filter Pills */}
-        <div className="flex flex-wrap gap-1.5 pt-1">
+        {/* Category Filter Pills & Suggested-Only State */}
+        <div className="flex flex-wrap items-center gap-1.5 pt-1">
+          <span className="text-[11px] font-bold text-slate-500 mr-1">
+            {isBangla ? 'বিভাগ ফিল্টার:' : 'Filter Category:'}
+          </span>
           {[
-            { id: 'all', bn: 'সকল বিভাগ', en: 'All Categories' },
-            { id: 'Electricity', bn: 'বিদ্যুৎ ও মোটর', en: 'Electricity' },
-            { id: 'Boiler & Steam', bn: 'বয়লার ও বাষ্প', en: 'Boiler & Steam' },
-            { id: 'Compressed Air', bn: 'কম্প্রেসড এয়ার', en: 'Compressed Air' },
-            { id: 'Renewable Solar', bn: 'সৌর বিদ্যুৎ (Solar)', en: 'Renewable Solar' },
+            { id: 'all', bn: 'সকল সক্রিয় সুপারিশ', en: 'All Suggested' },
+            { id: 'Solar', bn: '☀️ সোলার পিভি', en: '☀️ Solar PV' },
+            { id: 'Electricity', bn: '⚡ বিদ্যুৎ ও মোটর', en: '⚡ Electricity & Motors' },
+            { id: 'Boiler', bn: '🔥 বয়লার ও বাষ্প', en: '🔥 Boilers & Gas' },
+            { id: 'Fuel_Transport', bn: '⛽ জ্বালানি ও পরিবহন', en: '⛽ Fuel & Transport' },
+            { id: 'CompressedAir', bn: '💨 কম্প্রেসড এয়ার', en: '💨 Compressed Air' },
           ].map((cat) => (
             <button
               key={cat.id}
@@ -316,6 +334,9 @@ export const RecommendationsView: React.FC = () => {
               {isBangla ? cat.bn : cat.en}
             </button>
           ))}
+          <span className="ml-auto text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+            {isBangla ? `শুধুমাত্র সুপারিশকৃত পদক্ষেপে প্রদর্শন (${toBanglaDigits(filtered.length)} টি)` : `Showing Suggested Only (${filtered.length})`}
+          </span>
         </div>
       </div>
 
