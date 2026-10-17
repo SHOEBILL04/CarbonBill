@@ -22,8 +22,14 @@ services:
         generateValue: true
       - key: GROQ_API_KEY
         sync: false # Set in Render dashboard: Free API key from console.groq.com for Vision & Bill extraction
+      - key: GROQ_MODEL
+        value: "openai/gpt-oss-120b"
+      - key: GROQ_VISION_MODEL
+        value: "qwen/qwen3.8-27b"
       - key: GEMINI_API_KEY
         sync: false # Set in Render dashboard: Free API key from aistudio.google.com for Decarbonization AI Advice
+      - key: GEMINI_MODEL
+        value: "gemini-3.5-flash-lite"
       - key: LANGSMITH_API_KEY
         sync: false # Optional: Set in Render dashboard: API key from smith.langchain.com for AI tracing
       - key: OCR_PROVIDER

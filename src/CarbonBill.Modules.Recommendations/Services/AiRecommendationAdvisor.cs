@@ -253,17 +253,17 @@ public class LlmRecommendationAdvisor(
 
         if (!response.IsSuccessStatusCode)
         {
-            if (response.StatusCode == System.Net.HttpStatusCode.NotFound && _geminiModel != "gemini-1.5-flash")
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound && _geminiModel != "gemini-3.5-flash-lite")
             {
-                logger.LogInformation("Gemini model {Model} returned 404, retrying with gemini-1.5-flash...", _geminiModel);
-                var fallbackUrl = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={_geminiApiKey}";
+                logger.LogInformation("Gemini model {Model} returned 404, retrying with gemini-3.5-flash-lite...", _geminiModel);
+                var fallbackUrl = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key={_geminiApiKey}";
                 using var fbRequest = new HttpRequestMessage(HttpMethod.Post, fallbackUrl);
                 fbRequest.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
                 using var fbResponse = await httpClient.SendAsync(fbRequest, ct);
                 if (fbResponse.IsSuccessStatusCode)
                 {
                     json = await fbResponse.Content.ReadAsStringAsync(ct);
-                    actualModelUsed = "gemini-1.5-flash";
+                    actualModelUsed = "gemini-3.5-flash-lite";
                 }
                 else
                 {
@@ -331,6 +331,36 @@ public class LlmRecommendationAdvisor(
         request.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
 
         using var response = await httpClient.SendAsync(request, ct);
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound && _groqModel != "qwen/qwen3.8-27b")
+        {
+            logger.LogInformation("Groq model {Model} returned 404, retrying with qwen/qwen3.8-27b...", _groqModel);
+            var fbPayload = new
+            {
+                model = "qwen/qwen3.8-27b",
+                messages = payload.messages,
+                temperature = 0.2,
+                response_format = new { type = "json_object" }
+            };
+            using var fbReq = new HttpRequestMessage(HttpMethod.Post, url);
+            fbReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _groqApiKey);
+            fbReq.Content = new StringContent(JsonSerializer.Serialize(fbPayload), Encoding.UTF8, "application/json");
+            using var fbRes = await httpClient.SendAsync(fbReq, ct);
+            if (fbRes.IsSuccessStatusCode)
+            {
+                var fbJson = await fbRes.Content.ReadAsStringAsync(ct);
+                using var fbDoc = JsonDocument.Parse(fbJson);
+                var fbContent = fbDoc.RootElement
+                    .GetProperty("choices")[0]
+                    .GetProperty("message")
+                    .GetProperty("content")
+                    .GetString();
+                if (!string.IsNullOrWhiteSpace(fbContent))
+                {
+                    return ParseAiEnrichmentResult(fbContent, "Groq (qwen/qwen3.8-27b)");
+                }
+            }
+        }
+
         if (!response.IsSuccessStatusCode)
         {
             var err = await response.Content.ReadAsStringAsync(ct);
@@ -347,7 +377,11 @@ public class LlmRecommendationAdvisor(
             .GetString();
 
         if (string.IsNullOrWhiteSpace(content)) return null;
+        return ParseAiEnrichmentResult(content, $"Groq ({_groqModel})");
+    }
 
+    private static AiEnrichmentResult? ParseAiEnrichmentResult(string content, string modelName)
+    {
         var trimmed = content.Trim();
         if (trimmed.StartsWith("```json", StringComparison.OrdinalIgnoreCase))
             trimmed = trimmed[7..];
@@ -368,7 +402,7 @@ public class LlmRecommendationAdvisor(
             PersonalizedExplanationBn: expBn,
             ActionRoadmapEn: roadEn,
             ActionRoadmapBn: roadBn,
-            ModelUsed: $"Groq ({_groqModel})",
+            ModelUsed: modelName,
             IsAiGenerated: true);
     }
 
@@ -475,16 +509,22 @@ public class LlmRecommendationAdvisor(
     private static string ResolveGeminiModel(IConfiguration configuration)
     {
         var model = configuration["Gemini:Model"] ?? configuration["GEMINI_MODEL"];
-        if (string.IsNullOrWhiteSpace(model) || model.Contains("2.5")) return "gemini-2.0-flash";
+        if (string.IsNullOrWhiteSpace(model) ||
+            model.Contains("1.5") ||
+            model.Contains("2.0") ||
+            model.Contains("2.5"))
+        {
+            return "gemini-3.5-flash-lite";
+        }
         return model;
     }
 
     private static string ResolveGroqModel(IConfiguration configuration)
     {
         var model = configuration["VisionLlm:Model"] ?? configuration["GROQ_MODEL"];
-        if (string.IsNullOrWhiteSpace(model) || model.StartsWith("openai/", StringComparison.OrdinalIgnoreCase))
+        if (string.IsNullOrWhiteSpace(model) || model.Contains("llama-3.3-70b-versatile", StringComparison.OrdinalIgnoreCase))
         {
-            return "llama-3.3-70b-versatile";
+            return "openai/gpt-oss-120b";
         }
         return model;
     }

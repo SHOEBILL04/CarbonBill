@@ -126,11 +126,14 @@ builder.Services.AddScoped<IDatabaseBackupJob, DatabaseBackupJob>();
 builder.Services.AddScoped<ISampleRecurringJob, SampleRecurringJob>();
 
 // JWT Authentication
-var jwtKey = builder.Configuration["Jwt:Key"]
-    ?? builder.Configuration["Jwt:Secret"]
+var configuredSecret = builder.Configuration["Jwt:Secret"]
     ?? builder.Configuration["JWT_SECRET"]
-    ?? builder.Configuration["JWT__SECRET"]
-    ?? "CarbonBill-SuperSecret-Development-Key-2026-VeryLongKeyNeeded-AtLeast32Bytes";
+    ?? builder.Configuration["JWT__SECRET"];
+
+var jwtKey = !string.IsNullOrWhiteSpace(configuredSecret)
+    ? configuredSecret
+    : builder.Configuration["Jwt:Key"]
+      ?? "CarbonBill-SuperSecret-Development-Key-2026-VeryLongKeyNeeded-AtLeast32Bytes";
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "CarbonBill";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "CarbonBillClients";
 

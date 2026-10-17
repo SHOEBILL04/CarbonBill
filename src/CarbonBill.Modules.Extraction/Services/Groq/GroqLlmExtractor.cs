@@ -59,9 +59,9 @@ public class GroqLlmExtractor(
     private static string ResolveGroqTextModel(IConfiguration configuration)
     {
         var model = configuration["VisionLlm:Model"] ?? configuration["GROQ_MODEL"];
-        if (string.IsNullOrWhiteSpace(model) || model.StartsWith("openai/", StringComparison.OrdinalIgnoreCase))
+        if (string.IsNullOrWhiteSpace(model) || model.Contains("llama-3.3-70b-versatile", StringComparison.OrdinalIgnoreCase))
         {
-            return "llama-3.3-70b-versatile";
+            return "openai/gpt-oss-120b";
         }
         return model;
     }
@@ -69,9 +69,9 @@ public class GroqLlmExtractor(
     private static string ResolveGroqVisionModel(IConfiguration configuration)
     {
         var model = configuration["VisionLlm:VisionModel"] ?? configuration["GROQ_VISION_MODEL"];
-        if (string.IsNullOrWhiteSpace(model) || model.StartsWith("qwen/", StringComparison.OrdinalIgnoreCase))
+        if (string.IsNullOrWhiteSpace(model) || model.Contains("llama-3.2-11b-vision-preview", StringComparison.OrdinalIgnoreCase))
         {
-            return "llama-3.2-11b-vision-preview";
+            return "qwen/qwen3.8-27b";
         }
         return model;
     }
@@ -234,58 +234,43 @@ public class GroqLlmExtractor(
 
                 var visionStartUtc = DateTime.UtcNow;
                 var visionResponse = await httpClient.SendAsync(visionHttpRequest, ct);
-                if (visionResponse.IsSuccessStatusCode)
+                string? vContent = null;
+
+                if (visionResponse.StatusCode == System.Net.HttpStatusCode.NotFound && _visionModel != "qwen/qwen3.8-27b")
+                {
+                    logger.LogInformation("Groq vision model {Model} returned 404, retrying with qwen/qwen3.8-27b...", _visionModel);
+                    var fbVisionBody = new
+                    {
+                        model = "qwen/qwen3.8-27b",
+                        messages = visionRequestBody.messages,
+                        temperature = 0.1,
+                        response_format = new { type = "json_object" }
+                    };
+                    using var fbVisionReq = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl.TrimEnd('/')}/chat/completions");
+                    fbVisionReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+                    fbVisionReq.Headers.UserAgent.ParseAdd("CarbonBill-Extractor/1.0");
+                    fbVisionReq.Content = new StringContent(JsonSerializer.Serialize(fbVisionBody), Encoding.UTF8, "application/json");
+                    using var fbVisionRes = await httpClient.SendAsync(fbVisionReq, ct);
+                    if (fbVisionRes.IsSuccessStatusCode)
+                    {
+                        var fbJson = await fbVisionRes.Content.ReadAsStringAsync(ct);
+                        using var fbDoc = JsonDocument.Parse(fbJson);
+                        vContent = fbDoc.RootElement
+                            .GetProperty("choices")[0]
+                            .GetProperty("message")
+                            .GetProperty("content")
+                            .GetString();
+                    }
+                }
+                else if (visionResponse.IsSuccessStatusCode)
                 {
                     var visionResponseJson = await visionResponse.Content.ReadAsStringAsync(ct);
                     using var vDoc = JsonDocument.Parse(visionResponseJson);
-                    var vContent = vDoc.RootElement
+                    vContent = vDoc.RootElement
                         .GetProperty("choices")[0]
                         .GetProperty("message")
                         .GetProperty("content")
                         .GetString();
-
-                    if (!string.IsNullOrWhiteSpace(vContent))
-                    {
-                        var parsedVision = JsonSerializer.Deserialize<GroqBillExtractionResult>(vContent, JsonOptions);
-                        if (parsedVision != null && (parsedVision.Quantity > 0 || parsedVision.AmountBdt > 0 || !string.IsNullOrWhiteSpace(parsedVision.Vendor)))
-                        {
-                            logger.LogInformation("Groq Vision succeeded for {FileName}: Vendor={Vendor}, Qty={Qty} {Unit}, Amt={Amt} BDT",
-                                fileName, parsedVision.Vendor, parsedVision.Quantity, parsedVision.Unit, parsedVision.AmountBdt);
-
-                            if (langSmithTracer != null)
-                            {
-                                await langSmithTracer.TraceRunAsync(
-                                    "GroqVisionBillExtraction",
-                                    "llm",
-                                    new
-                                    {
-                                        model = _visionModel,
-                                        fileName,
-                                        mimeType = mime,
-                                        fileSizeBytes = imageBytes.Length,
-                                        prompt = visionPrompt
-                                    },
-                                    parsedVision,
-                                    visionStartUtc,
-                                    DateTime.UtcNow,
-                                    new Dictionary<string, object>
-                                    {
-                                        ["model"] = _visionModel,
-                                        ["provider"] = "Groq",
-                                        ["tier"] = 3,
-                                        ["fileName"] = fileName,
-                                        ["extractedVendor"] = parsedVision.Vendor ?? "Unknown",
-                                        ["extractedQuantity"] = parsedVision.Quantity,
-                                        ["extractedUnit"] = parsedVision.Unit ?? "",
-                                        ["extractedAmountBdt"] = parsedVision.AmountBdt
-                                    },
-                                    null,
-                                    ct);
-                            }
-
-                            return BuildResult(parsedVision, rawOcrText, 3);
-                        }
-                    }
                 }
                 else
                 {
@@ -304,6 +289,49 @@ public class GroqLlmExtractor(
                             new Dictionary<string, object> { ["model"] = _visionModel, ["provider"] = "Groq", ["fileName"] = fileName },
                             $"HTTP {visionResponse.StatusCode}: {vErr}",
                             ct);
+                    }
+                }
+
+                if (!string.IsNullOrWhiteSpace(vContent))
+                {
+                    var parsedVision = JsonSerializer.Deserialize<GroqBillExtractionResult>(vContent, JsonOptions);
+                    if (parsedVision != null && (parsedVision.Quantity > 0 || parsedVision.AmountBdt > 0 || !string.IsNullOrWhiteSpace(parsedVision.Vendor)))
+                    {
+                        logger.LogInformation("Groq Vision succeeded for {FileName}: Vendor={Vendor}, Qty={Qty} {Unit}, Amt={Amt} BDT",
+                            fileName, parsedVision.Vendor, parsedVision.Quantity, parsedVision.Unit, parsedVision.AmountBdt);
+
+                        if (langSmithTracer != null)
+                        {
+                            await langSmithTracer.TraceRunAsync(
+                                "GroqVisionBillExtraction",
+                                "llm",
+                                new
+                                {
+                                    model = _visionModel,
+                                    fileName,
+                                    mimeType = mime,
+                                    fileSizeBytes = imageBytes.Length,
+                                    prompt = visionPrompt
+                                },
+                                parsedVision,
+                                visionStartUtc,
+                                DateTime.UtcNow,
+                                new Dictionary<string, object>
+                                {
+                                    ["model"] = _visionModel,
+                                    ["provider"] = "Groq",
+                                    ["tier"] = 3,
+                                    ["fileName"] = fileName,
+                                    ["extractedVendor"] = parsedVision.Vendor ?? "Unknown",
+                                    ["extractedQuantity"] = parsedVision.Quantity,
+                                    ["extractedUnit"] = parsedVision.Unit ?? "",
+                                    ["extractedAmountBdt"] = parsedVision.AmountBdt
+                                },
+                                null,
+                                ct);
+                        }
+
+                        return BuildResult(parsedVision, rawOcrText, 3);
                     }
                 }
             }
@@ -381,6 +409,23 @@ public class GroqLlmExtractor(
             httpRequest.Content = new StringContent(requestJson, Encoding.UTF8, "application/json");
 
             var response = await httpClient.SendAsync(httpRequest, ct);
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound && _model != "qwen/qwen3.8-27b")
+            {
+                logger.LogInformation("Groq text model {Model} returned 404, retrying with qwen/qwen3.8-27b...", _model);
+                var fbRequestBody = new
+                {
+                    model = "qwen/qwen3.8-27b",
+                    messages = requestBody.messages,
+                    temperature = 0.1,
+                    response_format = new { type = "json_object" }
+                };
+                using var fbReq = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl.TrimEnd('/')}/chat/completions");
+                fbReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+                fbReq.Headers.UserAgent.ParseAdd("CarbonBill-Extractor/1.0");
+                fbReq.Content = new StringContent(JsonSerializer.Serialize(fbRequestBody), Encoding.UTF8, "application/json");
+                response = await httpClient.SendAsync(fbReq, ct);
+            }
+
             if (!response.IsSuccessStatusCode)
             {
                 var errorText = await response.Content.ReadAsStringAsync(ct);
