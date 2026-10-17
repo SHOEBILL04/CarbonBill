@@ -107,11 +107,13 @@ public static class RecommendationsEndpoints
                 return Results.Unauthorized();
             }
 
-            var recommendations = await service.GenerateAndSaveRecommendationsAsync(tenantContext.CurrentOrgId.Value, siteId, ct);
+            var result = await service.CheckNewDocumentsAndRecalculateAsync(tenantContext.CurrentOrgId.Value, siteId, ct);
             return Results.Ok(new
             {
-                status = "Recalculated",
-                count = recommendations.Count
+                status = result.Status,
+                hasNewDocuments = result.HasNewDocuments,
+                newDocCount = result.NewDocCount,
+                message = result.Message
             });
         });
 

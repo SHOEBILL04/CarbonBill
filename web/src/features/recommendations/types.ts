@@ -106,3 +106,10 @@ export interface DedicatedBreakdownResponse {
   categories: CategoryAdviceDto[];
 }
 
+export interface RecalculateResponse {
+  status: string;
+  hasNewDocuments: boolean;
+  newDocCount: number;
+  message: string;
+}
+

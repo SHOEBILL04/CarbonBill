@@ -1,4 +1,4 @@
-import { Recommendation, RecommendationStatus, EvidenceGrade, RagAskResponse, RagCorpusSummary, DedicatedBreakdownResponse } from './types';
+import { Recommendation, RecommendationStatus, EvidenceGrade, RagAskResponse, RagCorpusSummary, DedicatedBreakdownResponse, RecalculateResponse } from './types';
 import { apiFetch } from '../../lib/apiClient';
 
 export const mockRecommendationsList: Recommendation[] = [
@@ -237,14 +237,18 @@ export async function updateRecommendationStatus(
   return true;
 }
 
-export async function recalculateRecommendations(): Promise<boolean> {
+export async function recalculateRecommendations(): Promise<RecalculateResponse> {
   try {
-    await apiFetch('/api/v1/recommendations/recalculate', {
+    return await apiFetch<RecalculateResponse>('/api/v1/recommendations/recalculate', {
       method: 'POST',
     });
-    return true;
   } catch {
-    return false;
+    return {
+      status: 'Error',
+      hasNewDocuments: false,
+      newDocCount: 0,
+      message: 'Failed to communicate with recalculation server.',
+    };
   }
 }
 
