@@ -102,6 +102,6 @@ public class RecommendationPipeline(
         // 6. Ranking (Flag-boosted prioritization, top 5 highlighted, all ranked)
         Ranking.Rank(evaluations, activeFlags);
 
-        return evaluations;
+        return evaluations.OrderBy(e => e.Rank).ToList();
     }
 }

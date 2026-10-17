@@ -220,7 +220,9 @@ public class RecommendationsService(
             ActiveFlagCodes: aggregated.ActiveFlagCodes,
             ActiveFlagSummaries: aggregated.ActiveFlagSummaries);
 
-        foreach (var topEval in candidateEvaluations.Take(5))
+        var rankedCandidates = candidateEvaluations.OrderBy(e => e.Rank).ToList();
+
+        foreach (var topEval in rankedCandidates.Take(5))
         {
             try
             {
@@ -229,7 +231,9 @@ public class RecommendationsService(
                 topEval.AiAdviceBn = advice.PersonalizedExplanationBn;
                 topEval.AiRoadmapEn = advice.ActionRoadmapEn;
                 topEval.AiRoadmapBn = advice.ActionRoadmapBn;
-                topEval.IsAiEnriched = advice.IsAiGenerated;
+                topEval.IsAiEnriched = advice.IsAiGenerated || !string.IsNullOrWhiteSpace(advice.PersonalizedExplanationEn);
+
+                await Task.Delay(250, ct);
             }
             catch (Exception ex)
             {
@@ -244,7 +248,7 @@ public class RecommendationsService(
 
         var savedEntities = new List<Recommendation>();
 
-        foreach (var eval in candidateEvaluations)
+        foreach (var eval in rankedCandidates)
         {
             if (existing.TryGetValue(eval.Measure.Id, out var rec))
             {
