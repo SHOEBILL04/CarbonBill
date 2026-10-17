@@ -62,6 +62,7 @@ public static class RecommendationsModuleExtensions
         // Dynamic Data Aggregator & AI Advisor
         services.AddScoped<IFacilityDataAggregator, FacilityDataAggregator>();
         services.AddHttpClient<IAiRecommendationAdvisor, LlmRecommendationAdvisor>();
+        services.AddHttpClient<IRagRecommendationService, RagRecommendationService>();
 
         // Main Module Service
         services.AddScoped<RecommendationsService>();

@@ -61,3 +61,57 @@ export interface RecommendationsPayload {
   baselineData?: FacilityBaselineData;
   executiveBrief?: string;
 }
+
+export interface RagKnowledgeChunk {
+  id: string;
+  title: string;
+  type: string;
+  content: string;
+  sourceCitation: string;
+  relevanceScore: number;
+}
+
+export interface RagAskResponse {
+  query: string;
+  answer: string;
+  model: string;
+  retrievedContextCount: number;
+  retrievedChunks: RagKnowledgeChunk[];
+}
+
+export interface RagCorpusSummary {
+  totalChunks: number;
+  billChunks: number;
+  flagChunks: number;
+  measureChunks: number;
+  profileChunks: number;
+  lastIndexedAtUtc: string;
+}
+
+export interface CategoryAdviceDto {
+  key: string;
+  titleEn: string;
+  titleBn: string;
+  switchActionEn: string;
+  switchActionBn: string;
+  savingsBdt: string;
+  capexBdt: string;
+  payback: string;
+  co2Avoided: string;
+  keyStepsEn: string;
+  keyStepsBn: string;
+}
+
+export interface DedicatedBreakdownResponse {
+  overallStrategyEn: string;
+  overallStrategyBn: string;
+  categories: CategoryAdviceDto[];
+}
+
+export interface RecalculateResponse {
+  status: string;
+  hasNewDocuments: boolean;
+  newDocCount: number;
+  message: string;
+}
+
