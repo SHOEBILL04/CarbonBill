@@ -17,7 +17,33 @@ import {
   AlertTriangle,
   FileCheck,
   CheckCircle2,
+  RotateCcw,
 } from 'lucide-react';
+
+export function matchCategory(itemCategory: string, filterId: string): boolean {
+  if (!filterId || filterId === 'all') return true;
+  const cat = (itemCategory || '').toLowerCase();
+  const filter = filterId.toLowerCase();
+
+  if (filter === 'electricity') {
+    return (
+      cat.includes('elec') ||
+      cat.includes('light') ||
+      cat.includes('motor') ||
+      cat.includes('powerfactor')
+    );
+  }
+  if (filter === 'boiler') {
+    return cat.includes('boil') || cat.includes('steam') || cat.includes('thermal');
+  }
+  if (filter === 'air') {
+    return cat.includes('air') || cat.includes('compress');
+  }
+  if (filter === 'solar') {
+    return cat.includes('solar') || cat.includes('renew');
+  }
+  return cat === filter;
+}
 
 export const RecommendationsView: React.FC = () => {
   const { i18n } = useTranslation();
@@ -29,6 +55,7 @@ export const RecommendationsView: React.FC = () => {
   const [recalculating, setRecalculating] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'cards' | 'macc'>('cards');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [highlightedId, setHighlightedId] = useState<string | null>(null);
 
   // Status modal
   const [statusModalData, setStatusModalData] = useState<{
@@ -66,8 +93,26 @@ export const RecommendationsView: React.FC = () => {
   const filtered = useMemo(() => {
     const list = Array.isArray(recommendations) ? recommendations : [];
     if (categoryFilter === 'all') return list;
-    return list.filter((r) => r.category === categoryFilter);
+    return list.filter((r) => matchCategory(r.category, categoryFilter));
   }, [recommendations, categoryFilter]);
+
+  const categoryCounts = useMemo(() => {
+    const list = Array.isArray(recommendations) ? recommendations : [];
+    const counts: Record<string, number> = {
+      all: list.length,
+      electricity: 0,
+      boiler: 0,
+      air: 0,
+      solar: 0,
+    };
+    list.forEach((r) => {
+      if (matchCategory(r.category, 'electricity')) counts.electricity++;
+      if (matchCategory(r.category, 'boiler')) counts.boiler++;
+      if (matchCategory(r.category, 'air')) counts.air++;
+      if (matchCategory(r.category, 'solar')) counts.solar++;
+    });
+    return counts;
+  }, [recommendations]);
 
   function handleInitiateStatusChange(rec: Recommendation, newStatus: RecommendationStatus) {
     if (newStatus === 'NotFeasible' || newStatus === 'Done') {
@@ -88,7 +133,26 @@ export const RecommendationsView: React.FC = () => {
     );
   }
 
+  const handleSelectCardFromMacc = (id: string) => {
+    setActiveTab('cards');
+    setHighlightedId(id);
+    setTimeout(() => {
+      const el = document.getElementById(`card-${id}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 100);
+  };
+
   const baseline = payload?.baselineData;
+
+  const categoryPills = [
+    { id: 'all', bn: 'সকল বিভাগ', en: 'All Categories' },
+    { id: 'electricity', bn: 'বিদ্যুৎ ও মোটর', en: 'Electricity & Motors' },
+    { id: 'boiler', bn: 'বয়লার ও বাষ্প', en: 'Boiler & Steam' },
+    { id: 'air', bn: 'কম্প্রেসড এয়ার', en: 'Compressed Air' },
+    { id: 'solar', bn: 'সৌর বিদ্যুৎ (Solar)', en: 'Rooftop Solar' },
+  ];
 
   return (
     <div className="space-y-6">
@@ -119,9 +183,10 @@ export const RecommendationsView: React.FC = () => {
 
           <div className="flex items-center gap-2 flex-wrap">
             <button
+              type="button"
               onClick={handleRecalculate}
               disabled={recalculating || loading}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-violet-900 bg-violet-50 hover:bg-violet-100 border border-violet-200 transition disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-violet-900 bg-violet-50 hover:bg-violet-100 border border-violet-200 transition disabled:opacity-50 cursor-pointer"
               title={isBangla ? 'সর্বশেষ বিল ও ফ্ল্যাগ অনুযায়ী পুনরায় হিসাব করুন' : 'Recalculate with latest bills and flags'}
             >
               <Sparkles size={13} className={recalculating ? 'animate-spin text-violet-600' : 'text-violet-600'} />
@@ -130,32 +195,47 @@ export const RecommendationsView: React.FC = () => {
                 : (isBangla ? 'এআই পুনর্গননা' : 'Recalculate with AI')}
             </button>
 
+            {/* View Switcher: Action Cards vs MACC Curve */}
             <div className="flex bg-slate-100 p-1 rounded-xl text-xs font-semibold">
               <button
+                type="button"
                 onClick={() => setActiveTab('cards')}
-                className={`px-3 py-1.5 rounded-lg transition ${
+                className={`px-3 py-1.5 rounded-lg transition cursor-pointer flex items-center gap-1.5 ${
                   activeTab === 'cards'
                     ? 'bg-white text-teal-900 shadow-xs font-bold'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                {isBangla ? 'পদক্ষেপ কার্ডসমূহ' : 'Action Cards'}
+                <span>{isBangla ? 'পদক্ষেপ কার্ডসমূহ' : 'Action Cards'}</span>
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                  activeTab === 'cards' ? 'bg-teal-100 text-teal-800' : 'bg-slate-200 text-slate-600'
+                }`}>
+                  {isBangla ? toBanglaDigits(filtered.length) : filtered.length}
+                </span>
               </button>
               <button
+                type="button"
                 onClick={() => setActiveTab('macc')}
-                className={`px-3 py-1.5 rounded-lg transition flex items-center gap-1 ${
+                className={`px-3 py-1.5 rounded-lg transition cursor-pointer flex items-center gap-1.5 ${
                   activeTab === 'macc'
                     ? 'bg-white text-teal-900 shadow-xs font-bold'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <BarChart2 size={13} /> {isBangla ? 'MACC চার্ট' : 'MACC Curve'}
+                <BarChart2 size={13} />
+                <span>{isBangla ? 'MACC চার্ট' : 'MACC Curve'}</span>
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                  activeTab === 'macc' ? 'bg-teal-100 text-teal-800' : 'bg-slate-200 text-slate-600'
+                }`}>
+                  {isBangla ? toBanglaDigits(filtered.length) : filtered.length}
+                </span>
               </button>
             </div>
 
             <button
+              type="button"
               onClick={loadData}
-              className="p-1.5 text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
+              className="p-1.5 text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-lg transition cursor-pointer"
               title={isBangla ? 'রিফ্রেশ' : 'Refresh'}
             >
               <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
@@ -235,7 +315,7 @@ export const RecommendationsView: React.FC = () => {
                     <span className="font-bold text-amber-900">
                       {isBangla ? 'চিহ্নিত অপারেশনাল অসঙ্গতি (Active Flags):' : 'Active Operational Flags Detected:'}
                     </span>
-                    {baseline.activeFlagCodes.map((code) => (
+                    {Array.from(new Set(baseline.activeFlagCodes)).map((code) => (
                       <span key={code} className="font-mono text-[10px] font-bold px-1.5 py-0.5 bg-amber-200/80 text-amber-900 rounded">
                         {code}
                       </span>
@@ -254,22 +334,64 @@ export const RecommendationsView: React.FC = () => {
 
         {/* AI Executive Decarbonization Brief */}
         {payload?.executiveBrief && (
-          <div className="p-4 bg-gradient-to-r from-violet-900 via-indigo-900 to-slate-900 text-white rounded-2xl shadow-sm space-y-2.5">
-            <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div className="p-5 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white rounded-2xl shadow-sm border border-indigo-900/60 space-y-3">
+            <div className="flex items-center justify-between gap-2 flex-wrap border-b border-white/10 pb-2.5">
               <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-white/10 rounded-lg">
-                  <Sparkles size={16} className="text-violet-300" />
+                <div className="p-1.5 bg-violet-500/20 text-violet-300 rounded-lg">
+                  <Sparkles size={16} />
                 </div>
                 <h3 className="text-sm font-bold text-violet-100">
                   {isBangla ? 'এআই ডিকার্বনাইজেশন নির্বাহী বিশ্লেষণ' : 'AI Executive Decarbonization Brief'}
                 </h3>
               </div>
-              <span className="text-[10px] font-semibold text-violet-200 bg-white/10 px-2 py-0.5 rounded-full">
+              <span className="text-[10px] font-semibold text-violet-200 bg-violet-900/40 border border-violet-700/50 px-2.5 py-0.5 rounded-full">
                 {isBangla ? 'কারখানার ডেটা চালিত এআই' : 'Factory Data-Driven AI'}
               </span>
             </div>
-            <div className="text-xs text-slate-200 leading-relaxed space-y-1 whitespace-pre-line font-sans">
-              {payload.executiveBrief}
+            <div className="space-y-1.5 font-sans">
+              {payload.executiveBrief.split('\n').map((line, idx) => {
+                const trimmed = line.trim();
+                if (!trimmed) {
+                  return <div key={idx} className="h-1" />;
+                }
+
+                const isHeader = trimmed.startsWith('⚡') || trimmed.startsWith('⚠️') || trimmed.startsWith('💰') || trimmed.startsWith('#');
+                const isBullet = trimmed.startsWith('•');
+
+                const parts = line.split(/(\*\*.*?\*\*)/g);
+                const renderedParts = parts.map((part, pIdx) => {
+                  if (part.startsWith('**') && part.endsWith('**')) {
+                    return (
+                      <strong key={pIdx} className="font-extrabold text-white">
+                        {part.slice(2, -2)}
+                      </strong>
+                    );
+                  }
+                  return part;
+                });
+
+                if (isHeader) {
+                  return (
+                    <div key={idx} className="font-bold text-violet-200 text-xs pt-1.5 flex items-center gap-1.5">
+                      {renderedParts}
+                    </div>
+                  );
+                }
+
+                if (isBullet) {
+                  return (
+                    <div key={idx} className="pl-3 text-slate-200 text-xs leading-relaxed flex items-start gap-1.5">
+                      <span>{renderedParts}</span>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div key={idx} className="text-xs text-slate-300 leading-relaxed">
+                    {renderedParts}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -291,40 +413,66 @@ export const RecommendationsView: React.FC = () => {
           </div>
         </div>
 
-        {/* Category Filter Pills */}
+        {/* Category Filter Pills with Live Item Counts */}
         <div className="flex flex-wrap gap-1.5 pt-1">
-          {[
-            { id: 'all', bn: 'সকল বিভাগ', en: 'All Categories' },
-            { id: 'Electricity', bn: 'বিদ্যুৎ ও মোটর', en: 'Electricity' },
-            { id: 'Boiler & Steam', bn: 'বয়লার ও বাষ্প', en: 'Boiler & Steam' },
-            { id: 'Compressed Air', bn: 'কম্প্রেসড এয়ার', en: 'Compressed Air' },
-            { id: 'Renewable Solar', bn: 'সৌর বিদ্যুৎ (Solar)', en: 'Renewable Solar' },
-          ].map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setCategoryFilter(cat.id)}
-              className={`px-3 py-1 rounded-xl text-xs font-semibold transition ${
-                categoryFilter === cat.id
-                  ? 'bg-teal-900 text-white shadow-xs font-bold'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              {isBangla ? cat.bn : cat.en}
-            </button>
-          ))}
+          {categoryPills.map((cat) => {
+            const count = categoryCounts[cat.id] ?? 0;
+            const isSelected = categoryFilter === cat.id;
+            return (
+              <button
+                type="button"
+                key={cat.id}
+                onClick={() => setCategoryFilter(cat.id)}
+                className={`px-3 py-1 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer ${
+                  isSelected
+                    ? 'bg-teal-900 text-white shadow-xs font-bold'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                <span>{isBangla ? cat.bn : cat.en}</span>
+                <span
+                  className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                    isSelected
+                      ? 'bg-teal-800 text-teal-100'
+                      : count > 0
+                      ? 'bg-slate-200 text-slate-700'
+                      : 'bg-slate-100 text-slate-400'
+                  }`}
+                >
+                  {isBangla ? toBanglaDigits(count) : count}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* Main View Body */}
       {loading ? (
-        <div className="p-12 text-center text-slate-500 text-xs font-semibold">
+        <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center text-slate-500 text-xs font-semibold">
+          <RefreshCw size={20} className="animate-spin mx-auto mb-2 text-teal-700" />
           {isBangla ? 'সুপারিশমালা প্রস্তুত হচ্ছে...' : 'Loading recommendations...'}
         </div>
       ) : activeTab === 'macc' ? (
-        <MaccChart recommendations={filtered} isBangla={isBangla} />
+        <MaccChart
+          recommendations={filtered}
+          isBangla={isBangla}
+          onSelectCard={handleSelectCardFromMacc}
+          onResetFilter={() => setCategoryFilter('all')}
+        />
       ) : filtered.length === 0 ? (
-        <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center text-slate-500 text-xs font-semibold shadow-xs">
-          {isBangla ? 'এই ক্যাটাগরিতে কোনো সুপারিশ পাওয়া যায়নি।' : 'No recommendations found for this category.'}
+        <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center space-y-3 shadow-xs">
+          <p className="text-slate-500 text-xs font-semibold">
+            {isBangla ? 'এই ক্যাটাগরিতে কোনো সুপারিশ পাওয়া যায়নি।' : 'No recommendations found for this category.'}
+          </p>
+          <button
+            type="button"
+            onClick={() => setCategoryFilter('all')}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-teal-900 bg-teal-50 hover:bg-teal-100 border border-teal-200 transition cursor-pointer"
+          >
+            <RotateCcw size={13} />
+            {isBangla ? 'সকল সুপারিশ দেখুন' : 'Show All Recommendations'}
+          </button>
         </div>
       ) : (
         <div className="space-y-4">
@@ -334,6 +482,7 @@ export const RecommendationsView: React.FC = () => {
               rec={rec}
               isBangla={isBangla}
               onUpdateStatus={handleInitiateStatusChange}
+              isHighlighted={highlightedId === rec.id}
             />
           ))}
         </div>

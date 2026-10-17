@@ -1,6 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Lock, Mail, Building, User, Phone, CheckCircle, ArrowRight } from 'lucide-react';
+import {
+  Lock,
+  Mail,
+  Building,
+  User,
+  Phone,
+  CheckCircle,
+  ArrowRight,
+  Flame,
+  Zap,
+  Factory,
+  Sun,
+  Check,
+  Sparkles,
+  Settings,
+} from 'lucide-react';
 import { setSession } from '../../lib/apiClient';
 
 interface LoginViewProps {
@@ -10,7 +25,7 @@ interface LoginViewProps {
 
 export default function LoginView({ onLoginSuccess, onGoToFloor }: LoginViewProps) {
   const { t, i18n } = useTranslation();
-  const [tab, setTab] = useState<'login' | 'register' | 'invite'>('login');
+  const [tab, setTab] = useState<'login' | 'register' | 'invite' | 'equipment_setup'>('login');
 
   // Login form state
   const [loginIdentifier, setLoginIdentifier] = useState('owner@apex.local');
@@ -22,6 +37,16 @@ export default function LoginView({ onLoginSuccess, onGoToFloor }: LoginViewProp
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regFacilityType, setRegFacilityType] = useState('RMG_Woven');
+
+  // Post-registration Equipment Setup state
+  const [setupSector, setSetupSector] = useState('RMG_Woven');
+  const [setupHasBoiler, setSetupHasBoiler] = useState(true);
+  const [setupHasGenset, setSetupHasGenset] = useState(true);
+  const [setupHasProductionFloor, setSetupHasProductionFloor] = useState(true);
+  const [setupBuildingOwnership, setSetupBuildingOwnership] = useState<'Owned' | 'Rented'>('Owned');
+  const [setupRoofAreaSqft, setSetupRoofAreaSqft] = useState<number>(25000);
+  const [setupBudgetBand, setSetupBudgetBand] = useState<string>('Medium');
+  const [setupSaving, setSetupSaving] = useState(false);
 
   // Invite acceptance state
   const [inviteToken, setInviteToken] = useState('');
@@ -117,11 +142,68 @@ export default function LoginView({ onLoginSuccess, onGoToFloor }: LoginViewProp
         memberships: data.memberships
       });
 
-      onLoginSuccess();
+      // Move straight to equipment setup questionnaire for this new factory!
+      setSetupSector(regFacilityType);
+      setTab('equipment_setup');
+      setSuccessMsg(
+        i18n.language === 'bn'
+          ? 'প্রতিষ্ঠান সফলভাবে নিবন্ধিত হয়েছে! কারখানার যন্ত্রপাতি ও অবকাঠামো নির্ধারণ করুন।'
+          : 'Organization created! Please select the equipment used in your factory.'
+      );
     } catch (err: any) {
       setError(err.message || 'Registration failed');
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleSaveEquipmentSetup(isStandardPreset = false) {
+    setSetupSaving(true);
+    setError(null);
+
+    const token = localStorage.getItem('carbonbill_token');
+    const payload = isStandardPreset
+      ? {
+          sector: setupSector || 'RMG_Woven',
+          hasBoiler: true,
+          hasGenset: true,
+          hasProductionFloor: true,
+          gridElectricity: true,
+          buildingOwnership: 'Owned',
+          roofAreaSqft: 25000,
+          budgetBand: 'Medium'
+        }
+      : {
+          sector: setupSector || 'RMG_Woven',
+          hasBoiler: setupHasBoiler,
+          hasGenset: setupHasGenset,
+          hasProductionFloor: setupHasProductionFloor,
+          gridElectricity: true,
+          buildingOwnership: setupBuildingOwnership,
+          roofAreaSqft: setupRoofAreaSqft > 0 ? setupRoofAreaSqft : null,
+          budgetBand: setupBudgetBand
+        };
+
+    try {
+      const res = await fetch('/api/v1/profile/facility', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.detail || 'যন্ত্রপাতি বিবরণ সংরক্ষণে সমস্যা হয়েছে।');
+      }
+
+      onLoginSuccess();
+    } catch (err: any) {
+      setError(err.message || 'Failed to save facility equipment');
+    } finally {
+      setSetupSaving(false);
     }
   }
 
@@ -166,7 +248,7 @@ export default function LoginView({ onLoginSuccess, onGoToFloor }: LoginViewProp
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-900 via-slate-900 to-teal-950 flex flex-col justify-center items-center p-4 font-sans text-slate-100">
-      <div className="max-w-md w-full bg-white rounded-3xl p-6 md:p-8 text-slate-900 shadow-2xl space-y-6">
+      <div className={`w-full bg-white rounded-3xl p-6 md:p-8 text-slate-900 shadow-2xl space-y-6 transition-all duration-300 ${tab === 'equipment_setup' ? 'max-w-2xl' : 'max-w-md'}`}>
         {/* Branding & Language */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -187,38 +269,52 @@ export default function LoginView({ onLoginSuccess, onGoToFloor }: LoginViewProp
           </button>
         </div>
 
-        {/* Tab Selector */}
-        <div className="flex bg-slate-100 p-1 rounded-2xl text-xs font-bold">
-          <button
-            type="button"
-            onClick={() => { setTab('login'); setError(null); }}
-            className={`flex-1 py-2 rounded-xl transition-all ${
-              tab === 'login' ? 'bg-white shadow-xs text-teal-900' : 'text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            {i18n.language === 'bn' ? 'লগইন' : 'Sign In'}
-          </button>
-          <button
-            type="button"
-            onClick={() => { setTab('register'); setError(null); }}
-            className={`flex-1 py-2 rounded-xl transition-all ${
-              tab === 'register' ? 'bg-white shadow-xs text-teal-900' : 'text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            {i18n.language === 'bn' ? 'নতুন প্রতিষ্ঠান' : 'Register Org'}
-          </button>
-          {inviteToken && (
+        {/* Tab Selector or Step Indicator */}
+        {tab !== 'equipment_setup' ? (
+          <div className="flex bg-slate-100 p-1 rounded-2xl text-xs font-bold">
             <button
               type="button"
-              onClick={() => { setTab('invite'); setError(null); }}
+              onClick={() => { setTab('login'); setError(null); }}
               className={`flex-1 py-2 rounded-xl transition-all ${
-                tab === 'invite' ? 'bg-white shadow-xs text-teal-900' : 'text-slate-500 hover:text-slate-800'
+                tab === 'login' ? 'bg-white shadow-xs text-teal-900' : 'text-slate-500 hover:text-slate-800'
               }`}
             >
-              {i18n.language === 'bn' ? 'আমন্ত্রণ গ্রহণ' : 'Join Org'}
+              {i18n.language === 'bn' ? 'লগইন' : 'Sign In'}
             </button>
-          )}
-        </div>
+            <button
+              type="button"
+              onClick={() => { setTab('register'); setError(null); }}
+              className={`flex-1 py-2 rounded-xl transition-all ${
+                tab === 'register' ? 'bg-white shadow-xs text-teal-900' : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              {i18n.language === 'bn' ? 'নতুন প্রতিষ্ঠান' : 'Register Org'}
+            </button>
+            {inviteToken && (
+              <button
+                type="button"
+                onClick={() => { setTab('invite'); setError(null); }}
+                className={`flex-1 py-2 rounded-xl transition-all ${
+                  tab === 'invite' ? 'bg-white shadow-xs text-teal-900' : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                {i18n.language === 'bn' ? 'আমন্ত্রণ গ্রহণ' : 'Join Org'}
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="flex items-center justify-between bg-slate-100 p-1.5 rounded-2xl text-xs font-bold text-slate-500">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-emerald-700 rounded-xl shadow-xs">
+              <CheckCircle size={14} className="text-emerald-600" />
+              <span>{i18n.language === 'bn' ? '১. প্রতিষ্ঠান সম্পন্ন' : '1. Org Created'}</span>
+            </div>
+            <ArrowRight size={14} className="text-slate-400" />
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-teal-800 text-white rounded-xl shadow-xs">
+              <Settings size={14} />
+              <span>{i18n.language === 'bn' ? '২. যন্ত্রপাতি সেটআপ' : '2. Equipment Setup'}</span>
+            </div>
+          </div>
+        )}
 
         {/* Quick Demo Accounts Helper */}
         {tab === 'login' && (
@@ -474,6 +570,273 @@ export default function LoginView({ onLoginSuccess, onGoToFloor }: LoginViewProp
               {loading ? (i18n.language === 'bn' ? 'যুক্ত হওয়া হচ্ছে...' : 'Joining...') : (i18n.language === 'bn' ? 'দলে যোগ দিন' : 'Join Team')}
             </button>
           </form>
+        )}
+
+        {/* 4. Post-Registration Equipment Setup */}
+        {tab === 'equipment_setup' && (
+          <div className="space-y-5">
+            {/* Step header */}
+            <div className="bg-teal-50/70 border border-teal-200/80 rounded-2xl p-4">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[11px] font-extrabold uppercase tracking-wider text-teal-900 bg-teal-200/60 px-2 py-0.5 rounded-md">
+                  {i18n.language === 'bn' ? 'ধাপ ২ / ২: যন্ত্রপাতি নির্বাচন' : 'Step 2 of 2: Equipment Setup'}
+                </span>
+                <span className="text-[11px] font-semibold text-teal-700 truncate max-w-[180px]">
+                  {regOrgName || 'New Facility'}
+                </span>
+              </div>
+              <h2 className="text-base font-bold text-slate-800">
+                {i18n.language === 'bn'
+                  ? 'আপনার কারখানায় কোন কোন যন্ত্রপাতি চালু রয়েছে?'
+                  : 'What equipment does your factory operate?'}
+              </h2>
+              <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
+                {i18n.language === 'bn'
+                  ? 'কার্বনবিল এআই আপনার যন্ত্রপাতির উপর ভিত্তি করে বিদ্যুৎ ও জ্বালানি খরচ কমানোর সুনির্দিষ্ট প্রস্তাবনা এবং আনুমানিক সাশ্রয় হিসাব করবে।'
+                  : 'CarbonBill AI uses your equipment profile to identify targeted energy-efficiency projects and calculate annual BDT savings.'}
+              </p>
+            </div>
+
+            {/* 1-Click Fast Track: RMG Standard Preset */}
+            <div className="bg-gradient-to-br from-teal-900 to-slate-900 text-white rounded-2xl p-4 shadow-md space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="text-amber-400 shrink-0" size={18} />
+                  <span className="font-bold text-sm">
+                    {i18n.language === 'bn' ? '⚡ দ্রুততম শুরু: স্ট্যান্ডার্ড পোশাক কারখানা প্রিসেট' : '⚡ 1-Click Fast Start: Standard RMG Preset'}
+                  </span>
+                </div>
+                <span className="text-[10px] bg-teal-800/80 text-teal-200 px-2 py-0.5 rounded-full font-medium shrink-0">
+                  {i18n.language === 'bn' ? 'প্রস্তাবিত' : 'Recommended'}
+                </span>
+              </div>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                {i18n.language === 'bn'
+                  ? 'বাংলাদেশের বেশিরভাগ পোশাক কারখানার স্ট্যান্ডার্ড সেটআপ: স্টিম বয়লার, ব্যাকআপ ডিজেল জেনারেটর, সেলাই ফ্লোর ও ২৫,০০০ বর্গফুট ছাদ।'
+                  : 'Standard Bangladesh RMG setup: Steam Boiler, Diesel Generator, Sewing Floor, Owned Building, and 25,000 sq ft roof.'}
+              </p>
+              <button
+                type="button"
+                disabled={setupSaving}
+                onClick={() => handleSaveEquipmentSetup(true)}
+                className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 active:scale-98 cursor-pointer"
+              >
+                {setupSaving ? (
+                  <span>{i18n.language === 'bn' ? 'প্রোফাইল তৈরি হচ্ছে...' : 'Setting up profile...'}</span>
+                ) : (
+                  <>
+                    <span>{i18n.language === 'bn' ? '⚡ স্ট্যান্ডার্ড প্রিসেট প্রয়োগ করে ড্যাশবোর্ডে যান' : '⚡ Apply Standard Preset & Launch Dashboard'}</span>
+                    <ArrowRight size={14} />
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Or Custom Section */}
+            <div className="relative flex py-1 items-center">
+              <div className="flex-grow border-t border-slate-200"></div>
+              <span className="flex-shrink mx-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                {i18n.language === 'bn' ? 'অথবা নিজস্ব যন্ত্রপাতি নির্ধারণ করুন' : 'Or Customize Facility Assets'}
+              </span>
+              <div className="flex-grow border-t border-slate-200"></div>
+            </div>
+
+            <form onSubmit={(e) => { e.preventDefault(); handleSaveEquipmentSetup(false); }} className="space-y-3.5">
+              {/* Equipment Toggles */}
+              <div className="space-y-2">
+                {/* 1. Steam Boiler */}
+                <div
+                  onClick={() => setSetupHasBoiler(!setupHasBoiler)}
+                  className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
+                    setupHasBoiler ? 'bg-amber-50/70 border-amber-300 ring-1 ring-amber-300' : 'bg-slate-50 border-slate-200 opacity-70'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${setupHasBoiler ? 'bg-amber-500 text-white' : 'bg-slate-200 text-slate-500'}`}>
+                      <Flame size={18} />
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-slate-800">
+                        {i18n.language === 'bn' ? 'ইন্ডাস্ট্রিয়াল বাষ্পীয় বয়লার (Steam Boiler)' : 'Industrial Steam Boiler'}
+                      </div>
+                      <div className="text-[11px] text-slate-500 leading-tight">
+                        {i18n.language === 'bn'
+                          ? 'ইস্ত্রি, ওয়াশিং বা ডাইং এর বাষ্প তৈরি (স্টিম ট্র্যাপ মেরামত ও ইকোনোমাইজার)'
+                          : 'Steam for ironing, washing, and finishing (enables economizer & trap fixes)'}
+                      </div>
+                    </div>
+                  </div>
+                  <div className={`px-2.5 py-1 rounded-lg text-[11px] font-bold shrink-0 ml-2 ${setupHasBoiler ? 'bg-amber-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
+                    {setupHasBoiler ? (i18n.language === 'bn' ? 'আছে' : 'Yes') : (i18n.language === 'bn' ? 'নেই' : 'No')}
+                  </div>
+                </div>
+
+                {/* 2. Backup Diesel Generator */}
+                <div
+                  onClick={() => setSetupHasGenset(!setupHasGenset)}
+                  className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
+                    setupHasGenset ? 'bg-blue-50/70 border-blue-300 ring-1 ring-blue-300' : 'bg-slate-50 border-slate-200 opacity-70'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${setupHasGenset ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-500'}`}>
+                      <Zap size={18} />
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-slate-800">
+                        {i18n.language === 'bn' ? 'ডিজেল ব্যাকআপ জেনারেটর (Diesel Generator)' : 'Backup Diesel Generator'}
+                      </div>
+                      <div className="text-[11px] text-slate-500 leading-tight">
+                        {i18n.language === 'bn'
+                          ? 'গ্রিড বিভ্রাটের সময় ব্যাকআপ বিদ্যুৎ (জেনারেটর রাইট-সাইজিং ও জ্বালানি অপ্টিমাইজেশন)'
+                          : 'Backup electricity during power cuts (enables generator right-sizing & load match)'}
+                      </div>
+                    </div>
+                  </div>
+                  <div className={`px-2.5 py-1 rounded-lg text-[11px] font-bold shrink-0 ml-2 ${setupHasGenset ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
+                    {setupHasGenset ? (i18n.language === 'bn' ? 'আছে' : 'Yes') : (i18n.language === 'bn' ? 'নেই' : 'No')}
+                  </div>
+                </div>
+
+                {/* 3. Production Floor */}
+                <div
+                  onClick={() => setSetupHasProductionFloor(!setupHasProductionFloor)}
+                  className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
+                    setupHasProductionFloor ? 'bg-teal-50/70 border-teal-300 ring-1 ring-teal-300' : 'bg-slate-50 border-slate-200 opacity-70'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${setupHasProductionFloor ? 'bg-teal-600 text-white' : 'bg-slate-200 text-slate-500'}`}>
+                      <Factory size={18} />
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-slate-800">
+                        {i18n.language === 'bn' ? 'গার্মেন্টস প্রোডাকশন ফ্লোর (Production Floor)' : 'Sewing & Assembly Production Floor'}
+                      </div>
+                      <div className="text-[11px] text-slate-500 leading-tight">
+                        {i18n.language === 'bn'
+                          ? 'সেলাই ও কাটিং লাইন, এয়ার কম্প্রেসর ও হাই-বে লাইটিং (LED রেট্রোফিট ও ইনভার্টার VFD)'
+                          : 'Sewing lines, air compressors & lighting (enables high-bay LED & VFD compressor)'}
+                      </div>
+                    </div>
+                  </div>
+                  <div className={`px-2.5 py-1 rounded-lg text-[11px] font-bold shrink-0 ml-2 ${setupHasProductionFloor ? 'bg-teal-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
+                    {setupHasProductionFloor ? (i18n.language === 'bn' ? 'আছে' : 'Yes') : (i18n.language === 'bn' ? 'নেই' : 'No')}
+                  </div>
+                </div>
+              </div>
+
+              {/* Building Ownership & Roof space */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    {i18n.language === 'bn' ? 'কারখানা ভবনের মালিকানা' : 'Building Ownership'}
+                  </label>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setSetupBuildingOwnership('Owned')}
+                      className={`py-2 px-3 rounded-xl border text-xs font-bold text-center transition cursor-pointer ${
+                        setupBuildingOwnership === 'Owned'
+                          ? 'bg-emerald-50 border-emerald-500 text-emerald-900 ring-1 ring-emerald-500'
+                          : 'bg-slate-50 border-slate-200 text-slate-600'
+                      }`}
+                    >
+                      {i18n.language === 'bn' ? '🏢 নিজস্ব ভবন (Owned)' : '🏢 Owned'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSetupBuildingOwnership('Rented')}
+                      className={`py-2 px-3 rounded-xl border text-xs font-bold text-center transition cursor-pointer ${
+                        setupBuildingOwnership === 'Rented'
+                          ? 'bg-amber-50 border-amber-500 text-amber-900 ring-1 ring-amber-500'
+                          : 'bg-slate-50 border-slate-200 text-slate-600'
+                      }`}
+                    >
+                      {i18n.language === 'bn' ? '🏬 ভাড়া ভবন (Rented)' : '🏬 Rented'}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    {i18n.language === 'bn' ? 'ব্যবহারযোগ্য ছাদের আয়তন (বর্গফুট)' : 'Usable Rooftop Area (sq ft)'}
+                  </label>
+                  <div className="relative">
+                    <Sun className="absolute left-3 top-2.5 text-slate-400" size={16} />
+                    <input
+                      type="number"
+                      min="0"
+                      step="500"
+                      value={setupRoofAreaSqft}
+                      onChange={(e) => setSetupRoofAreaSqft(Math.max(0, parseInt(e.target.value) || 0))}
+                      placeholder="25000"
+                      className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold focus:outline-none focus:border-teal-600"
+                    />
+                  </div>
+                  <div className="text-[10px] text-slate-500 mt-1">
+                    {i18n.language === 'bn' ? 'সোলার প্যানেলের ক্ষমতা ও সাশ্রয় নির্ণয়ে আবশ্যক।' : 'Needed to calculate rooftop solar capacity.'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Budget Appetite */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  {i18n.language === 'bn' ? 'প্রাথমিক বিনিয়োগ বাজেট প্রস্তুতি' : 'Investment Budget Preference'}
+                </label>
+                <select
+                  value={setupBudgetBand}
+                  onChange={(e) => setSetupBudgetBand(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-teal-600"
+                >
+                  <option value="Low">
+                    {i18n.language === 'bn'
+                      ? 'স্বল্প বিনিয়োগ (Quick Payback < 1 yr: LED, ট্র্যাপ মেরামত, সেন্সর)'
+                      : 'Low Budget (Quick Payback < 1 yr: LED retrofit, trap repairs)'}
+                  </option>
+                  <option value="Medium">
+                    {i18n.language === 'bn'
+                      ? 'মাঝারি বাজেট (Balanced 1-3 yrs: VFD কম্প্রেসর, বয়লার ইকোনোমাইজার)'
+                      : 'Medium Budget (Balanced 1-3 yrs: VFD compressor, economizer)'}
+                  </option>
+                  <option value="High">
+                    {i18n.language === 'bn'
+                      ? 'উচ্চ বিনিয়োগ (Strategic > 3 yrs: রুফটপ সোলার ও পূর্ণ হিট রিকভারি)'
+                      : 'High Budget (Strategic > 3 yrs: Rooftop Solar & full heat recovery)'}
+                  </option>
+                </select>
+              </div>
+
+              {/* Submit Buttons */}
+              <div className="space-y-2 pt-2">
+                <button
+                  type="submit"
+                  disabled={setupSaving}
+                  className="w-full py-3 bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  {setupSaving ? (
+                    <span>{i18n.language === 'bn' ? 'সংরক্ষণ করা হচ্ছে...' : 'Saving & Recalculating...'}</span>
+                  ) : (
+                    <>
+                      <span>{i18n.language === 'bn' ? 'যন্ত্রপাতি বিবরণ সংরক্ষণ করে ড্যাশবোর্ডে যান' : 'Save Equipment & Launch Dashboard'}</span>
+                      <ArrowRight size={14} />
+                    </>
+                  )}
+                </button>
+
+                <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={onLoginSuccess}
+                    className="text-xs text-slate-400 hover:text-slate-600 underline font-medium cursor-pointer"
+                  >
+                    {i18n.language === 'bn' ? 'এখনই বাদ দিন (পরে প্রোফাইল থেকে সেটআপ করব)' : 'Skip for now (configure later in profile)'}
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
         )}
 
         {/* Quick link to Floor capture view */}

@@ -118,26 +118,59 @@ public class LlmRecommendationAdvisor(
     {
         var sb = new StringBuilder();
         var inv = CultureInfo.InvariantCulture;
-        sb.AppendLine(inv, $"# Executive Decarbonization Brief for {context.Sector} Facility");
-        sb.AppendLine(inv, $"Baseline Annual Energy: {context.AnnualElectricityKwh:N0} kWh electricity (৳{context.ElectricityTariffBdt:F2}/kWh), {context.AnnualDieselLitres:N0} L diesel.");
-        
+
+        sb.AppendLine(inv, $"⚡ **1. Factory Energy Baseline (From Approved Bills):**");
+        sb.AppendLine(inv, $"• Annual Electricity: {context.AnnualElectricityKwh:N0} kWh (Effective Tariff: ৳{context.ElectricityTariffBdt:F2} per unit)");
+        if (context.AnnualDieselLitres > 0)
+        {
+            sb.AppendLine(inv, $"• Generator Diesel: {context.AnnualDieselLitres:N0} Litres/year (Fuel Tariff: ৳{context.DieselTariffBdt:F2}/L)");
+        }
+        if (context.AnnualGasM3 > 0)
+        {
+            sb.AppendLine(inv, $"• Boiler Gas: {context.AnnualGasM3:N0} m³/year (Gas Tariff: ৳{context.GasTariffBdt:F2}/m³)");
+        }
+        sb.AppendLine();
+
         if (context.ActiveFlagCodes.Count > 0)
         {
+            var distinctFlags = context.ActiveFlagCodes.Distinct().ToList();
+            sb.AppendLine(inv, $"⚠️ **2. Key Operational Issues to Resolve:**");
+            foreach (var flag in distinctFlags)
+            {
+                sb.AppendLine(inv, $"• {GetFriendlyFlagDescription(flag)}");
+            }
+            sb.AppendLine();
             var uniqueFlags = context.ActiveFlagCodes.Distinct().ToList();
             sb.AppendLine(inv, $"Active Operational Anomalies Identified: {string.Join(", ", uniqueFlags)}");
         }
 
         decimal totalTypicalSavings = topMeasures.Sum(m => m.AnnualSavingsBdt.Typical);
         decimal totalTypicalCo2 = topMeasures.Sum(m => m.AvoidedTco2e.Typical);
-        sb.AppendLine(inv, $"Top {topMeasures.Count} priority initiatives unlock an estimated **৳{totalTypicalSavings:N0} BDT/year** operational savings and reduce **{totalTypicalCo2:F1} tCO2e/year** in emissions.");
-        
+
+        sb.AppendLine(inv, $"💰 **3. Financial & Carbon Impact (Top {topMeasures.Count} Initiatives Combined):**");
+        sb.AppendLine(inv, $"• **Estimated Annual Savings:** ৳{totalTypicalSavings:N0} BDT every year in utility bill reductions.");
+        sb.AppendLine(inv, $"• **Total Carbon Avoided:** {totalTypicalCo2:F1} tonnes CO₂e per year.");
+        sb.AppendLine(inv, $"• **Action for Management:** Review the prioritized project cards below. Each measure is ranked by fastest payback in Taka.");
+
         return Task.FromResult(sb.ToString());
     }
+
+    private static string GetFriendlyFlagDescription(string code) => code switch
+    {
+        "MISSING_DOCUMENT" => "Missing utility bills: Certain monthly electricity or fuel slips need to be uploaded.",
+        "LOW_OCR_CONFIDENCE" => "Challans needing review: Blurry or stamped slips require human confirmation in the Review Queue.",
+        "REPORT_NOT_READY" => "Pending buyer reports: Final verification required before generating export-ready GHG reports.",
+        "HOTSPOT_DETECTED" => "Fuel consumption surge: High generator diesel or boiler usage detected compared to historical baseline.",
+        "POWER_FACTOR_PENALTY" => "Power factor penalty: Utility meter incurs monthly surcharges; capacitor bank tuning recommended.",
+        "GENSET_RELIANCE" => "High generator reliance: Substantial hours running on costly backup diesel instead of grid power.",
+        "SPIKE_MOM" => "Sudden month-over-month energy spike requiring operational inspection.",
+        _ => code.Replace('_', ' ').ToLowerInvariant()
+    };
 
     private static string BuildPrompt(CandidateMeasureEvaluation c, AiAdviceContext ctx)
     {
         var m = c.Measure;
-        var flags = ctx.ActiveFlagCodes.Count > 0 ? string.Join(", ", ctx.ActiveFlagCodes) : "None";
+        var flags = ctx.ActiveFlagCodes.Count > 0 ? string.Join(", ", ctx.ActiveFlagCodes.Distinct()) : "None";
         var inv = CultureInfo.InvariantCulture;
 
         return string.Format(inv, """
@@ -321,28 +354,28 @@ public class LlmRecommendationAdvisor(
 
         if (c.AddressedFlags.Contains("POWER_FACTOR_PENALTY"))
         {
-            expEn = $"Based on your confirmed utility billing, your facility incurs low power factor surcharges. At your current tariff of {ctx.ElectricityTariffBdt:F2} BDT/kWh, capacitor bank tuning completely eliminates these penalties and recovers capex in under {c.PaybackYears * 12m:F0} months.";
+            expEn = $"Based on your confirmed utility billing, your facility incurs low power factor surcharges. At your current tariff of ৳{ctx.ElectricityTariffBdt:F2}/kWh, capacitor bank tuning completely eliminates these penalties and recovers capex in under {c.PaybackYears * 12m:F0} months.";
             expBn = $"আপনার কারখানার প্রকৃত বিদ্যুৎ বিল পর্যালোচনায় দেখা গেছে যে ডেসকো/ডিপিডিসি থেকে লো-পাওয়ার ফ্যাক্টর সারচার্জ আরোপিত হচ্ছে। আপনার বর্তমান ট্যারিফ {ToBnDigits(ctx.ElectricityTariffBdt.ToString("F2", CultureInfo.InvariantCulture))} টাকা/kWh অনুযায়ী ক্যাপাসিটর ব্যাংক আধুনিকীকরণ করলে এই জরিমানা সম্পূর্ণ বন্ধ হবে এবং {ToBnDigits((c.PaybackYears * 12m).ToString("F0", CultureInfo.InvariantCulture))} মাসের মধ্যে বিনিয়োগ উঠে আসবে।";
-            roadEn = "1. Request power analyzer log from utility meter. 2. Procure automatic power factor correction (APFC) bank rated for peak reactive kVAR. 3. Monitor next billing cycle for penalty elimination.";
-            roadBn = "১. ইউটিলিটি মিটার থেকে পাওয়ার অ্যানালাইজার রিডিং সংগ্রহ করুন। ২. প্রয়োজনীয় ক্যাপাসিটির স্বয়ংক্রিয় এপিএফসি (APFC) প্যানেল স্থাপন করুন। ৩. পরবর্তী মাসের বিলে জরিমানা মুক্ত স্ট্যাটাস নিশ্চিত করুন।";
+            roadEn = "• Step 1: Request power analyzer logs from your utility meter.\n• Step 2: Procure an automatic power factor correction (APFC) capacitor bank.\n• Step 3: Verify zero penalty on next month's electricity bill.";
+            roadBn = "• ধাপ ১: মিটার থেকে পাওয়ার অ্যানালাইজার রিডিং সংগ্রহ করুন।\n• ধাপ ২: প্রয়োজনীয় ক্যাপাসিটির স্বয়ংক্রিয় এপিএফসি (APFC) প্যানেল স্থাপন করুন।\n• ধাপ ৩: পরবর্তী বিদ্যুৎ বিলে জরিমানা মুক্ত স্ট্যাটাস নিশ্চিত করুন।";
         }
         else if (c.AddressedFlags.Contains("GENSET_RELIANCE"))
         {
-            expEn = $"Your facility's diesel bills indicate significant generator operating hours ({ctx.AnnualDieselLitres:N0} L/year at {ctx.DieselTariffBdt:F2} BDT/L). Implementing automated changeover logic and solar displacement directly avoids expensive diesel generation.";
+            expEn = $"Your facility's diesel bills indicate significant generator operating hours ({ctx.AnnualDieselLitres:N0} L/year at ৳{ctx.DieselTariffBdt:F2}/L). Implementing automated changeover logic directly avoids expensive diesel generation.";
             expBn = $"আপনার কারখানার ডিজেল বিলে উচ্চ জেনারেটর নির্ভরতা দেখা গেছে (বছরে প্রায় {ToBnDigits(ctx.AnnualDieselLitres.ToString("N0", CultureInfo.InvariantCulture))} লিটার ডিজেল, ট্যারিফ {ToBnDigits(ctx.DieselTariffBdt.ToString("F2", CultureInfo.InvariantCulture))} টাকা/লিটার)। গ্রিড-ফার্স্ট শিডিউলিং ও সৌর বিদ্যুৎ সংযোজন ব্যয়বহুল ডিজেল খরচ সরাসরি হ্রাস করবে।";
-            roadEn = "1. Install synchronizing and automated changeover controller. 2. Implement genset load monitoring. 3. Prioritize grid and solar power.";
-            roadBn = "১. স্বয়ংক্রিয় চেঞ্জওভার ও লোড সিঙ্ক্রোনাইজার স্থাপন করুন। ২. জেনারেটরের লোড মনিটরিং নিশ্চিত করুন। ৩. গ্রিড এবং সৌর বিদ্যুৎ ব্যবহারে অগ্রাধিকার দিন।";
+            roadEn = "• Step 1: Install automated changeover and load synchronizing controllers.\n• Step 2: Monitor generator load during peak hours.\n• Step 3: Prioritize cheaper grid electricity and rooftop solar.";
+            roadBn = "• ধাপ ১: স্বয়ংক্রিয় চেঞ্জওভার ও লোড সিঙ্ক্রোনাইজার স্থাপন করুন।\n• ধাপ ২: পিক আওয়ারে জেনারেটরের লোড মনিটরিং নিশ্চিত করুন।\n• ধাপ ৩: সাশ্রয়ী গ্রিড এবং সৌর বিদ্যুৎ ব্যবহারে অগ্রাধিকার দিন।";
         }
         else
         {
-            expEn = $"Tailored for your {ctx.Sector} facility based on verified annual consumption ({ctx.AnnualElectricityKwh:N0} kWh electricity at {ctx.ElectricityTariffBdt:F2} BDT/kWh). Delivers an expected energy reduction of {m.SavingTypical * 100m:F0}% with simple payback of {c.PaybackYears:F1} years.";
+            expEn = $"Tailored for your {ctx.Sector} facility based on verified annual consumption ({ctx.AnnualElectricityKwh:N0} kWh electricity at ৳{ctx.ElectricityTariffBdt:F2}/kWh). Delivers an expected energy reduction of {m.SavingTypical * 100m:F0}% with simple payback of {c.PaybackYears:F1} years.";
             expBn = $"আপনার কারখানার প্রকৃত বিদ্যুৎ ব্যবহার ({ToBnDigits(ctx.AnnualElectricityKwh.ToString("N0", CultureInfo.InvariantCulture))} kWh, ট্যারিফ {ToBnDigits(ctx.ElectricityTariffBdt.ToString("F2", CultureInfo.InvariantCulture))} টাকা/kWh) অনুযায়ী প্রস্তুতকৃত। এই উদ্যোগটি প্রায় {ToBnDigits((m.SavingTypical * 100m).ToString("F0", CultureInfo.InvariantCulture))}% জ্বালানি সাশ্রয় এবং {ToBnDigits(c.PaybackYears.ToString("F1", CultureInfo.InvariantCulture))} বছরে বিনিয়োগ উত্তোলনে সহায়তা করবে।";
             roadEn = c.NeedsEnergyAudit
-                ? "1. Schedule investment-grade energy audit. 2. Apply for concessionary IDCOL/BB green refinancing. 3. Procure verified industrial equipment."
-                : "1. Obtain technical vendor quotes. 2. Review electrical specifications. 3. Schedule installation during weekend maintenance.";
+                ? "• Step 1: Schedule an investment-grade industrial energy audit.\n• Step 2: Apply for low-interest green loans (IDCOL or Bangladesh Bank).\n• Step 3: Procure certified energy-saving equipment with supplier warranty."
+                : "• Step 1: Request technical quotes from verified industrial suppliers.\n• Step 2: Review electrical specifications and warranties.\n• Step 3: Schedule installation during weekend maintenance shutdown.";
             roadBn = c.NeedsEnergyAudit
-                ? "১. বিস্তারিত ইনভেস্টমেন্ট-গ্রেড এনার্জি অডিট সম্পন্ন করুন। ২. ইডকল বা বাংলাদেশ ব্যাংক গ্রিন রিফাইন্যান্সিং আবেদন করুন। ৩. সার্টিফাইড যন্ত্রপাতি সংগ্রহ করুন।"
-                : "১. অভিজ্ঞ ভেন্ডরদের থেকে কোটেশন সংগ্রহ করুন। ২. টেকনিক্যাল স্পেসিফিকেশন পরীক্ষা করুন। ৩. সাপ্তাহিক মেইনটেন্যান্সের সময় ইন্সটলেশন সম্পন্ন করুন।";
+                ? "• ধাপ ১: কারখানার বিস্তারিত এনার্জি অডিট সম্পন্ন করুন।\n• ধাপ ২: বাংলাদেশ ব্যাংক বা ইডকল-এর স্বল্প সুদের গ্রিন ঋণে আবেদন করুন।\n• ধাপ ৩: অনুমোদিত জ্বালানি সাশ্রয়ী যন্ত্রপাতি সংগ্রহ করুন।"
+                : "• ধাপ ১: অভিজ্ঞ প্রযুক্তি সরবরাহকারীদের থেকে কোটেশন সংগ্রহ করুন।\n• ধাপ ২: যন্ত্রপাতির স্পেসিফিকেশন ও ওয়ারেন্টি যাচাই করুন।\n• ধাপ ৩: সাপ্তাহিক ছুটির দিনে ইনস্টলেশন সম্পন্ন করুন।";
         }
 
         return new AiEnrichmentResult(

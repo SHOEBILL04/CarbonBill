@@ -1,33 +1,13 @@
 import {
   Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  PointElement,
-  LineElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler,
+  registerables,
 } from 'chart.js';
 
 let isRegistered = false;
 
 export function ensureChartRegistered() {
   if (isRegistered) return;
-  ChartJS.register(
-    CategoryScale,
-    LinearScale,
-    BarElement,
-    PointElement,
-    LineElement,
-    ArcElement,
-    Title,
-    Tooltip,
-    Legend,
-    Filler
-  );
+  ChartJS.register(...registerables);
   isRegistered = true;
 }
 
