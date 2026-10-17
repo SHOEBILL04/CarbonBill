@@ -35,6 +35,14 @@ public class Recommendation : BaseEntity, ITenantScopedEntity
     public string NextStepBn { get; set; } = string.Empty;
     public string NextStepEn { get; set; } = string.Empty;
 
+    // Dynamic AI Advisor & Operational Flag Enrichment
+    public string? AddressedFlagsJson { get; set; }
+    public string? AiAdviceEn { get; set; }
+    public string? AiAdviceBn { get; set; }
+    public string? AiRoadmapEn { get; set; }
+    public string? AiRoadmapBn { get; set; }
+    public bool IsAiEnriched { get; set; }
+
     // Closed-loop outcome tracking
     public decimal? RealisedSavingBdt { get; set; }
     public decimal? RealisedTco2eAvoided { get; set; }

@@ -21,6 +21,7 @@ public sealed class LangSmithTracer : CarbonBill.SharedKernel.Providers.ILangSmi
     private readonly string _apiKey;
     private readonly string _project;
     private readonly bool _isEnabled;
+    private static bool _hasLoggedDisabledNotice;
 
     public bool IsEnabled => _isEnabled && !string.IsNullOrWhiteSpace(_apiKey);
 
@@ -61,9 +62,10 @@ public sealed class LangSmithTracer : CarbonBill.SharedKernel.Providers.ILangSmi
         {
             _logger.LogInformation("LangSmith tracking active. Traces will be emitted to project '{Project}' at {Endpoint}.", _project, _endpoint);
         }
-        else
+        else if (!_hasLoggedDisabledNotice)
         {
-            _logger.LogWarning("LangSmith tracking disabled or API key missing.");
+            _hasLoggedDisabledNotice = true;
+            _logger.LogInformation("LangSmith tracking disabled (optional LANGSMITH_API_KEY not configured).");
         }
     }
 

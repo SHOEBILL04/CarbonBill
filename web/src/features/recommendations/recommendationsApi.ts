@@ -174,10 +174,25 @@ function mapDtoToRecommendation(dto: any): Recommendation {
     financingNoteBn: dto.financingNoteBn || '',
     financingNoteEn: dto.financingNoteEn || '',
     realisedSavingBdt: dto.realisedSavingBdt ? Number(dto.realisedSavingBdt) : undefined,
+    addressedFlags: dto.addressedFlags || [],
+    aiAdviceEn: dto.aiAdviceEn || undefined,
+    aiAdviceBn: dto.aiAdviceBn || undefined,
+    aiRoadmapEn: dto.aiRoadmapEn || undefined,
+    aiRoadmapBn: dto.aiRoadmapBn || undefined,
+    isAiEnriched: Boolean(dto.isAiEnriched),
   };
 }
 
 export async function fetchRecommendations(): Promise<Recommendation[]> {
+  const payload = await fetchRecommendationsPayload();
+  return payload.recommendations;
+}
+
+export async function fetchRecommendationsPayload(): Promise<{
+  recommendations: Recommendation[];
+  baselineData?: any;
+  executiveBrief?: string;
+}> {
   try {
     const data = await apiFetch<any>('/api/v1/recommendations');
     let rawList: any[] = [];
@@ -190,11 +205,15 @@ export async function fetchRecommendations(): Promise<Recommendation[]> {
     }
 
     if (rawList.length > 0) {
-      return rawList.map(mapDtoToRecommendation);
+      return {
+        recommendations: rawList.map(mapDtoToRecommendation),
+        baselineData: data?.baselineData,
+        executiveBrief: data?.executiveBrief,
+      };
     }
-    return inMemoryRecommendations;
+    return { recommendations: inMemoryRecommendations };
   } catch {
-    return inMemoryRecommendations;
+    return { recommendations: inMemoryRecommendations };
   }
 }
 
@@ -216,4 +235,15 @@ export async function updateRecommendationStatus(
     r.id === id ? { ...r, status, statusReason: reason } : r
   );
   return true;
+}
+
+export async function recalculateRecommendations(): Promise<boolean> {
+  try {
+    await apiFetch('/api/v1/recommendations/recalculate', {
+      method: 'POST',
+    });
+    return true;
+  } catch {
+    return false;
+  }
 }

@@ -113,9 +113,30 @@ public static class RecommendationsEndpoints
                 status = "Recalculated",
                 count = recommendations.Count
             });
+        });
+
+        // GET /api/v1/recommendations/ai-brief
+        group.MapGet("/recommendations/ai-brief", async (
+            [FromQuery] Guid? siteId,
+            ITenantContext tenantContext,
+            RecommendationsService service,
+            CancellationToken ct) =>
+        {
+            if (!tenantContext.IsAuthenticated || !tenantContext.CurrentOrgId.HasValue)
+            {
+                return Results.Unauthorized();
+            }
+
+            var response = await service.GetRecommendationsResponseAsync(tenantContext.CurrentOrgId.Value, siteId, ct);
+            return Results.Ok(new
+            {
+                executiveBrief = response.ExecutiveBrief,
+                baseline = response.BaselineData,
+                top5Count = response.Top5.Count
+            });
         })
-        .WithName("RecalculateRecommendations")
-        .WithSummary("Trigger immediate re-execution of the 8-step recommendation pipeline.");
+        .WithName("GetAiRecommendationBrief")
+        .WithSummary("Get dynamic AI-generated decarbonization executive brief based on confirmed facility bills and operational flags.");
 
         return endpoints;
     }

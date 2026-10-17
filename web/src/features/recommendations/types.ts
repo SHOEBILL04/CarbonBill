@@ -30,4 +30,32 @@ export interface Recommendation {
   financingNoteBn: string;
   financingNoteEn: string;
   realisedSavingBdt?: number;
+  addressedFlags?: string[];
+  aiAdviceEn?: string;
+  aiAdviceBn?: string;
+  aiRoadmapEn?: string;
+  aiRoadmapBn?: string;
+  isAiEnriched?: boolean;
+}
+
+export interface FacilityBaselineData {
+  annualElectricityKwh: number;
+  totalElectricityCostBdt: number;
+  electricityTariffBdtPerKwh: number;
+  annualDieselLitres: number;
+  totalDieselCostBdt: number;
+  dieselTariffBdtPerLitre: number;
+  annualGasM3: number;
+  totalGasCostBdt: number;
+  gasTariffBdtPerM3: number;
+  hasRealBills: boolean;
+  billsCount: number;
+  activeFlagCodes: string[];
+  activeFlagSummaries: string[];
+}
+
+export interface RecommendationsPayload {
+  recommendations: Recommendation[];
+  baselineData?: FacilityBaselineData;
+  executiveBrief?: string;
 }

@@ -59,6 +59,10 @@ public static class RecommendationsModuleExtensions
         // Seed Loader
         services.AddScoped<IRecommendationsSeedLoader, RecommendationsSeedLoader>();
 
+        // Dynamic Data Aggregator & AI Advisor
+        services.AddScoped<IFacilityDataAggregator, FacilityDataAggregator>();
+        services.AddHttpClient<IAiRecommendationAdvisor, LlmRecommendationAdvisor>();
+
         // Main Module Service
         services.AddScoped<RecommendationsService>();
 

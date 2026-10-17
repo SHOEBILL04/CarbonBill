@@ -606,7 +606,10 @@ public class RecommendationsPipelineTests
             new ExplanationStep(),
             new CloseTheLoopStep());
 
-        var service = new RecommendationsService(dbContext, pipeline, NullLogger<RecommendationsService>.Instance);
+        var aggregator = new FacilityDataAggregator(dbContext, NullLogger<FacilityDataAggregator>.Instance);
+        var config = new Microsoft.Extensions.Configuration.ConfigurationBuilder().Build();
+        var aiAdvisor = new LlmRecommendationAdvisor(new HttpClient(), config, NullLogger<LlmRecommendationAdvisor>.Instance);
+        var service = new RecommendationsService(dbContext, pipeline, aggregator, aiAdvisor, NullLogger<RecommendationsService>.Instance);
 
         // 3. Generate recommendations
         var response = await service.GetRecommendationsResponseAsync(tenantId);
@@ -634,5 +637,128 @@ public class RecommendationsPipelineTests
         Assert.Equal(RecommendationStatuses.Done, updatedDone.Status);
         Assert.NotNull(updatedDone.CompletedAtUtc);
         Assert.True(updatedDone.EvidenceUpgradeRecorded);
+    }
+
+    [Fact]
+    public void Dynamic_FlagBoost_PrioritizesPowerFactorMeasure_WhenPowerFactorPenaltyFlagActive()
+    {
+        var rankingStep = new RankingStep();
+        var source = CreateFakeSource();
+
+        var normalMeasure = new Measure
+        {
+            Id = Guid.NewGuid(),
+            MeasureCode = "LED_UPGRADE",
+            NameEn = "LED Lighting Upgrade",
+            NameBn = "এলইডি লাইটিং",
+            Category = "Lighting",
+            SavingTypical = 0.10m,
+            CapexLow = 50000m,
+            CapexHigh = 80000m,
+            LifetimeYears = 5,
+            EvidenceGrade = "A",
+            Source = source
+        };
+
+        var powerFactorMeasure = new Measure
+        {
+            Id = Guid.NewGuid(),
+            MeasureCode = "POWER_FACTOR_CORRECTION",
+            NameEn = "Power Factor Capacitor Bank Improvement",
+            NameBn = "পাওয়ার ফ্যাক্টর ক্যাপাসিটর ব্যাংক",
+            Category = "PowerFactor",
+            SavingTypical = 0.05m,
+            CapexLow = 40000m,
+            CapexHigh = 60000m,
+            LifetimeYears = 8,
+            EvidenceGrade = "A",
+            Source = source
+        };
+
+        var cand1 = new CandidateMeasureEvaluation
+        {
+            Measure = normalMeasure,
+            PaybackYears = 1.5m,
+            AvoidedTco2e = new SavingsRange(5, 10, 15),
+            CapexBdt = new CapexRange(50000, 80000)
+        };
+
+        var cand2 = new CandidateMeasureEvaluation
+        {
+            Measure = powerFactorMeasure,
+            PaybackYears = 1.8m,
+            AvoidedTco2e = new SavingsRange(3, 6, 9),
+            CapexBdt = new CapexRange(40000, 60000)
+        };
+
+        var candidates = new List<CandidateMeasureEvaluation> { cand1, cand2 };
+
+        // When POWER_FACTOR_PENALTY flag is active:
+        rankingStep.Rank(candidates, activeFlags: ["POWER_FACTOR_PENALTY"]);
+
+        Assert.Equal(1, cand2.Rank);
+        Assert.True(cand2.SolvesActiveFlag);
+        Assert.Contains("POWER_FACTOR_PENALTY", cand2.AddressedFlags);
+        Assert.True(cand2.CompositeScore > cand1.CompositeScore);
+    }
+
+    [Fact]
+    public async Task Dynamic_AIAdvisor_EnrichesTopRecommendations_WithFactorySpecificDetails()
+    {
+        var advisor = new LlmRecommendationAdvisor(
+            new HttpClient(),
+            new Microsoft.Extensions.Configuration.ConfigurationBuilder().Build(),
+            NullLogger<LlmRecommendationAdvisor>.Instance);
+
+        var source = CreateFakeSource();
+        var measure = new Measure
+        {
+            Id = Guid.NewGuid(),
+            MeasureCode = "POWER_FACTOR_CORRECTION",
+            NameEn = "Power Factor APFC Capacitor Bank",
+            NameBn = "পাওয়ার ফ্যাক্টর ক্যাপাসিটর ব্যাংক",
+            Category = "PowerFactor",
+            SavingTypical = 0.06m,
+            CapexLow = 35000m,
+            CapexHigh = 55000m,
+            LifetimeYears = 8,
+            EvidenceGrade = "A",
+            Source = source
+        };
+
+        var candidate = new CandidateMeasureEvaluation
+        {
+            Measure = measure,
+            PaybackYears = 0.6m,
+            AvoidedTco2e = new SavingsRange(4m, 6m, 8m),
+            AnnualSavingsBdt = new SavingsRange(80000m, 110000m, 130000m),
+            CapexBdt = new CapexRange(35000m, 55000m),
+            AddressedFlags = ["POWER_FACTOR_PENALTY"]
+        };
+
+        var context = new AiAdviceContext(
+            OrgId: Guid.NewGuid(),
+            Sector: "RMG",
+            AnnualElectricityKwh: 350000m,
+            ElectricityTariffBdt: 12.50m,
+            AnnualDieselLitres: 15000m,
+            DieselTariffBdt: 108.00m,
+            AnnualGasM3: 5000m,
+            GasTariffBdt: 30.00m,
+            ActiveFlagCodes: ["POWER_FACTOR_PENALTY"],
+            ActiveFlagSummaries: ["DESCO low power factor surcharge recorded"]);
+
+        var advice = await advisor.GenerateAdviceAsync(candidate, context);
+
+        Assert.NotNull(advice);
+        Assert.False(string.IsNullOrWhiteSpace(advice.PersonalizedExplanationEn));
+        Assert.False(string.IsNullOrWhiteSpace(advice.PersonalizedExplanationBn));
+        Assert.False(string.IsNullOrWhiteSpace(advice.ActionRoadmapEn));
+        Assert.Contains("12.50", advice.PersonalizedExplanationEn); // Verifies real factory tariff is cited!
+        Assert.Contains("১২.৫০", advice.PersonalizedExplanationBn); // Verifies Bengali numbers format!
+
+        var brief = await advisor.GenerateExecutiveBriefAsync(context, [candidate]);
+        Assert.Contains("350,000", brief);
+        Assert.Contains("12.50", brief);
     }
 }

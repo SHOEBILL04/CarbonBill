@@ -48,6 +48,15 @@ public class CandidateMeasureEvaluation
     public string NextStepEn { get; set; } = string.Empty;
     public string SourceCitation { get; set; } = string.Empty;
     public string EvidenceGrade { get; set; } = string.Empty;
+
+    // Dynamic Flag Alignment & AI Advisor Enrichment
+    public List<string> AddressedFlags { get; set; } = [];
+    public bool SolvesActiveFlag => AddressedFlags.Count > 0;
+    public string? AiAdviceEn { get; set; }
+    public string? AiAdviceBn { get; set; }
+    public string? AiRoadmapEn { get; set; }
+    public string? AiRoadmapBn { get; set; }
+    public bool IsAiEnriched { get; set; }
 }
 
 public class PipelineContext
