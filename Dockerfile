@@ -88,7 +88,7 @@ COPY seeds/ ./seeds/
 ENV ASPNETCORE_ENVIRONMENT=Production \
     DOTNET_RUNNING_IN_CONTAINER=true \
     ConnectionStrings__DefaultConnection="Data Source=/data/carbonbill.db;Cache=Shared" \
-    ConnectionStrings__HangfireConnection="Data Source=/data/hangfire.db;Cache=Shared" \
+    ConnectionStrings__HangfireConnection="/data/hangfire.db" \
     OCR_PROVIDER=Tesseract \
     KEEP_ALIVE_INTERVAL_MINUTES=12
 
