@@ -89,5 +89,8 @@ public class RankingStep(
         {
             sorted[i].Rank = i + 1;
         }
+
+        candidates.Clear();
+        candidates.AddRange(sorted);
     }
 }

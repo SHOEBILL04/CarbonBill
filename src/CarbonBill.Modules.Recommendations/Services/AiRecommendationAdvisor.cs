@@ -123,7 +123,8 @@ public class LlmRecommendationAdvisor(
         
         if (context.ActiveFlagCodes.Count > 0)
         {
-            sb.AppendLine(inv, $"Active Operational Anomalies Identified: {string.Join(", ", context.ActiveFlagCodes)}");
+            var uniqueFlags = context.ActiveFlagCodes.Distinct().ToList();
+            sb.AppendLine(inv, $"Active Operational Anomalies Identified: {string.Join(", ", uniqueFlags)}");
         }
 
         decimal totalTypicalSavings = topMeasures.Sum(m => m.AnnualSavingsBdt.Typical);
@@ -286,7 +287,16 @@ public class LlmRecommendationAdvisor(
 
         if (string.IsNullOrWhiteSpace(content)) return null;
 
-        var parsed = JsonSerializer.Deserialize<JsonElement>(content);
+        var trimmed = content.Trim();
+        if (trimmed.StartsWith("```json", StringComparison.OrdinalIgnoreCase))
+            trimmed = trimmed[7..];
+        else if (trimmed.StartsWith("```", StringComparison.Ordinal))
+            trimmed = trimmed[3..];
+        if (trimmed.EndsWith("```", StringComparison.Ordinal))
+            trimmed = trimmed[..^3];
+        trimmed = trimmed.Trim();
+
+        var parsed = JsonSerializer.Deserialize<JsonElement>(trimmed);
         string expEn = parsed.TryGetProperty("personalizedExplanationEn", out var pe) ? pe.GetString() ?? "" : "";
         string expBn = parsed.TryGetProperty("personalizedExplanationBn", out var pb) ? pb.GetString() ?? "" : "";
         string roadEn = parsed.TryGetProperty("actionRoadmapEn", out var re) ? re.GetString() ?? "" : "";
@@ -341,7 +351,7 @@ public class LlmRecommendationAdvisor(
             ActionRoadmapEn: roadEn,
             ActionRoadmapBn: roadBn,
             ModelUsed: "CarbonBill Expert Engineering Advisor",
-            IsAiGenerated: false);
+            IsAiGenerated: true);
     }
 
     private async Task TraceAsync(string name, string prompt, AiEnrichmentResult result, DateTime startTime, string provider, CancellationToken ct)
