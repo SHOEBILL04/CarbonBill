@@ -44,6 +44,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
 builder.Configuration.AddEnvironmentVariables();
 
+// Render and Cloud Port Binding (Render dynamically sets PORT)
+var cloudPort = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrEmpty(cloudPort))
+{
+    builder.WebHost.UseUrls($"http://+:{cloudPort}");
+}
+
 // Configure Serilog
 builder.Host.UseSerilog((ctx, lc) =>
 {
@@ -158,6 +165,10 @@ builder.Services.AddRateLimiter(options =>
 // Problem Details & Health Checks
 builder.Services.AddProblemDetails();
 builder.Services.AddHealthChecks();
+
+// Render Anti-Sleep Keep-Alive Background Service
+builder.Services.AddHttpClient("KeepAliveClient");
+builder.Services.AddHostedService<CarbonBill.Api.Services.RenderKeepAliveWorker>();
 
 // Swagger / OpenAPI
 builder.Services.AddEndpointsApiExplorer();
@@ -287,17 +298,30 @@ using (var scope = app.Services.CreateScope())
 
 // Health checks
 app.MapHealthChecks("/healthz");
+app.MapHealthChecks("/health");
 
-// Root endpoint
-app.MapGet("/", () => Results.Ok(new
+// Serve compiled frontend SPA if wwwroot/index.html is present
+var webRoot = builder.Environment.WebRootPath ?? Path.Combine(AppContext.BaseDirectory, "wwwroot");
+var hasSpaIndex = File.Exists(Path.Combine(webRoot, "index.html"));
+
+if (hasSpaIndex)
 {
-    service = "CarbonBill.Api",
-    version = "1.0.0",
-    status = "healthy",
-    docs = "/swagger",
-    jobs = "/hangfire",
-    health = "/healthz"
-}));
+    app.UseDefaultFiles();
+    app.UseStaticFiles();
+}
+else
+{
+    // Standalone API root endpoint (when running backend without frontend bundle)
+    app.MapGet("/", () => Results.Ok(new
+    {
+        service = "CarbonBill.Api",
+        version = "1.0.0",
+        status = "healthy",
+        docs = "/swagger",
+        jobs = "/hangfire",
+        health = "/healthz"
+    }));
+}
 
 // Map Module Minimal APIs
 app.MapAuthEndpoints();
@@ -315,6 +339,11 @@ app.MapFlagsModuleEndpoints();
 app.MapInsightsModuleEndpoints();
 app.MapRecommendationsModuleEndpoints();
 app.MapReportingModuleEndpoints();
+
+if (hasSpaIndex)
+{
+    app.MapFallbackToFile("index.html");
+}
 
 app.Run();
 
