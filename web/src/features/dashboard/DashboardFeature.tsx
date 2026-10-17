@@ -97,12 +97,12 @@ export const DashboardFeature: React.FC<DashboardFeatureProps> = ({
   return (
     <div className="space-y-5">
       {/* Streamlined Executive Header */}
-      <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div className="bg-[#fafaf9] p-3.5 sm:p-4 rounded-2xl border border-stone-200/90 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <span className="text-xs font-bold text-teal-800 bg-teal-50 border border-teal-200 px-3 py-1.5 rounded-xl uppercase tracking-wider">
+          <span className="text-xs font-bold text-stone-800 bg-stone-100 border border-stone-300/80 px-3 py-1.5 rounded-xl uppercase tracking-wider">
             {user?.activeOrgName || 'Apex Textiles'}
           </span>
-          <span className="text-xs text-slate-500 font-medium hidden sm:inline">
+          <span className="text-xs text-stone-500 font-medium hidden sm:inline">
             {isBangla ? 'সার্বিক কার্বন ড্যাশবোর্ড' : 'Carbon Accounting Dashboard'}
           </span>
         </div>
@@ -114,8 +114,8 @@ export const DashboardFeature: React.FC<DashboardFeatureProps> = ({
             onClick={() => setShowUploader(!showUploader)}
             className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition flex items-center gap-1.5 ${
               showUploader
-                ? 'bg-teal-900 text-white border-teal-900 shadow-2xs'
-                : 'bg-teal-50 text-teal-800 border-teal-200 hover:bg-teal-100'
+                ? 'bg-[#2d3c2d] text-white border-[#2d3c2d] shadow-2xs'
+                : 'bg-stone-100 text-stone-800 border-stone-300/80 hover:bg-stone-200'
             }`}
           >
             {showUploader ? <X size={13} /> : <Upload size={13} />}
@@ -123,12 +123,12 @@ export const DashboardFeature: React.FC<DashboardFeatureProps> = ({
           </button>
 
           {/* Period Selector */}
-          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-xl">
-            <Calendar size={13} className="text-slate-500" />
+          <div className="flex items-center gap-1.5 bg-white border border-stone-200 px-2.5 py-1 rounded-xl shadow-2xs">
+            <Calendar size={13} className="text-stone-500" />
             <select
               value={selectedPeriod}
               onChange={(e) => setSelectedPeriod(e.target.value)}
-              className="text-xs font-semibold bg-transparent text-slate-800 border-none outline-hidden cursor-pointer"
+              className="text-xs font-semibold bg-transparent text-stone-800 border-none outline-hidden cursor-pointer"
             >
               <option value="all">
                 {isBangla ? 'সব সময় (সর্বমোট)' : 'All Time'}
@@ -167,14 +167,14 @@ export const DashboardFeature: React.FC<DashboardFeatureProps> = ({
       />
 
       {/* Clean Segmented Section Controller */}
-      <div className="flex items-center justify-between border-b border-slate-200/80 pb-1">
+      <div className="flex items-center justify-between border-b border-stone-200 pb-1">
         <div className="flex items-center gap-1 overflow-x-auto py-0.5">
           <button
             onClick={() => setActiveSection('overview')}
             className={`px-3 py-1.5 text-xs font-bold rounded-xl transition flex items-center gap-1.5 whitespace-nowrap ${
               activeSection === 'overview'
-                ? 'bg-teal-900 text-white shadow-2xs'
-                : 'text-slate-600 hover:bg-white hover:text-slate-900'
+                ? 'bg-[#2d3c2d] text-white shadow-2xs'
+                : 'text-stone-600 hover:bg-stone-200/60 hover:text-stone-900'
             }`}
           >
             <BarChart2 size={13} />
@@ -185,15 +185,15 @@ export const DashboardFeature: React.FC<DashboardFeatureProps> = ({
             onClick={() => setActiveSection('evidence')}
             className={`px-3 py-1.5 text-xs font-bold rounded-xl transition flex items-center gap-1.5 whitespace-nowrap ${
               activeSection === 'evidence'
-                ? 'bg-teal-900 text-white shadow-2xs'
-                : 'text-slate-600 hover:bg-white hover:text-slate-900'
+                ? 'bg-[#2d3c2d] text-white shadow-2xs'
+                : 'text-stone-600 hover:bg-stone-200/60 hover:text-stone-900'
             }`}
           >
             <FileCheck2 size={13} />
             <span>{isBangla ? 'রসিদ ও প্রমাণপত্র' : 'Receipts & Evidence'}</span>
             {receiptsCount > 0 && (
               <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                activeSection === 'evidence' ? 'bg-teal-700 text-white' : 'bg-slate-200 text-slate-700'
+                activeSection === 'evidence' ? 'bg-[#3f593f] text-white' : 'bg-stone-200 text-stone-700'
               }`}>
                 {isBangla ? toBanglaDigits(receiptsCount) : receiptsCount}
               </span>
@@ -204,8 +204,8 @@ export const DashboardFeature: React.FC<DashboardFeatureProps> = ({
             onClick={() => setActiveSection('benchmark')}
             className={`px-3 py-1.5 text-xs font-bold rounded-xl transition flex items-center gap-1.5 whitespace-nowrap ${
               activeSection === 'benchmark'
-                ? 'bg-teal-900 text-white shadow-2xs'
-                : 'text-slate-600 hover:bg-white hover:text-slate-900'
+                ? 'bg-[#2d3c2d] text-white shadow-2xs'
+                : 'text-stone-600 hover:bg-stone-200/60 hover:text-stone-900'
             }`}
           >
             <Gauge size={13} />
@@ -216,8 +216,8 @@ export const DashboardFeature: React.FC<DashboardFeatureProps> = ({
             onClick={() => setActiveSection('all')}
             className={`px-3 py-1.5 text-xs font-bold rounded-xl transition flex items-center gap-1.5 whitespace-nowrap ${
               activeSection === 'all'
-                ? 'bg-teal-900 text-white shadow-2xs'
-                : 'text-slate-600 hover:bg-white hover:text-slate-900'
+                ? 'bg-[#2d3c2d] text-white shadow-2xs'
+                : 'text-stone-600 hover:bg-stone-200/60 hover:text-stone-900'
             }`}
           >
             <Layers size={13} />

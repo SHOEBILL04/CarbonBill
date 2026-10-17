@@ -46,32 +46,32 @@ export const RoleDashboard: React.FC<RoleDashboardProps> = ({
         {showKpis && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* 1. Total Footprint */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs hover:border-teal-300 hover:shadow-sm transition-all flex flex-col justify-between">
+          <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-xs hover:border-stone-400 hover:shadow-sm transition-all flex flex-col justify-between">
             <div>
-              <div className="flex items-center justify-between text-slate-500 mb-2">
+              <div className="flex items-center justify-between text-stone-500 mb-2">
                 <span className="text-xs font-semibold">
                   {summary.period === 'all'
                     ? (isBangla ? 'সর্বমোট কার্বন পদচিহ্ন' : 'Total Footprint')
                     : (isBangla ? `${summary.period} পদচিহ্ন` : `Footprint (${summary.period})`)}
                 </span>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-50 text-teal-800 border border-teal-200">
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200">
                   tCO₂e
                 </span>
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-black text-slate-900 tracking-tight">
+                <span className="text-3xl font-black text-stone-900 tracking-tight">
                   {isBangla ? toBanglaDigits((summary?.totalEmissions ?? 0).toFixed(2)) : (summary?.totalEmissions ?? 0).toFixed(2)}
                 </span>
-                <span className="text-xs font-bold text-slate-400">tCO₂e</span>
+                <span className="text-xs font-bold text-stone-400">tCO₂e</span>
               </div>
             </div>
-            <div className="text-[11px] text-teal-700 font-medium pt-3 mt-2 border-t border-slate-100 flex items-center justify-between">
+            <div className="text-[11px] text-[#3f593f] font-medium pt-3 mt-2 border-t border-stone-100 flex items-center justify-between">
               <span className="flex items-center gap-1.5">
-                <span className="h-1.5 w-1.5 rounded-full bg-teal-600"></span>
+                <span className="h-1.5 w-1.5 rounded-full bg-[#3f593f]"></span>
                 {isBangla ? 'প্রমাণভিত্তিক হিসাব' : 'Traceable Evidence'}
               </span>
               {summary.recentReceipts && summary.recentReceipts.length > 0 && (
-                <span className="text-slate-500 font-medium">
+                <span className="text-stone-500 font-medium">
                   {isBangla ? `${toBanglaDigits(summary.recentReceipts.length)}টি রসিদ` : `${summary.recentReceipts.length} bills`}
                 </span>
               )}
@@ -79,26 +79,26 @@ export const RoleDashboard: React.FC<RoleDashboardProps> = ({
           </div>
 
           {/* 2. Data Quality Score */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs hover:border-emerald-300 hover:shadow-sm transition-all flex flex-col justify-between">
+          <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-xs hover:border-stone-400 hover:shadow-sm transition-all flex flex-col justify-between">
             <div>
-              <div className="flex items-center justify-between text-slate-500 mb-2">
+              <div className="flex items-center justify-between text-stone-500 mb-2">
                 <span className="text-xs font-semibold">
                   {isBangla ? 'ডেটা কোয়ালিটি (DQS)' : 'Data Quality (DQS)'}
                 </span>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#e6ede6] text-[#2d3c2d] border border-[#cfddcf]">
                   {summary?.dqsGrade || 'Grade A'}
                 </span>
               </div>
               <div className="flex items-baseline gap-1">
-                <span className="text-3xl font-black text-slate-900 tracking-tight">
+                <span className="text-3xl font-black text-stone-900 tracking-tight">
                   {isBangla
                     ? toBanglaDigits(((summary?.dataQualityScore ?? 0) <= 1 ? (summary?.dataQualityScore ?? 0) * 100 : (summary?.dataQualityScore ?? 0)).toFixed(1))
                     : ((summary?.dataQualityScore ?? 0) <= 1 ? (summary?.dataQualityScore ?? 0) * 100 : (summary?.dataQualityScore ?? 0)).toFixed(1)}
                 </span>
-                <span className="text-sm font-bold text-slate-400">%</span>
+                <span className="text-sm font-bold text-stone-400">%</span>
               </div>
             </div>
-            <div className="text-[11px] text-emerald-700 font-medium pt-3 mt-2 border-t border-slate-100 flex items-center gap-1.5">
+            <div className="text-[11px] text-[#3f593f] font-medium pt-3 mt-2 border-t border-stone-100 flex items-center gap-1.5">
               <ShieldCheck size={14} className="shrink-0" />
               <span>
                 {isBangla
@@ -109,23 +109,23 @@ export const RoleDashboard: React.FC<RoleDashboardProps> = ({
           </div>
 
           {/* 3. Energy Spend */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex flex-col justify-between">
+          <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-xs hover:border-stone-400 hover:shadow-sm transition-all flex flex-col justify-between">
             <div>
-              <div className="flex items-center justify-between text-slate-500 mb-2">
+              <div className="flex items-center justify-between text-stone-500 mb-2">
                 <span className="text-xs font-semibold">
                   {isBangla ? 'মোট জ্বালানি খরচ' : 'Total Energy Spend'}
                 </span>
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-stone-100 text-stone-600">
                   BDT
                 </span>
               </div>
               <div className="flex items-baseline gap-1">
-                <span className="text-2xl font-black text-slate-900 tracking-tight">
+                <span className="text-2xl font-black text-stone-900 tracking-tight">
                   {formatBdt(summary.totalSpendBdt ?? 136115, { useBanglaDigits: isBangla })}
                 </span>
               </div>
             </div>
-            <div className="text-[11px] text-slate-500 font-medium pt-3 mt-2 border-t border-slate-100 flex items-center justify-between gap-1">
+            <div className="text-[11px] text-stone-500 font-medium pt-3 mt-2 border-t border-stone-100 flex items-center justify-between gap-1">
               <span>
                 ⚡ {isBangla ? toBanglaDigits((summary.totalElectricityKwh ?? 101.2).toFixed(1)) + ' kWh' : `${(summary.totalElectricityKwh ?? 101.2).toFixed(1)} kWh`}
               </span>
@@ -136,26 +136,26 @@ export const RoleDashboard: React.FC<RoleDashboardProps> = ({
           </div>
 
           {/* 4. Potential Annual Savings */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs hover:border-teal-300 hover:shadow-sm transition-all flex flex-col justify-between">
+          <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-xs hover:border-stone-400 hover:shadow-sm transition-all flex flex-col justify-between">
             <div>
-              <div className="flex items-center justify-between text-slate-500 mb-2">
+              <div className="flex items-center justify-between text-stone-500 mb-2">
                 <span className="text-xs font-semibold">
                   {isBangla ? 'বার্ষিক সম্ভাব্য সাশ্রয়' : 'Potential Annual Savings'}
                 </span>
-                <span className="text-[10px] font-semibold text-slate-400">
+                <span className="text-[10px] font-semibold text-stone-400">
                   /{isBangla ? 'বছর' : 'yr'}
                 </span>
               </div>
               <div className="flex items-baseline gap-1">
-                <span className="text-2xl font-black text-teal-800 tracking-tight">
+                <span className="text-2xl font-black text-[#2d3c2d] tracking-tight">
                   {formatBdt(summary.potentialAnnualSavingsBdt ?? 265000, { useBanglaDigits: isBangla })}
                 </span>
               </div>
             </div>
-            <div className="pt-3 mt-2 border-t border-slate-100">
+            <div className="pt-3 mt-2 border-t border-stone-100">
               <button
                 onClick={() => onNavigateTab('recommendations')}
-                className="text-[11px] text-teal-800 font-bold hover:text-teal-900 inline-flex items-center gap-1 w-full group"
+                className="text-[11px] text-[#354935] font-bold hover:text-[#172117] inline-flex items-center gap-1 w-full group"
               >
                 <span>{isBangla ? 'পদক্ষেপসমূহ দেখুন' : 'Explore Action Plans'}</span>
                 <ArrowRight size={12} className="ml-auto group-hover:translate-x-0.5 transition-transform" />
@@ -169,17 +169,17 @@ export const RoleDashboard: React.FC<RoleDashboardProps> = ({
         {showActions && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Top Notices */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs space-y-3">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-xs space-y-3">
+            <div className="flex items-center justify-between border-b border-stone-100 pb-3">
               <div className="flex items-center gap-2">
                 <AlertCircle className="text-amber-600" size={17} />
-                <h3 className="font-bold text-slate-900 text-sm">
+                <h3 className="font-bold text-stone-900 text-sm">
                   {isBangla ? 'জরুরি কার্বন সতর্কতা' : 'Priority Attention Notices'}
                 </h3>
               </div>
               <button
                 onClick={() => onNavigateTab('flags')}
-                className="text-xs font-bold text-teal-700 hover:underline"
+                className="text-xs font-bold text-[#354935] hover:underline"
               >
                 {isBangla ? 'সবগুলো দেখুন' : 'View All'} ({isBangla ? toBanglaDigits(summary.activeFlagsCount) : summary.activeFlagsCount})
               </button>
@@ -196,14 +196,14 @@ export const RoleDashboard: React.FC<RoleDashboardProps> = ({
                       key={idx}
                       className={`p-3 rounded-xl text-xs space-y-1 transition border ${
                         isRed
-                          ? 'bg-rose-50/60 border-rose-200'
+                          ? 'bg-rose-50/70 border-rose-200'
                           : isAmber
-                          ? 'bg-amber-50/60 border-amber-200'
-                          : 'bg-slate-50 border-slate-200'
+                          ? 'bg-amber-50/70 border-amber-200'
+                          : 'bg-stone-50 border-stone-200'
                       }`}
                     >
                       <div className="flex items-center justify-between font-bold">
-                        <span className={isRed ? 'text-rose-950' : isAmber ? 'text-amber-950' : 'text-slate-900'}>
+                        <span className={isRed ? 'text-rose-950' : isAmber ? 'text-amber-950' : 'text-stone-900'}>
                           {isBangla ? flag.explanationBn || flag.ruleCode : flag.explanationEn || flag.ruleCode}
                         </span>
                         <span
@@ -212,13 +212,13 @@ export const RoleDashboard: React.FC<RoleDashboardProps> = ({
                               ? 'bg-rose-100 text-rose-800'
                               : isAmber
                               ? 'bg-amber-100 text-amber-800'
-                              : 'bg-slate-200 text-slate-700'
+                              : 'bg-stone-200 text-stone-700'
                           }`}
                         >
                           {flag.severity}
                         </span>
                       </div>
-                      <p className="text-slate-600 text-[11px] leading-relaxed">
+                      <p className="text-stone-600 text-[11px] leading-relaxed">
                         {isBangla ? flag.suggestedActionBn : flag.suggestedActionEn}
                       </p>
                     </div>
@@ -226,36 +226,36 @@ export const RoleDashboard: React.FC<RoleDashboardProps> = ({
                 })
               ) : (
                 <>
-                  <div className="p-3 bg-rose-50/60 border border-rose-200 rounded-xl text-xs space-y-1">
+                  <div className="p-3 bg-rose-50/70 border border-rose-200 rounded-xl text-xs space-y-1">
                     <div className="flex items-center justify-between font-bold text-rose-950">
                       <span>{isBangla ? 'ডিজেল ব্যবহার স্পাইক: ১.৪৫ গুণ বৃদ্ধি' : 'Diesel Fuel Surge: 1.45x increase'}</span>
                       <span className="px-1.5 py-0.5 bg-rose-100 text-rose-800 rounded text-[10px]">Critical</span>
                     </div>
-                    <p className="text-slate-600 text-[11px]">
+                    <p className="text-stone-600 text-[11px]">
                       {isBangla
                         ? 'জেনারেটর ১-এ আগস্ট মাসের তুলনায় ডিজেল খরচ ৪৫% বেশি হয়েছে।'
                         : 'Generator 1 consumed 45% more diesel than trailing median.'}
                     </p>
                   </div>
 
-                  <div className="p-3 bg-amber-50/60 border border-amber-200 rounded-xl text-xs space-y-1">
+                  <div className="p-3 bg-amber-50/70 border border-amber-200 rounded-xl text-xs space-y-1">
                     <div className="flex items-center justify-between font-bold text-amber-950">
                       <span>{isBangla ? 'অনুপস্থিত ডিজেল স্লিপ (২টি বকেয়া)' : 'Missing Diesel Slips (2 pending)'}</span>
                       <span className="px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded text-[10px]">Warning</span>
                     </div>
-                    <p className="text-slate-600 text-[11px]">
+                    <p className="text-stone-600 text-[11px]">
                       {isBangla
                         ? 'সেপ্টেম্বর মাসের বিল হিসাব চূড়ান্ত করতে ২টি চালান এখনও জমা পড়েনি।'
                         : '2 slips pending from floor operator for full reconciliation.'}
                     </p>
                   </div>
 
-                  <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-1">
-                    <div className="flex items-center justify-between font-bold text-slate-900">
+                  <div className="p-3 bg-stone-50 border border-stone-200 rounded-xl text-xs space-y-1">
+                    <div className="flex items-center justify-between font-bold text-stone-900">
                       <span>{isBangla ? 'পাওয়ার ফ্যাক্টর সারচার্জ পেনাল্টি' : 'Low Power Factor Surcharge'}</span>
-                      <span className="px-1.5 py-0.5 bg-slate-200 text-slate-700 rounded text-[10px]">Info</span>
+                      <span className="px-1.5 py-0.5 bg-stone-200 text-stone-700 rounded text-[10px]">Info</span>
                     </div>
-                    <p className="text-slate-600 text-[11px]">
+                    <p className="text-stone-600 text-[11px]">
                       {isBangla
                         ? 'ডেসকো বিলে ৩,৪৫০ টাকা অতিরিক্ত জরিমানা কাটা হয়েছে।'
                         : 'DESCO electricity invoice incurred BDT 3,450 penalty surcharge.'}
@@ -267,17 +267,17 @@ export const RoleDashboard: React.FC<RoleDashboardProps> = ({
           </div>
 
           {/* Top Actions in BDT */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs space-y-3">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-xs space-y-3">
+            <div className="flex items-center justify-between border-b border-stone-100 pb-3">
               <div className="flex items-center gap-2">
-                <TrendingDown className="text-teal-700" size={17} />
-                <h3 className="font-bold text-slate-900 text-sm">
+                <TrendingDown className="text-[#354935]" size={17} />
+                <h3 className="font-bold text-stone-900 text-sm">
                   {isBangla ? 'সাশ্রয়ী পদক্ষেপ (পরিকল্পনা)' : 'Top Cost-Saving Measures'}
                 </h3>
               </div>
               <button
                 onClick={() => onNavigateTab('recommendations')}
-                className="text-xs font-bold text-teal-700 hover:underline"
+                className="text-xs font-bold text-[#354935] hover:underline"
               >
                 {isBangla ? 'মেজার লাইব্রেরি' : 'Measure Library'}
               </button>
@@ -286,16 +286,16 @@ export const RoleDashboard: React.FC<RoleDashboardProps> = ({
             <div className="space-y-2.5">
               {summary.topRecommendations && summary.topRecommendations.length > 0 ? (
                 summary.topRecommendations.map((rec, idx) => (
-                  <div key={idx} className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl text-xs space-y-1 hover:border-slate-300 transition">
+                  <div key={idx} className="p-3 bg-stone-50 border border-stone-200 rounded-xl text-xs space-y-1 hover:border-stone-300 transition">
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-slate-900">
+                      <span className="font-bold text-stone-900">
                         {isBangla ? rec.nameBn : rec.nameEn}
                       </span>
-                      <span className="text-emerald-800 font-black">
+                      <span className="text-[#354935] font-black">
                         {formatBdt(rec.savingsBdt, { useBanglaDigits: isBangla })} /{isBangla ? 'বছর' : 'yr'}
                       </span>
                     </div>
-                    <p className="text-slate-500 text-[11px]">
+                    <p className="text-stone-500 text-[11px]">
                       {isBangla
                         ? `ক্যাটাগরি: ${rec.category} • পে-ব্যাক: ${toBanglaDigits(rec.paybackYears.toFixed(1))} বছর`
                         : `Category: ${rec.category} • Payback: ${rec.paybackYears.toFixed(1)} yrs`}
@@ -304,44 +304,44 @@ export const RoleDashboard: React.FC<RoleDashboardProps> = ({
                 ))
               ) : (
                 <>
-                  <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl text-xs space-y-1 hover:border-slate-300 transition">
+                  <div className="p-3 bg-stone-50 border border-stone-200 rounded-xl text-xs space-y-1 hover:border-stone-300 transition">
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-slate-900">
+                      <span className="font-bold text-stone-900">
                         {isBangla ? 'পাওয়ার ফ্যাক্টর ক্যাপাসিটর ব্যাংক মেরামত' : 'APFC Capacitor Bank Refurbishment'}
                       </span>
-                      <span className="text-emerald-800 font-black">
+                      <span className="text-[#354935] font-black">
                         {formatBdt(120000, { useBanglaDigits: isBangla })} /{isBangla ? 'বছর' : 'yr'}
                       </span>
                     </div>
-                    <p className="text-slate-500 text-[11px]">
+                    <p className="text-stone-500 text-[11px]">
                       {isBangla ? 'পে-ব্যাক: ৩–৫ মাস • বিনিয়োগ: ৳ ৩৫,০০০ – ৫০,০০০' : 'Payback: 3-5 mos • Capex: BDT 35k-50k'}
                     </p>
                   </div>
 
-                  <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl text-xs space-y-1 hover:border-slate-300 transition">
+                  <div className="p-3 bg-stone-50 border border-stone-200 rounded-xl text-xs space-y-1 hover:border-stone-300 transition">
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-slate-900">
+                      <span className="font-bold text-stone-900">
                         {isBangla ? 'কম্প্রেসড এয়ার পাইপলাইন লিক মেরামত' : 'Compressed Air Ultrasonic Leak Sealing'}
                       </span>
-                      <span className="text-emerald-800 font-black">
+                      <span className="text-[#354935] font-black">
                         {formatBdt(85000, { useBanglaDigits: isBangla })} /{isBangla ? 'বছর' : 'yr'}
                       </span>
                     </div>
-                    <p className="text-slate-500 text-[11px]">
+                    <p className="text-stone-500 text-[11px]">
                       {isBangla ? 'পে-ব্যাক: ২–৪ সপ্তাহ • বিনিয়োগ: ৳ ১২,০০০' : 'Payback: 2-4 wks • Capex: BDT 12k'}
                     </p>
                   </div>
 
-                  <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl text-xs space-y-1 hover:border-slate-300 transition">
+                  <div className="p-3 bg-stone-50 border border-stone-200 rounded-xl text-xs space-y-1 hover:border-stone-300 transition">
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-slate-900">
+                      <span className="font-bold text-stone-900">
                         {isBangla ? 'বয়লার ব্লো-ডাউন তাপ পুনরুদ্ধার ইউনিট' : 'Boiler Blowdown Heat Exchanger'}
                       </span>
-                      <span className="text-emerald-800 font-black">
+                      <span className="text-[#354935] font-black">
                         {formatBdt(60000, { useBanglaDigits: isBangla })} /{isBangla ? 'বছর' : 'yr'}
                       </span>
                     </div>
-                    <p className="text-slate-500 text-[11px]">
+                    <p className="text-stone-500 text-[11px]">
                       {isBangla ? 'পে-ব্যাক: ৮–১২ মাস • বিনিয়োগ: ৳ ৬০,০০০' : 'Payback: 8-12 mos • Capex: BDT 60k'}
                     </p>
                   </div>
@@ -360,29 +360,29 @@ export const RoleDashboard: React.FC<RoleDashboardProps> = ({
     return (
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-indigo-50 border border-indigo-200 p-5 rounded-2xl shadow-sm space-y-2">
-            <span className="text-xs font-semibold text-indigo-900">
+          <div className="bg-[#f4f7f4] border border-[#cfddcf] p-5 rounded-2xl shadow-xs space-y-2">
+            <span className="text-xs font-semibold text-stone-700">
               {isBangla ? 'পর্যালোচনা কিউতে পেন্ডিং নথি' : 'Pending Review Queue Documents'}
             </span>
             <div className="flex items-baseline justify-between">
-              <span className="text-3xl font-black text-indigo-950">
+              <span className="text-3xl font-black text-stone-900">
                 {isBangla ? toBanglaDigits(summary.missingDocsCount) : summary.missingDocsCount}
               </span>
-              <span className="text-xs font-bold text-indigo-700">
+              <span className="text-xs font-bold text-[#2d3c2d]">
                 {isBangla ? 'যাচাই প্রয়োজন' : 'Requires verification'}
               </span>
             </div>
             {onGoToReview && (
               <button
                 onClick={onGoToReview}
-                className="text-xs font-bold text-indigo-800 bg-white px-3 py-1.5 rounded-lg border border-indigo-200 hover:bg-indigo-50 inline-flex items-center gap-1 mt-2"
+                className="text-xs font-bold text-[#2d3c2d] bg-white px-3 py-1.5 rounded-lg border border-[#cfddcf] hover:bg-[#e6ede6] inline-flex items-center gap-1 mt-2 transition"
               >
                 {isBangla ? 'রিভিউ কিউ খুলুন' : 'Open Review Queue'} <ArrowRight size={14} />
               </button>
             )}
           </div>
 
-          <div className="bg-amber-50 border border-amber-200 p-5 rounded-2xl shadow-sm space-y-2">
+          <div className="bg-amber-50 border border-amber-200 p-5 rounded-2xl shadow-xs space-y-2">
             <span className="text-xs font-semibold text-amber-900">
               {isBangla ? 'অনুপস্থিত বিল ও রসিদ (Gap Detection)' : 'Missing Bills & Slips (Gaps)'}
             </span>
@@ -399,48 +399,48 @@ export const RoleDashboard: React.FC<RoleDashboardProps> = ({
             </p>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-2">
-            <span className="text-xs font-semibold text-slate-500">
+          <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-xs space-y-2">
+            <span className="text-xs font-semibold text-stone-500">
               {isBangla ? 'সেপ্টেম্বর মাসের বিল মিলকরণ (Reconciliation)' : 'Invoice Reconciliation'}
             </span>
             <div className="flex items-baseline justify-between">
-              <span className="text-3xl font-black text-slate-900">
+              <span className="text-3xl font-black text-stone-900">
                 {isBangla ? toBanglaDigits('৯৪.৮%') : '94.8%'}
               </span>
-              <span className="text-xs font-semibold text-emerald-700">✓ Audited</span>
+              <span className="text-xs font-semibold text-[#2d3c2d]">✓ Audited</span>
             </div>
-            <p className="text-[11px] text-slate-500 pt-1">
+            <p className="text-[11px] text-stone-500 pt-1">
               {isBangla ? 'অ্যাকাউন্টিং লেজারের সাথে চালান যাচাইকৃত।' : 'General Ledger reconciled with OCR bills.'}
             </p>
           </div>
         </div>
 
         {/* Missing Expected Documents Checklist */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
-          <div className="flex items-center justify-between border-b pb-3">
+        <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-xs space-y-3">
+          <div className="flex items-center justify-between border-b border-stone-100 pb-3">
             <div className="flex items-center gap-2">
               <FileQuestion className="text-amber-600" size={18} />
-              <h3 className="font-bold text-slate-900 text-sm md:text-base">
+              <h3 className="font-bold text-stone-900 text-sm md:text-base">
                 {isBangla ? 'প্রত্যাশিত নথিপত্র চেকলিস্ট (Expected Document Calendar)' : 'Expected Document Calendar'}
               </h3>
             </div>
-            <span className="text-xs text-slate-400">
+            <span className="text-xs text-stone-400">
               {isBangla ? 'আইনি ও কমপ্লায়েন্স ক্যালেন্ডার' : 'Statutory & Compliance Cycle'}
             </span>
           </div>
 
-          <div className="divide-y divide-slate-100 text-xs">
+          <div className="divide-y divide-stone-100 text-xs">
             <div className="py-2.5 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <CheckCircle2 size={16} className="text-emerald-600" />
+                <CheckCircle2 size={16} className="text-[#2d3c2d]" />
                 <div>
-                  <p className="font-bold text-slate-800">
+                  <p className="font-bold text-stone-800">
                     {isBangla ? 'ডেসকো (DESCO) গ্রিড বিদ্যুৎ বিল — সেপ্টেম্বর ২০২৬' : 'DESCO Grid Electricity Bill — Sep 2026'}
                   </p>
-                  <p className="text-[11px] text-slate-500">{isBangla ? 'মিটার নং: #E-8821 | পরিমাণ: ৪২,৪০০ kWh' : 'Meter #E-8821 | 42,400 kWh'}</p>
+                  <p className="text-[11px] text-stone-500">{isBangla ? 'মিটার নং: #E-8821 | পরিমাণ: ৪২,৪০০ kWh' : 'Meter #E-8821 | 42,400 kWh'}</p>
                 </div>
               </div>
-              <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 font-semibold rounded">
+              <span className="px-2 py-0.5 bg-[#e6ede6] text-[#2d3c2d] border border-[#cfddcf] font-semibold rounded">
                 {isBangla ? 'যাচাইকৃত' : 'Confirmed'}
               </span>
             </div>
@@ -449,10 +449,10 @@ export const RoleDashboard: React.FC<RoleDashboardProps> = ({
               <div className="flex items-center gap-2.5">
                 <AlertCircle size={16} className="text-amber-600" />
                 <div>
-                  <p className="font-bold text-slate-800">
+                  <p className="font-bold text-stone-800">
                     {isBangla ? 'জেনারেটর ২ — ডিজেল সরবরাহ স্লিপ (বকেয়া)' : 'Generator 2 — Diesel Slip (Pending)'}
                   </p>
-                  <p className="text-[11px] text-slate-500">{isBangla ? 'প্রত্যাশিত সময়সীমা: ০৩ অক্টোবর (Day 0 Escalation)' : 'Due: Oct 3 (Day 0 Escalation)'}</p>
+                  <p className="text-[11px] text-stone-500">{isBangla ? 'প্রত্যাশিত সময়সীমা: ০৩ অক্টোবর (Day 0 Escalation)' : 'Due: Oct 3 (Day 0 Escalation)'}</p>
                 </div>
               </div>
               <span className="px-2 py-0.5 bg-amber-100 text-amber-800 font-semibold rounded">
@@ -462,15 +462,15 @@ export const RoleDashboard: React.FC<RoleDashboardProps> = ({
 
             <div className="py-2.5 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <CheckCircle2 size={16} className="text-emerald-600" />
+                <CheckCircle2 size={16} className="text-[#2d3c2d]" />
                 <div>
-                  <p className="font-bold text-slate-800">
+                  <p className="font-bold text-stone-800">
                     {isBangla ? 'তিতাস গ্যাস ট্রান্সমিশন বিল — সেপ্টেম্বর ২০২৬' : 'Titas Gas Transmission Bill — Sep 2026'}
                   </p>
-                  <p className="text-[11px] text-slate-500">{isBangla ? 'বয়লার সংযোগ | পরিমাণ: ৫,২০০ m³' : 'Boiler connection | 5,200 m³'}</p>
+                  <p className="text-[11px] text-stone-500">{isBangla ? 'বয়লার সংযোগ | পরিমাণ: ৫,২০০ m³' : 'Boiler connection | 5,200 m³'}</p>
                 </div>
               </div>
-              <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 font-semibold rounded">
+              <span className="px-2 py-0.5 bg-[#e6ede6] text-[#2d3c2d] border border-[#cfddcf] font-semibold rounded">
                 {isBangla ? 'যাচাইকৃত' : 'Confirmed'}
               </span>
             </div>
@@ -485,90 +485,90 @@ export const RoleDashboard: React.FC<RoleDashboardProps> = ({
     return (
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-teal-900 text-white p-5 rounded-2xl shadow-sm space-y-2">
-            <span className="text-xs font-semibold text-teal-200">
+          <div className="bg-[#2d3c2d] text-white p-5 rounded-2xl shadow-xs space-y-2">
+            <span className="text-xs font-semibold text-[#cfddcf]">
               {isBangla ? 'রিপোর্ট প্রস্তুতি সূচক (Readiness Index)' : 'Report Readiness Index'}
             </span>
             <div className="flex items-baseline justify-between">
               <span className="text-3xl font-black">
                 {isBangla ? toBanglaDigits('৮৮%') : '88%'}
               </span>
-              <span className="text-xs font-bold text-teal-300">
+              <span className="text-xs font-bold text-[#e6ede6]">
                 {isBangla ? 'অনুমোদনের উপযোগী' : 'Ready for review'}
               </span>
             </div>
             <button
               onClick={() => onNavigateTab('reports')}
-              className="text-xs font-bold text-teal-200 underline flex items-center gap-1 pt-1"
+              className="text-xs font-bold text-[#cfddcf] hover:text-white underline flex items-center gap-1 pt-1 transition"
             >
               {isBangla ? 'প্রতিবেদন প্রিভিউ ও স্বাক্ষর' : 'Preview & Sign Report'} <ArrowRight size={12} />
             </button>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-2">
-            <span className="text-xs font-semibold text-slate-500">
+          <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-xs space-y-2">
+            <span className="text-xs font-semibold text-stone-500">
               {isBangla ? 'ডেটা কোয়ালিটি গ্রেড (DQS)' : 'Data Quality Score Grade'}
             </span>
             <div className="flex items-baseline justify-between">
-              <span className="text-3xl font-black text-slate-900">
+              <span className="text-3xl font-black text-stone-900">
                 {summary.dqsGrade}
               </span>
-              <span className="text-xs font-mono text-slate-500">
+              <span className="text-xs font-mono text-stone-500">
                 {isBangla ? toBanglaDigits((summary?.dataQualityScore ?? 0).toFixed(3)) : (summary?.dataQualityScore ?? 0).toFixed(3)}
               </span>
             </div>
-            <p className="text-[11px] text-emerald-700 font-medium pt-1">
+            <p className="text-[11px] text-[#2d3c2d] font-medium pt-1">
               ✓ {isBangla ? 'Higg FEM ও Inditex অডিট স্ট্যান্ডার্ড পূরণ' : 'Meets Higg FEM & Inditex verification standard'}
             </p>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-2">
-            <span className="text-xs font-semibold text-slate-500">
+          <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-xs space-y-2">
+            <span className="text-xs font-semibold text-stone-500">
               {isBangla ? 'নির্গমন ফ্যাক্টর সংস্করণ (Factor Basis)' : 'Emission Factor Basis'}
             </span>
             <div className="flex items-baseline justify-between">
-              <span className="text-2xl font-black text-slate-900">IPCC AR5</span>
-              <span className="text-xs font-bold text-teal-800 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
+              <span className="text-2xl font-black text-stone-900">IPCC AR5</span>
+              <span className="text-xs font-bold text-[#2d3c2d] bg-[#e6ede6] px-2 py-0.5 rounded border border-[#cfddcf]">
                 2025/2026 Grid
               </span>
             </div>
-            <p className="text-[11px] text-slate-500 pt-1">
+            <p className="text-[11px] text-stone-500 pt-1">
               {isBangla ? 'জাতীয় গ্রিড ও জ্বালানি ফ্যাক্টর হালনাগাদ।' : 'National grid & fuel factor registry up-to-date.'}
             </p>
           </div>
         </div>
 
         {/* Readiness Checklist Card */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
-          <div className="flex items-center justify-between border-b pb-3">
+        <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-xs space-y-3">
+          <div className="flex items-center justify-between border-b border-stone-100 pb-3">
             <div className="flex items-center gap-2">
-              <FileCheck2 className="text-teal-700" size={18} />
-              <h3 className="font-bold text-slate-900 text-sm md:text-base">
+              <FileCheck2 className="text-[#2d3c2d]" size={18} />
+              <h3 className="font-bold text-stone-900 text-sm md:text-base">
                 {isBangla ? 'ক্রেতা অডিট চেকলিস্ট (Audit Preparedness Check)' : 'Buyer Audit Preparedness'}
               </h3>
             </div>
-            <span className="text-xs text-slate-500">GHG Protocol Corporate Standard</span>
+            <span className="text-xs text-stone-500">GHG Protocol Corporate Standard</span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl space-y-1">
-              <span className="font-bold text-emerald-950">✓ {isBangla ? 'সাংগঠনিক সীমানা নির্ধারণ' : 'Organizational Boundary'}</span>
-              <p className="text-slate-600">{isBangla ? 'অপারেশনাল কন্ট্রোল (১০০% কারখানা ভবন ও সাবস্টেশন)' : 'Operational Control approach (100% factory facility)'}</p>
+            <div className="p-3 bg-[#f4f7f4] border border-[#cfddcf] rounded-xl space-y-1">
+              <span className="font-bold text-[#1c1917]">✓ {isBangla ? 'সাংগঠনিক সীমানা নির্ধারণ' : 'Organizational Boundary'}</span>
+              <p className="text-stone-600">{isBangla ? 'অপারেশনাল কন্ট্রোল (১০০% কারখানা ভবন ও সাবস্টেশন)' : 'Operational Control approach (100% factory facility)'}</p>
             </div>
 
-            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl space-y-1">
-              <span className="font-bold text-emerald-950">✓ {isBangla ? 'ক্যালকুলেশন মেথডোলজি' : 'Calculation Methodology'}</span>
-              <p className="text-slate-600">{isBangla ? 'লোকেশন-বেসড গ্রিড হিসাব এবং প্রমাণপত্র ট্র্যাকিং' : 'Location-based grid method with full document trail'}</p>
+            <div className="p-3 bg-[#f4f7f4] border border-[#cfddcf] rounded-xl space-y-1">
+              <span className="font-bold text-[#1c1917]">✓ {isBangla ? 'ক্যালকুলেশন মেথডোলজি' : 'Calculation Methodology'}</span>
+              <p className="text-stone-600">{isBangla ? 'লোকেশন-বেসড গ্রিড হিসাব এবং প্রমাণপত্র ট্র্যাকিং' : 'Location-based grid method with full document trail'}</p>
             </div>
 
-            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl space-y-1">
-              <span className="font-bold text-emerald-950">✓ {isBangla ? 'তথ্যসূত্র ও ফ্যাক্টর রেজিস্ট্রি' : 'Factor Traceability'}</span>
-              <p className="text-slate-600">{isBangla ? 'প্রতিটি সংখ্যার জন্য সরকারি ও আন্তর্জাতিক উৎস রেকর্ড' : 'Peer-reviewed national grid factors with citation'}</p>
+            <div className="p-3 bg-[#f4f7f4] border border-[#cfddcf] rounded-xl space-y-1">
+              <span className="font-bold text-[#1c1917]">✓ {isBangla ? 'তথ্যসূত্র ও ফ্যাক্টর রেজিস্ট্রি' : 'Factor Traceability'}</span>
+              <p className="text-stone-600">{isBangla ? 'প্রতিটি সংখ্যার জন্য সরকারি ও আন্তর্জাতিক উৎস রেকর্ড' : 'Peer-reviewed national grid factors with citation'}</p>
             </div>
 
             <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-1">
               <span className="font-bold text-amber-950">⚠️ {isBangla ? 'বকেয়া ফ্ল্যাগ পর্যালোচনা' : 'Flag Resolution Review'}</span>
-              <p className="text-slate-600">{isBangla ? '১টি জটিল ফ্ল্যাগ (ডিজেল স্পাইক) অনুমোদনের আগে ব্যাখ্যা দরকার।' : '1 critical flag requires explanation before locking snapshot.'}</p>
+              <p className="text-stone-600">{isBangla ? '১টি জটিল ফ্ল্যাগ (ডিজেল স্পাইক) অনুমোদনের আগে ব্যাখ্যা দরকার।' : '1 critical flag requires explanation before locking snapshot.'}</p>
             </div>
           </div>
         </div>
@@ -579,22 +579,22 @@ export const RoleDashboard: React.FC<RoleDashboardProps> = ({
   // 4. CONSULTANT DASHBOARD
   return (
     <div className="space-y-6">
-      <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
-        <div className="flex items-center justify-between border-b pb-3">
+      <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-xs space-y-3">
+        <div className="flex items-center justify-between border-b border-stone-100 pb-3">
           <div className="flex items-center gap-2">
-            <Building2 className="text-teal-700" size={20} />
+            <Building2 className="text-[#2d3c2d]" size={20} />
             <div>
-              <h3 className="font-bold text-slate-900 text-sm md:text-base">
+              <h3 className="font-bold text-stone-900 text-sm md:text-base">
                 {isBangla ? 'ক্লায়েন্ট কারখানা পোর্টফোলিও' : 'Client Factory Portfolio Overview'}
               </h3>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs text-stone-500 mt-0.5">
                 {isBangla
                   ? 'আপনার পরামর্শাধীন সকল কারখানার কার্বন অবস্থা ও ফ্ল্যাগ তালিকা'
                   : 'Manage multiple SME textile clients in one workspace'}
               </p>
             </div>
           </div>
-          <span className="text-xs font-bold text-teal-800 bg-teal-50 px-3 py-1 rounded-lg border border-teal-200">
+          <span className="text-xs font-bold text-[#2d3c2d] bg-[#e6ede6] px-3 py-1 rounded-lg border border-[#cfddcf]">
             {isBangla ? `${toBanglaDigits(clientOrgs.length)}টি কারখানা` : `${clientOrgs.length} Factories`}
           </span>
         </div>
@@ -602,7 +602,7 @@ export const RoleDashboard: React.FC<RoleDashboardProps> = ({
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
+              <tr className="border-b border-stone-200 text-stone-500 font-bold uppercase tracking-wider text-[10px]">
                 <th className="py-2.5 px-3">{isBangla ? 'কারখানার নাম' : 'Factory Name'}</th>
                 <th className="py-2.5 px-3">{isBangla ? 'খাত / সেক্টর' : 'Sector'}</th>
                 <th className="py-2.5 px-3">{isBangla ? 'মোট নির্গমন (tCO₂e)' : 'Emissions (tCO₂e)'}</th>
@@ -612,17 +612,17 @@ export const RoleDashboard: React.FC<RoleDashboardProps> = ({
                 <th className="py-2.5 px-3 text-right">{isBangla ? 'পদক্ষেপ' : 'Action'}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-stone-100">
               {clientOrgs.map((org) => (
-                <tr key={org.orgId} className="hover:bg-slate-50 transition">
-                  <td className="py-3 px-3 font-bold text-slate-900">{org.orgName}</td>
-                  <td className="py-3 px-3 text-slate-600">{org.sector}</td>
-                  <td className="py-3 px-3 font-mono font-semibold text-slate-800">
+                <tr key={org.orgId} className="hover:bg-stone-50 transition">
+                  <td className="py-3 px-3 font-bold text-stone-900">{org.orgName}</td>
+                  <td className="py-3 px-3 text-stone-600">{org.sector}</td>
+                  <td className="py-3 px-3 font-mono font-semibold text-stone-800">
                     {isBangla ? toBanglaDigits((org.totalEmissions ?? 0).toFixed(2)) : (org.totalEmissions ?? 0).toFixed(2)}
                   </td>
                   <td className="py-3 px-3">
                     <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                      org.dqsGrade === 'Grade A' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                      org.dqsGrade === 'Grade A' ? 'bg-[#e6ede6] text-[#2d3c2d] border border-[#cfddcf]' : 'bg-amber-100 text-amber-800'
                     }`}>
                       {org.dqsGrade} ({((org.dqsScore ?? 0) * 100).toFixed(0)}%)
                     </span>
@@ -633,22 +633,22 @@ export const RoleDashboard: React.FC<RoleDashboardProps> = ({
                         {isBangla ? toBanglaDigits(org.openFlagsCount) : org.openFlagsCount} {isBangla ? 'টি' : 'flags'}
                       </span>
                     ) : (
-                      <span className="text-emerald-700 font-semibold">✓ {isBangla ? 'স্বচ্ছ' : 'Clear'}</span>
+                      <span className="text-[#2d3c2d] font-semibold">✓ {isBangla ? 'স্বচ্ছ' : 'Clear'}</span>
                     )}
                   </td>
                   <td className="py-3 px-3">
                     {org.pendingOverridesCount > 0 ? (
-                      <span className="text-indigo-800 font-semibold bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">
+                      <span className="text-stone-800 font-semibold bg-stone-100 px-2 py-0.5 rounded border border-stone-200">
                         {isBangla ? toBanglaDigits(org.pendingOverridesCount) : org.pendingOverridesCount} {isBangla ? 'পেন্ডিং' : 'pending'}
                       </span>
                     ) : (
-                      <span className="text-slate-400">০</span>
+                      <span className="text-stone-400">০</span>
                     )}
                   </td>
                   <td className="py-3 px-3 text-right">
                     <button
                       onClick={() => onSelectClientOrg && onSelectClientOrg(org.orgId)}
-                      className="px-2.5 py-1 text-xs font-bold text-teal-800 bg-teal-50 border border-teal-200 hover:bg-teal-100 rounded-lg transition"
+                      className="px-2.5 py-1 text-xs font-bold text-[#2d3c2d] bg-[#e6ede6] border border-[#cfddcf] hover:bg-[#cfddcf] rounded-lg transition"
                     >
                       {isBangla ? 'সুইচ করুন' : 'Switch'}
                     </button>

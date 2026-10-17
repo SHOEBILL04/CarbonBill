@@ -49,34 +49,34 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, isBangla }) => {
           backgroundColor: (context: any) => {
             const chart = context.chart;
             const { ctx, chartArea } = chart;
-            if (!chartArea) return '#0d9488';
+            if (!chartArea) return '#425b42';
             const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
-            gradient.addColorStop(0, '#064e3b');
-            gradient.addColorStop(0.5, '#0d9488');
-            gradient.addColorStop(1, '#14b8a6');
+            gradient.addColorStop(0, '#2d3c2d');
+            gradient.addColorStop(0.5, '#425b42');
+            gradient.addColorStop(1, '#698c69');
             return gradient;
           },
-          borderColor: '#0d9488',
+          borderColor: '#374a37',
           borderWidth: 1,
           borderRadius: 8,
           borderSkipped: false,
           stack: 'emissions',
-          hoverBackgroundColor: '#2dd4bf',
+          hoverBackgroundColor: '#88a788',
           hoverBorderColor: '#ffffff',
-          hoverBorderWidth: 3,
+          hoverBorderWidth: 2,
         },
         {
           label: isBangla ? 'অনুমিত অংশ (Estimated)' : 'Proxy Estimated',
           data: estimatedValues,
           backgroundColor: hatch,
-          borderColor: '#f59e0b',
+          borderColor: '#d97706',
           borderWidth: 1.5,
           borderRadius: 8,
           borderSkipped: false,
           stack: 'emissions',
           hoverBackgroundColor: '#fde68a',
           hoverBorderColor: '#ffffff',
-          hoverBorderWidth: 3,
+          hoverBorderWidth: 2,
         },
       ],
     };
@@ -92,44 +92,44 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, isBangla }) => {
         {
           label: isBangla ? 'মোট পদচিহ্ন (Total Trend)' : 'Total Footprint',
           data: totalValues,
-          borderColor: '#0d9488',
-          borderWidth: 3,
+          borderColor: '#374a37',
+          borderWidth: 2.5,
           tension: 0.4,
           pointRadius: 4,
-          pointHoverRadius: 9,
+          pointHoverRadius: 8,
           pointBackgroundColor: '#ffffff',
-          pointBorderColor: '#0d9488',
+          pointBorderColor: '#374a37',
           pointBorderWidth: 2,
           pointHoverBorderColor: '#ffffff',
-          pointHoverBorderWidth: 3,
-          pointHoverBackgroundColor: '#14b8a6',
+          pointHoverBorderWidth: 2,
+          pointHoverBackgroundColor: '#425b42',
           fill: true,
           backgroundColor: (context: any) => {
             const chart = context.chart;
             const { ctx, chartArea } = chart;
-            if (!chartArea) return 'rgba(13, 148, 136, 0.15)';
+            if (!chartArea) return 'rgba(55, 74, 55, 0.12)';
             const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-            gradient.addColorStop(0, 'rgba(20, 184, 166, 0.45)');
-            gradient.addColorStop(0.6, 'rgba(13, 148, 136, 0.15)');
-            gradient.addColorStop(1, 'rgba(13, 148, 136, 0.0)');
+            gradient.addColorStop(0, 'rgba(66, 91, 66, 0.35)');
+            gradient.addColorStop(0.6, 'rgba(66, 91, 66, 0.10)');
+            gradient.addColorStop(1, 'rgba(66, 91, 66, 0.0)');
             return gradient;
           },
         },
         {
           label: isBangla ? 'শুধুমাত্র যাচাইকৃত (Verified Only)' : 'Verified Only',
           data: verifiedValues,
-          borderColor: '#0284c7',
+          borderColor: '#78716c',
           borderWidth: 2,
           borderDash: [5, 5],
           tension: 0.4,
           pointRadius: 3,
-          pointHoverRadius: 8,
+          pointHoverRadius: 7,
           pointBackgroundColor: '#ffffff',
-          pointBorderColor: '#0284c7',
+          pointBorderColor: '#78716c',
           pointBorderWidth: 2,
           pointHoverBorderColor: '#ffffff',
-          pointHoverBorderWidth: 3,
-          pointHoverBackgroundColor: '#0284c7',
+          pointHoverBorderWidth: 2,
+          pointHoverBackgroundColor: '#78716c',
           fill: false,
         },
       ],
@@ -250,19 +250,19 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, isBangla }) => {
   const hasHatchedPoint = data.some((d) => d.hatchFlag);
 
   return (
-    <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs space-y-4">
+    <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-xs space-y-4">
       {/* Header with Title and Mode Switcher */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-100 pb-3">
         <div>
           <div className="flex items-center gap-2">
-            <span className="p-1.5 rounded-lg bg-teal-50 text-teal-800 border border-teal-200/60">
+            <span className="p-1.5 rounded-lg bg-[#e6ede6] text-[#2d3c2d]">
               <Sparkles size={15} />
             </span>
-            <h3 className="font-bold text-slate-900 text-sm md:text-base">
+            <h3 className="font-bold text-stone-900 text-sm md:text-base">
               {isBangla ? 'মাসিক নির্গমন ট্রেন্ড ও গতিপথ' : 'Emissions Trajectory'}
             </h3>
           </div>
-          <p className="text-[11px] text-slate-500 mt-0.5">
+          <p className="text-[11px] text-stone-500 mt-0.5">
             {isBangla
               ? 'স্কোপ ১, ২ ও ৩ এর সম্মিলিত বিশ্লেষণ (যাচাইকৃত বনাম প্রক্সি অনুমিত)'
               : 'Multi-period emissions trajectory (verified vs proxy estimated)'}
@@ -271,13 +271,13 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, isBangla }) => {
 
         {/* View Toggle Pill */}
         <div className="flex items-center gap-2 self-start sm:self-center">
-          <div className="bg-slate-100 p-0.5 rounded-xl flex items-center border border-slate-200/70">
+          <div className="bg-stone-100 p-0.5 rounded-xl flex items-center border border-stone-200">
             <button
               onClick={() => setChartType('bar')}
               className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition ${
                 chartType === 'bar'
-                  ? 'bg-white text-teal-900 shadow-xs font-bold'
-                  : 'text-slate-500 hover:text-slate-900'
+                  ? 'bg-white text-stone-900 shadow-xs font-bold'
+                  : 'text-stone-500 hover:text-stone-900'
               }`}
             >
               <BarChart3 size={13} />
@@ -287,8 +287,8 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, isBangla }) => {
               onClick={() => setChartType('area')}
               className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition ${
                 chartType === 'area'
-                  ? 'bg-white text-teal-900 shadow-xs font-bold'
-                  : 'text-slate-500 hover:text-slate-900'
+                  ? 'bg-white text-stone-900 shadow-xs font-bold'
+                  : 'text-stone-500 hover:text-stone-900'
               }`}
             >
               <LineChart size={13} />
@@ -300,47 +300,47 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, isBangla }) => {
 
       {/* Stable Micro KPI Bar */}
       <div className="grid grid-cols-3 gap-2 py-0.5">
-        <div className="bg-slate-50 border border-slate-200/70 rounded-xl p-2.5">
-          <span className="text-[10px] font-semibold uppercase text-slate-400 block tracking-wider">
+        <div className="bg-stone-50 border border-stone-200 rounded-xl p-2.5">
+          <span className="text-[10px] font-semibold uppercase text-stone-400 block tracking-wider">
             {isBangla ? 'সর্বোচ্চ নির্গমন' : 'Peak Period'}
           </span>
           <div className="flex items-baseline gap-1 mt-0.5">
-            <span className="text-base font-black text-slate-900">
+            <span className="text-base font-black text-stone-900">
               {isBangla ? toBanglaDigits(stats.peak.toFixed(1)) : stats.peak.toFixed(1)}
             </span>
-            <span className="text-[10px] font-semibold text-slate-500">tCO₂e</span>
+            <span className="text-[10px] font-semibold text-stone-500">tCO₂e</span>
           </div>
         </div>
 
-        <div className="bg-slate-50 border border-slate-200/70 rounded-xl p-2.5">
-          <span className="text-[10px] font-semibold uppercase text-slate-400 block tracking-wider">
+        <div className="bg-stone-50 border border-stone-200 rounded-xl p-2.5">
+          <span className="text-[10px] font-semibold uppercase text-stone-400 block tracking-wider">
             {isBangla ? 'মাসিক গড়' : 'Monthly Avg'}
           </span>
           <div className="flex items-baseline gap-1 mt-0.5">
-            <span className="text-base font-black text-slate-900">
+            <span className="text-base font-black text-stone-900">
               {isBangla ? toBanglaDigits(stats.avg.toFixed(1)) : stats.avg.toFixed(1)}
             </span>
-            <span className="text-[10px] font-semibold text-slate-500">tCO₂e</span>
+            <span className="text-[10px] font-semibold text-stone-500">tCO₂e</span>
           </div>
         </div>
 
-        <div className="bg-slate-50 border border-slate-200/70 rounded-xl p-2.5">
-          <span className="text-[10px] font-semibold uppercase text-slate-400 block tracking-wider">
+        <div className="bg-stone-50 border border-stone-200 rounded-xl p-2.5">
+          <span className="text-[10px] font-semibold uppercase text-stone-400 block tracking-wider">
             {isBangla ? 'চলতি প্রবণতা' : 'Period Shift'}
           </span>
           <div className="flex items-center gap-1 mt-0.5">
             {stats.momDiff <= 0 ? (
-              <span className="inline-flex items-center text-xs font-bold text-emerald-600">
+              <span className="inline-flex items-center text-xs font-bold text-[#354935]">
                 <TrendingDown size={14} className="mr-0.5" />
                 {isBangla ? toBanglaDigits(Math.abs(stats.momDiff).toFixed(1)) : Math.abs(stats.momDiff).toFixed(1)}%
               </span>
             ) : (
-              <span className="inline-flex items-center text-xs font-bold text-rose-600">
+              <span className="inline-flex items-center text-xs font-bold text-rose-700">
                 <TrendingUp size={14} className="mr-0.5" />
                 +{isBangla ? toBanglaDigits(stats.momDiff.toFixed(1)) : stats.momDiff.toFixed(1)}%
               </span>
             )}
-            <span className="text-[10px] text-slate-400">MoM</span>
+            <span className="text-[10px] text-stone-400">MoM</span>
           </div>
         </div>
       </div>
