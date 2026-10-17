@@ -165,7 +165,7 @@ public class GroqLlmExtractor(
                 var dataUrl = $"data:{mime};base64,{base64}";
 
                 var visionPrompt = """
-                You are an expert utility bill and carbon accounting extraction engine specialized in Bangladeshi utility bills (BPDB, DESCO, DPDC, BREB, NESCO, WZPDCL, Titas Gas, Bakhrabad Gas, Karnaphuli Gas, Jalalabad Gas, Padma Oil, Meghna Petroleum, Jamuna Oil, etc.).
+                You are an expert utility bill and carbon accounting extraction engine. You extract structured data from electricity bills, gas bills, fuel receipts, and transport challans, supporting Bangladeshi utility providers (BPDB, DESCO, DPDC, BREB, NESCO, WZPDCL, Titas Gas, etc.) as well as international utility providers (e.g. Meralco, SEC, DEWA, PG&E, K-Electric, Tata Power, etc.).
                 Extract all relevant fields from the bill image into valid JSON matching this schema:
                 {
                   "vendor": "string",
@@ -194,10 +194,10 @@ public class GroqLlmExtractor(
                 }
 
                 Guidelines:
-                1. Identify vendor (BPDB, DESCO, DPDC, BREB, NESCO, WZPDCL, Titas Gas, Bakhrabad Gas, Karnaphuli Gas, Jalalabad Gas, Padma Oil, etc.).
-                2. Extract the electricity consumed quantity (e.g. Consumed Unit / Used Units / present reading minus previous reading) and canonical unit (kWh for electricity, m3 for natural gas, litre for diesel).
-                3. Extract total amount to be paid / net payable in Bangladeshi Taka (BDT) (look for Amount to be Paid, Bill Month Total, Balance, Net Payable, Total Amount).
-                4. Extract bill number, meter number, consumer number, and billing period in YYYY-MM format.
+                1. Identify vendor (BPDB, DESCO, DPDC, BREB, NESCO, WZPDCL, Titas Gas, or any utility provider / company on the bill such as Meralco).
+                2. Extract the electricity/fuel consumed quantity (look for Actual Consumption, Consumed Unit, Total kWh, Used Units, present reading minus previous reading) and canonical unit (kWh for electricity, m3 for natural gas, litre for diesel).
+                3. Extract total amount to be paid / net payable (look for Please Pay, Total Amount Due, Net Payable, Balance, Amount to be Paid, Total Amount). Extract the clean numeric value into amountBdt (ignoring currency symbols like ₱, ৳, Tk, BDT, $, €, etc.).
+                4. Extract bill or account number (look for Customer Account Number / CAN, Account No, Bill No, Invoice No), meter number (look for Electric Meter Number, Meter No), and billing period in YYYY-MM format (e.g. from dates like "09 Mar 2025 to 08 Apr 2025" or "10 Apr 2025" -> "2025-04").
                 5. Provide actual, calibrated confidence scores (between 0.00 and 1.00) based on visual clarity, resolution, and legibility for overall 'confidence' and each field in 'fieldConfidences':
                    - 0.90 to 0.99: Crisp digital scan, high resolution, printed text with 100% unambiguous numbers.
                    - 0.75 to 0.89: Good clarity with minor creases, slight blur, or mild glare, but clearly readable.
@@ -345,13 +345,13 @@ public class GroqLlmExtractor(
         try
         {
             var systemPrompt = """
-            You are a specialized carbon-accounting data extraction assistant for Bangladeshi factories.
+            You are a specialized carbon-accounting data extraction assistant for commercial and industrial facilities.
             Given OCR text from a utility bill, diesel delivery slip, gas invoice, or transport challan:
-            1. Identify the vendor (Bangladesh Power Development Board (BPDB), DESCO, DPDC, BREB, NESCO, WZPDCL, Padma Oil, Meghna Petroleum, Jamuna Oil, Titas Gas, Bakhrabad Gas, Karnaphuli Gas, Jalalabad Gas, etc.).
-            2. Extract bill/challan/customer number and billing period (YYYY-MM).
-            3. Normalize all Bangla numerals (১২৩৪৫৬৭৮৯০) to Latin digits.
-            4. Extract the consumed quantity (energy or fuel consumption, e.g. Used Units / Consumed Unit / ব্যবহৃত ইউনিট / বর্তমান রিডিং - পূর্ববর্তী রিডিং) and canonical unit (kWh for electricity, litre for diesel/fuel, m3 for natural gas, kg or tonne-km for cargo).
-            5. Extract total net/payable amount in Bangladeshi Taka (BDT) (e.g. Amount to be Paid, Bill Month Total, Net Payable, Balance, সর্বমোট প্রদেয় টাকা, মোট বিল).
+            1. Identify the vendor (e.g. Bangladesh utilities like BPDB, DESCO, DPDC, BREB, NESCO, WZPDCL, Padma Oil, Titas Gas, Bakhrabad Gas, or international utility providers such as Meralco, Manila Electric, SEC, DEWA, etc.).
+            2. Extract bill/challan/customer number (CAN, Account Number, Bill Number, Invoice Number) and billing period (YYYY-MM).
+            3. Normalize all numerals (Bangla numerals ১২৩৪৫৬৭৮৯০ to Latin digits).
+            4. Extract the consumed quantity (energy or fuel consumption, e.g. Actual Consumption / Used Units / Consumed Unit / ব্যবহৃত ইউনিট / বর্তমান রিডিং - পূর্ববর্তী রিডিং) and canonical unit (kWh for electricity, litre for diesel/fuel, m3 for natural gas, kg or tonne-km for cargo).
+            5. Extract total net/payable amount (e.g. Please Pay, Total Amount Due, Net Payable, Balance, Amount to be Paid, Bill Month Total, সর্বমোট প্রদেয় টাকা). Extract pure numeric digits into amountBdt (ignoring currency symbols like ₱, ৳, Tk, BDT, $, €, etc.).
             6. Identify meter number and consumer number if present.
             7. Identify any power factor penalty or demand charge surcharges if present.
             8. Provide realistic, calibrated confidence scores (0.00 to 1.00) based on OCR match accuracy and textual clarity for 'confidence' and 'fieldConfidences':
@@ -798,18 +798,25 @@ public class GroqLlmExtractor(
             extractedVendor = "Jamuna Oil Company Ltd";
             docType = DocumentTypes.DieselSlip;
         }
+        else if (normalized.Contains("MERALCO", StringComparison.OrdinalIgnoreCase) ||
+                 normalized.Contains("MANILA ELECTRIC", StringComparison.OrdinalIgnoreCase))
+        {
+            extractedVendor = "Manila Electric Company (Meralco)";
+            docType = DocumentTypes.ElectricityBill;
+        }
 
-        // 2. Extract Amount in BDT
+        // 2. Extract Amount in BDT / Currency
         decimal? extractedAmount = null;
         var amountPatterns = new[]
         {
-            @"(?:AMOUNT\s*TO\s*BE\s*PAID|TOTAL\s*AMOUNT\s*TO\s*BE\s*PA(?:ID|Y)|NET\s*PAYABLE|TOTAL\s*PAYABLE|সর্বমোট\s*প্রদেয়|মোট\s*প্রদেয়|প্রদেয়\s*টাকা)[:\s]*(?:BDT|Tk|TAKA)?[:\s]*([0-9,]+(?:\.[0-9]{1,2})?)",
-            @"(?:BILL\s*MONTH\s*TOTAL|MONTH\s*TOTAL|মাসিক\s*বিল)[:\s]*(?:BDT|Tk|TAKA)?[:\s]*([0-9,]+(?:\.[0-9]{1,2})?)",
-            @"(?:Balance|বকেয়া|জের)[:\s]*(?:BDT|Tk|TAKA)?[:\s]*([0-9,]+(?:\.[0-9]{1,2})?)",
-            @"(?:PRINCIPAL\s*AMOUNT|মূল\s*টাকা)[:\s]*(?:BDT|Tk|TAKA)?[:\s]*([0-9,]+(?:\.[0-9]{1,2})?)",
-            @"(?:CURRENT\s*CHARGES|ELECTRICITY\s*CHARGE|বিদ্যুৎ\s*চার্জ|গ্যাস\s*বিল)[:\s]*(?:BDT|Tk|TAKA)?[:\s]*([0-9,]+(?:\.[0-9]{1,2})?)",
-            @"(?:Paid to Organization|Payment Received|Bill Amount|Net Payable|Amount|প্রদেয়|টাকা)[:\s]*(?:BDT|Tk|TAKA)?[:\s]*([0-9,]+(?:\.[0-9]{1,2})?)",
-            @"(?:BDT|TAKA|TK)\.?\s*([0-9,]+(?:\.[0-9]{1,2})?)"
+            @"(?:PLEASE\s*PAY|TOTAL\s*AMOUNT\s*DUE|AMOUNT\s*DUE|TOTAL\s*DUE)[:\s]*(?:[₱$€₹P]|PHP|BDT|Tk|TAKA)?[:\s]*([0-9,]+(?:\.[0-9]{1,2})?)",
+            @"(?:AMOUNT\s*TO\s*BE\s*PAID|TOTAL\s*AMOUNT\s*TO\s*BE\s*PA(?:ID|Y)|NET\s*PAYABLE|TOTAL\s*PAYABLE|সর্বমোট\s*প্রদেয়|মোট\s*প্রদেয়|প্রদেয়\s*টাকা)[:\s]*(?:[₱$€₹P]|PHP|BDT|Tk|TAKA)?[:\s]*([0-9,]+(?:\.[0-9]{1,2})?)",
+            @"(?:BILL\s*MONTH\s*TOTAL|MONTH\s*TOTAL|মাসিক\s*বিল)[:\s]*(?:[₱$€₹P]|PHP|BDT|Tk|TAKA)?[:\s]*([0-9,]+(?:\.[0-9]{1,2})?)",
+            @"(?:Balance|বকেয়া|জের)[:\s]*(?:[₱$€₹P]|PHP|BDT|Tk|TAKA)?[:\s]*([0-9,]+(?:\.[0-9]{1,2})?)",
+            @"(?:PRINCIPAL\s*AMOUNT|মূল\s*টাকা)[:\s]*(?:[₱$€₹P]|PHP|BDT|Tk|TAKA)?[:\s]*([0-9,]+(?:\.[0-9]{1,2})?)",
+            @"(?:CURRENT\s*CHARGES|ELECTRICITY\s*CHARGE|বিদ্যুৎ\s*চার্জ|গ্যাস\s*বিল)[:\s]*(?:[₱$€₹P]|PHP|BDT|Tk|TAKA)?[:\s]*([0-9,]+(?:\.[0-9]{1,2})?)",
+            @"(?:Paid to Organization|Payment Received|Bill Amount|Net Payable|Amount|প্রদেয়|টাকা)[:\s]*(?:[₱$€₹P]|PHP|BDT|Tk|TAKA)?[:\s]*([0-9,]+(?:\.[0-9]{1,2})?)",
+            @"(?:BDT|TAKA|TK|[₱$€₹])\.?\s*([0-9,]+(?:\.[0-9]{1,2})?)"
         };
 
         foreach (var pattern in amountPatterns)
@@ -861,6 +868,20 @@ public class GroqLlmExtractor(
 
         if (extractedPeriod == null)
         {
+            var dateMatch = new Regex(@"\b([0-9]{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+([0-9]{4})\b", RegexOptions.IgnoreCase).Match(normalized);
+            if (dateMatch.Success)
+            {
+                var mStr = dateMatch.Groups[2].Value;
+                var yStr = dateMatch.Groups[3].Value;
+                if (DateTime.TryParseExact($"{mStr} 1, {yStr}", "MMM d, yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt))
+                {
+                    extractedPeriod = dt.ToString("yyyy-MM", CultureInfo.InvariantCulture);
+                }
+            }
+        }
+
+        if (extractedPeriod == null)
+        {
             var isoPeriod = new Regex(@"\b(202[0-9])[-/](0[1-9]|1[0-2])\b").Match(normalized);
             if (isoPeriod.Success) extractedPeriod = $"{isoPeriod.Groups[1].Value}-{isoPeriod.Groups[2].Value}";
         }
@@ -868,7 +889,7 @@ public class GroqLlmExtractor(
         // 4. Extract Bill / Account / Transaction Number
         string? extractedBillNo = null;
         var accMatch = new Regex(
-            @"(?:Bill Account Number|Account Number|Transaction ID|Bill No|Challan No)[:\s]*([A-Za-z0-9-]+)",
+            @"(?:Customer\s*Account\s*Number(?:\s*\(CAN\))?|CAN|Bill Account Number|Account Number|Transaction ID|Bill No|Challan No)[:\s]*([A-Za-z0-9-]+)",
             RegexOptions.IgnoreCase).Match(normalized);
         if (accMatch.Success)
         {
@@ -897,7 +918,7 @@ public class GroqLlmExtractor(
         if (consumerMatch.Success) extractedConsumerNo = consumerMatch.Groups[1].Value;
 
         string? extractedMeterNo = null;
-        var meterMatch = new Regex(@"(?:Meter No|Meter Number|মিটার নং)[:\s]*([0-9A-Za-z-]+)", RegexOptions.IgnoreCase).Match(normalized);
+        var meterMatch = new Regex(@"(?:Electric\s*Meter\s*Number|Meter\s*No|Meter\s*Number|মিটার নং)[:\s]*([0-9A-Za-z-]+)", RegexOptions.IgnoreCase).Match(normalized);
         if (meterMatch.Success) extractedMeterNo = meterMatch.Groups[1].Value;
 
         // 5. Quantity & Canonical Unit
@@ -911,6 +932,16 @@ public class GroqLlmExtractor(
             extractedQty = q;
         }
 
+        // Try "Actual Consumption" pattern
+        if (!extractedQty.HasValue)
+        {
+            var actualConsMatch = new Regex(@"(?:ACTUAL\s*CONSUMPTION|TOTAL\s*CONSUMPTION|TOTAL\s*KWH)[:\s]*([0-9,]+(?:\.[0-9]+)?)\s*(?:kWh)?", RegexOptions.IgnoreCase).Match(normalized);
+            if (actualConsMatch.Success && decimal.TryParse(actualConsMatch.Groups[1].Value.Replace(",", ""), NumberStyles.Any, CultureInfo.InvariantCulture, out var acUnits))
+            {
+                extractedQty = acUnits;
+            }
+        }
+
         // Try "Consumed Unit" or "Used Units" pattern
         if (!extractedQty.HasValue)
         {
@@ -921,14 +952,14 @@ public class GroqLlmExtractor(
             }
         }
 
-        // Try meter reading difference: PRESENT RDG minus PREVIOUS RDG
+        // Try meter reading difference: CURRENT/PRESENT RDG minus PREVIOUS RDG
         if (!extractedQty.HasValue)
         {
-            var presMatch = new Regex(@"PRESENT\s*R(?:EA?D(?:IN)?G|DG|OG)?[:\s]*([0-9]+)", RegexOptions.IgnoreCase).Match(normalized);
-            var prevMatch = new Regex(@"PREVIOUS\s*R(?:EA?D(?:IN)?G|DG|OG)?[:\s]*([0-9]+)", RegexOptions.IgnoreCase).Match(normalized);
+            var presMatch = new Regex(@"(?:CURRENT|PRESENT)\s*R(?:EA?D(?:IN)?G|DG|OG)?[:\s]*([0-9,]+)", RegexOptions.IgnoreCase).Match(normalized);
+            var prevMatch = new Regex(@"PREVIOUS\s*R(?:EA?D(?:IN)?G|DG|OG)?[:\s]*([0-9,]+)", RegexOptions.IgnoreCase).Match(normalized);
             if (presMatch.Success && prevMatch.Success &&
-                long.TryParse(presMatch.Groups[1].Value, out var pres) &&
-                long.TryParse(prevMatch.Groups[1].Value, out var prev) &&
+                long.TryParse(presMatch.Groups[1].Value.Replace(",", ""), out var pres) &&
+                long.TryParse(prevMatch.Groups[1].Value.Replace(",", ""), out var prev) &&
                 pres >= prev)
             {
                 var diff = pres - prev;
