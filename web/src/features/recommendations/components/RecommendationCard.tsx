@@ -13,6 +13,7 @@ import {
   Leaf,
   CheckCircle2,
   Sparkles,
+  Zap,
 } from 'lucide-react';
 
 interface RecommendationCardProps {
@@ -96,10 +97,30 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({
             <span className="text-[10px] font-mono text-slate-400 font-bold">
               #{rec.measureCode}
             </span>
+            {rec.isAiEnriched && (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-violet-100 text-violet-800 border border-violet-200 flex items-center gap-1">
+                <Sparkles size={11} className="text-violet-600" />
+                {isBangla ? 'এআই ক্যালিব্রেটেড' : 'AI Calibrated'}
+              </span>
+            )}
           </div>
           <h3 className="font-bold text-slate-900 text-base md:text-lg">
             {isBangla ? rec.titleBn : rec.titleEn}
           </h3>
+          {/* Active Flag Resolution Badges */}
+          {rec.addressedFlags && rec.addressedFlags.length > 0 && (
+            <div className="flex items-center gap-1.5 flex-wrap pt-1">
+              {rec.addressedFlags.map((flag) => (
+                <span
+                  key={flag}
+                  className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-md bg-amber-50 text-amber-900 border border-amber-300"
+                >
+                  <Zap size={12} className="text-amber-600" />
+                  {isBangla ? `সতর্কতা দূর করবে: ${flag}` : `Resolves Active Flag: ${flag}`}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Status Badge & Selector */}
@@ -183,6 +204,34 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({
           </span>
         </div>
       </div>
+
+      {/* AI Advice & Implementation Roadmap (if available) */}
+      {(rec.aiAdviceEn || rec.aiAdviceBn) && (
+        <div className="p-3.5 bg-gradient-to-r from-violet-50/70 via-indigo-50/50 to-slate-50 border border-violet-200/90 rounded-xl space-y-2 text-xs">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <span className="font-bold text-violet-950 flex items-center gap-1.5">
+              <Sparkles size={15} className="text-violet-600" />
+              {isBangla ? 'এআই কারিগরি বিশ্লেষণ (AI Engineering Rationale)' : 'AI Engineering Rationale'}
+            </span>
+            <span className="text-[10px] text-violet-700 font-medium">
+              {isBangla ? 'কারখানার বাস্তব বিল ও ডেটার ওপর ভিত্তি করে তৈরি' : 'Calibrated with facility bills & operational flags'}
+            </span>
+          </div>
+          <p className="text-slate-800 leading-relaxed font-sans">
+            {isBangla ? (rec.aiAdviceBn || rec.aiAdviceEn) : (rec.aiAdviceEn || rec.aiAdviceBn)}
+          </p>
+          {(rec.aiRoadmapEn || rec.aiRoadmapBn) && (
+            <div className="pt-2 border-t border-violet-200/60 mt-1 space-y-1">
+              <span className="font-bold text-violet-950 text-[11px] block">
+                {isBangla ? '৩-ধাপের বাস্তবায়ন পথনকশা (Actionable Roadmap):' : '3-Step Action Roadmap:'}
+              </span>
+              <div className="text-slate-700 text-[11px] font-mono whitespace-pre-line bg-white/80 p-2.5 rounded-lg border border-violet-100 leading-relaxed">
+                {isBangla ? (rec.aiRoadmapBn || rec.aiRoadmapEn) : (rec.aiRoadmapEn || rec.aiRoadmapBn)}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Financing Note Pill */}
       <div className="p-3 bg-indigo-50/60 border border-indigo-200/70 rounded-xl flex items-start gap-2 text-xs text-indigo-950">

@@ -35,6 +35,12 @@ public class RecommendationsSeedLoader(
                     sourcesPath = candidateSources;
                 }
 
+                var candidateDefaultLibrary = Path.Combine(baseDir, "seeds", "measures", "measure_library_DEFAULT.json");
+                if (File.Exists(candidateDefaultLibrary) && sampleLibraryPath == null)
+                {
+                    sampleLibraryPath = candidateDefaultLibrary;
+                }
+
                 var candidateLibrary = Path.Combine(baseDir, "seeds", "measures", "measure_library_SAMPLE.json");
                 if (File.Exists(candidateLibrary) && sampleLibraryPath == null)
                 {

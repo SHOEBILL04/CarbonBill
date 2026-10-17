@@ -20,7 +20,10 @@ public interface IRecommendationPipeline
         decimal? billElectricityCost = null,
         decimal? billKwh = null,
         decimal? billDieselCost = null,
-        decimal? billDieselLitres = null);
+        decimal? billDieselLitres = null,
+        decimal? billGasCost = null,
+        decimal? billGasM3 = null,
+        IReadOnlyList<string>? activeFlags = null);
 }
 
 public class RecommendationPipeline(
@@ -48,10 +51,13 @@ public class RecommendationPipeline(
         decimal? billElectricityCost = null,
         decimal? billKwh = null,
         decimal? billDieselCost = null,
-        decimal? billDieselLitres = null)
+        decimal? billDieselLitres = null,
+        decimal? billGasCost = null,
+        decimal? billGasM3 = null,
+        IReadOnlyList<string>? activeFlags = null)
     {
         // 1. Profile Ingestion
-        var baseline = ProfileIngestion.Execute(profile, billElectricityCost, billKwh, billDieselCost, billDieselLitres);
+        var baseline = ProfileIngestion.Execute(profile, billElectricityCost, billKwh, billDieselCost, billDieselLitres, billGasCost, billGasM3);
 
         var evaluations = new List<CandidateMeasureEvaluation>();
 
@@ -93,8 +99,8 @@ public class RecommendationPipeline(
             evaluations.Add(candidate);
         }
 
-        // 6. Ranking (Top 5 highlighted, all ranked)
-        Ranking.Rank(evaluations);
+        // 6. Ranking (Flag-boosted prioritization, top 5 highlighted, all ranked)
+        Ranking.Rank(evaluations, activeFlags);
 
         return evaluations;
     }

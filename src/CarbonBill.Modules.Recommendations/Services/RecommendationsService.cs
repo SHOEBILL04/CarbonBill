@@ -61,7 +61,13 @@ public record RecommendationDto(
     decimal? RealisedTco2eAvoided,
     DateTime? CompletedAtUtc,
     bool EvidenceUpgradeRecorded,
-    string? EvidenceNotes);
+    string? EvidenceNotes,
+    IReadOnlyList<string>? AddressedFlags = null,
+    string? AiAdviceEn = null,
+    string? AiAdviceBn = null,
+    string? AiRoadmapEn = null,
+    string? AiRoadmapBn = null,
+    bool IsAiEnriched = false);
 
 public record RecommendationsSummaryDto(
     int TotalCount,
@@ -73,11 +79,15 @@ public record RecommendationsSummaryDto(
 public record RecommendationsResponse(
     List<RecommendationDto> Top5,
     List<RecommendationDto> All,
-    RecommendationsSummaryDto Summary);
+    RecommendationsSummaryDto Summary,
+    AggregatedFacilityData? BaselineData = null,
+    string? ExecutiveBrief = null);
 
 public class RecommendationsService(
     RecommendationsDbContext dbContext,
     IRecommendationPipeline pipeline,
+    IFacilityDataAggregator dataAggregator,
+    IAiRecommendationAdvisor aiAdvisor,
     ILogger<RecommendationsService> logger,
     CarbonBill.SharedKernel.Providers.ILangSmithTracer? langSmithTracer = null)
 {
@@ -158,6 +168,21 @@ public class RecommendationsService(
     {
         var profile = await GetOrCreateProfileAsync(orgId, siteId, ct);
 
+        // 1. Dynamic data aggregation from real bill records and active flags
+        var aggregated = await dataAggregator.AggregateFacilityDataAsync(orgId, profile, ct);
+
+        if (aggregated.HasRealBills)
+        {
+            profile.BaselineMonthlyKwh = Math.Round(aggregated.AnnualElectricityKwh / 12.0m, 2);
+            profile.BaselineMonthlyDieselLitres = Math.Round(aggregated.AnnualDieselLitres / 12.0m, 2);
+            profile.BaselineMonthlyGasM3 = Math.Round(aggregated.AnnualGasM3 / 12.0m, 2);
+            profile.ElectricityTariffBdtPerKwh = aggregated.ElectricityTariffBdtPerKwh;
+            profile.DieselTariffBdtPerLitre = aggregated.DieselTariffBdtPerLitre;
+            profile.GasTariffBdtPerM3 = aggregated.GasTariffBdtPerM3;
+            profile.MarkUpdated();
+            await dbContext.SaveChangesAsync(ct);
+        }
+
         var measures = await dbContext.Measures
             .Include(m => m.Source)
             .ToListAsync(ct);
@@ -170,8 +195,47 @@ public class RecommendationsService(
 
         var startTimeUtc = DateTime.UtcNow;
 
-        // Run the 8-step pipeline
-        var candidateEvaluations = pipeline.Execute(profile, measures);
+        // Run the 8-step pipeline with dynamic inputs
+        var candidateEvaluations = pipeline.Execute(
+            profile,
+            measures,
+            billElectricityCost: aggregated.TotalElectricityCostBdt,
+            billKwh: aggregated.AnnualElectricityKwh,
+            billDieselCost: aggregated.TotalDieselCostBdt,
+            billDieselLitres: aggregated.AnnualDieselLitres,
+            billGasCost: aggregated.TotalGasCostBdt,
+            billGasM3: aggregated.AnnualGasM3,
+            activeFlags: aggregated.ActiveFlagCodes);
+
+        // 2. Dynamic AI Advisor enrichment for top recommendations
+        var aiContext = new AiAdviceContext(
+            OrgId: orgId,
+            Sector: profile.Sector,
+            AnnualElectricityKwh: aggregated.AnnualElectricityKwh,
+            ElectricityTariffBdt: aggregated.ElectricityTariffBdtPerKwh,
+            AnnualDieselLitres: aggregated.AnnualDieselLitres,
+            DieselTariffBdt: aggregated.DieselTariffBdtPerLitre,
+            AnnualGasM3: aggregated.AnnualGasM3,
+            GasTariffBdt: aggregated.GasTariffBdtPerM3,
+            ActiveFlagCodes: aggregated.ActiveFlagCodes,
+            ActiveFlagSummaries: aggregated.ActiveFlagSummaries);
+
+        foreach (var topEval in candidateEvaluations.Take(5))
+        {
+            try
+            {
+                var advice = await aiAdvisor.GenerateAdviceAsync(topEval, aiContext, ct);
+                topEval.AiAdviceEn = advice.PersonalizedExplanationEn;
+                topEval.AiAdviceBn = advice.PersonalizedExplanationBn;
+                topEval.AiRoadmapEn = advice.ActionRoadmapEn;
+                topEval.AiRoadmapBn = advice.ActionRoadmapBn;
+                topEval.IsAiEnriched = advice.IsAiGenerated;
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Could not enrich candidate {Code} with AI advice.", topEval.Measure.MeasureCode);
+            }
+        }
 
         // Load existing recommendations for this org to preserve user statuses (Planned, Done, NotFeasible)
         var existing = await dbContext.Recommendations
@@ -201,6 +265,12 @@ public class RecommendationsService(
                 rec.AssumptionsEn = eval.AssumptionsEn;
                 rec.NextStepBn = eval.NextStepBn;
                 rec.NextStepEn = eval.NextStepEn;
+                rec.AddressedFlagsJson = JsonSerializer.Serialize(eval.AddressedFlags);
+                rec.AiAdviceEn = eval.AiAdviceEn;
+                rec.AiAdviceBn = eval.AiAdviceBn;
+                rec.AiRoadmapEn = eval.AiRoadmapEn;
+                rec.AiRoadmapBn = eval.AiRoadmapBn;
+                rec.IsAiEnriched = eval.IsAiEnriched;
                 rec.MarkUpdated();
                 savedEntities.Add(rec);
             }
@@ -227,7 +297,13 @@ public class RecommendationsService(
                     AssumptionsBn = eval.AssumptionsBn,
                     AssumptionsEn = eval.AssumptionsEn,
                     NextStepBn = eval.NextStepBn,
-                    NextStepEn = eval.NextStepEn
+                    NextStepEn = eval.NextStepEn,
+                    AddressedFlagsJson = JsonSerializer.Serialize(eval.AddressedFlags),
+                    AiAdviceEn = eval.AiAdviceEn,
+                    AiAdviceBn = eval.AiAdviceBn,
+                    AiRoadmapEn = eval.AiRoadmapEn,
+                    AiRoadmapBn = eval.AiRoadmapBn,
+                    IsAiEnriched = eval.IsAiEnriched
                 };
 
                 dbContext.Recommendations.Add(newRec);
@@ -351,7 +427,41 @@ public class RecommendationsService(
             PlannedCount: plannedCount,
             DoneCount: doneCount);
 
-        return new RecommendationsResponse(top5, dtoList, summary);
+        var profile = await GetOrCreateProfileAsync(orgId, siteId, ct);
+        var aggregated = await dataAggregator.AggregateFacilityDataAsync(orgId, profile, ct);
+
+        string? execBrief = null;
+        try
+        {
+            var topCandidates = recommendations.Take(5).Select(r => new CandidateMeasureEvaluation
+            {
+                Measure = r.Measure,
+                PaybackYears = r.PaybackYears,
+                AnnualSavingsBdt = new SavingsRange(0, MapToDto(r).SavingsBdtTypical, 0),
+                AvoidedTco2e = new SavingsRange(0, MapToDto(r).Tco2eAvoidedTypical, 0),
+                CapexBdt = new CapexRange(MapToDto(r).CapexLow, MapToDto(r).CapexHigh)
+            }).ToList();
+
+            var aiContext = new AiAdviceContext(
+                OrgId: orgId,
+                Sector: profile.Sector,
+                AnnualElectricityKwh: aggregated.AnnualElectricityKwh,
+                ElectricityTariffBdt: aggregated.ElectricityTariffBdtPerKwh,
+                AnnualDieselLitres: aggregated.AnnualDieselLitres,
+                DieselTariffBdt: aggregated.DieselTariffBdtPerLitre,
+                AnnualGasM3: aggregated.AnnualGasM3,
+                GasTariffBdt: aggregated.GasTariffBdtPerM3,
+                ActiveFlagCodes: aggregated.ActiveFlagCodes,
+                ActiveFlagSummaries: aggregated.ActiveFlagSummaries);
+
+            execBrief = await aiAdvisor.GenerateExecutiveBriefAsync(aiContext, topCandidates, ct);
+        }
+        catch (Exception ex)
+        {
+            logger.LogDebug(ex, "Could not generate AI executive brief.");
+        }
+
+        return new RecommendationsResponse(top5, dtoList, summary, aggregated, execBrief);
     }
 
     public async Task<RecommendationDto> UpdateStatusAsync(
@@ -425,6 +535,16 @@ public class RecommendationsService(
             catch (JsonException) { }
         }
 
+        List<string>? flags = null;
+        if (!string.IsNullOrWhiteSpace(r.AddressedFlagsJson))
+        {
+            try
+            {
+                flags = JsonSerializer.Deserialize<List<string>>(r.AddressedFlagsJson);
+            }
+            catch { }
+        }
+
         return new RecommendationDto(
             Id: r.Id,
             MeasureId: r.MeasureId,
@@ -461,6 +581,12 @@ public class RecommendationsService(
             RealisedTco2eAvoided: r.RealisedTco2eAvoided,
             CompletedAtUtc: r.CompletedAtUtc,
             EvidenceUpgradeRecorded: r.EvidenceUpgradeRecorded,
-            EvidenceNotes: r.EvidenceNotes);
+            EvidenceNotes: r.EvidenceNotes,
+            AddressedFlags: flags,
+            AiAdviceEn: r.AiAdviceEn,
+            AiAdviceBn: r.AiAdviceBn,
+            AiRoadmapEn: r.AiRoadmapEn,
+            AiRoadmapBn: r.AiRoadmapBn,
+            IsAiEnriched: r.IsAiEnriched);
     }
 }
