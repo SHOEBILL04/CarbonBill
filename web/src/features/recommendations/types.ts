@@ -59,3 +59,30 @@ export interface RecommendationsPayload {
   baselineData?: FacilityBaselineData;
   executiveBrief?: string;
 }
+
+export interface RagKnowledgeChunk {
+  id: string;
+  title: string;
+  type: string;
+  content: string;
+  sourceCitation: string;
+  relevanceScore: number;
+}
+
+export interface RagAskResponse {
+  query: string;
+  answer: string;
+  model: string;
+  retrievedContextCount: number;
+  retrievedChunks: RagKnowledgeChunk[];
+}
+
+export interface RagCorpusSummary {
+  totalChunks: number;
+  billChunks: number;
+  flagChunks: number;
+  measureChunks: number;
+  profileChunks: number;
+  lastIndexedAtUtc: string;
+}
+

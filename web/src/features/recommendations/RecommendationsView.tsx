@@ -5,6 +5,7 @@ import { fetchRecommendationsPayload, recalculateRecommendations, updateRecommen
 import { RecommendationCard } from './components/RecommendationCard';
 import { MaccChart } from './components/MaccChart';
 import { StatusChangeModal } from './components/StatusChangeModal';
+import { RagAssistant } from './components/RagAssistant';
 import { toBanglaDigits, formatBdt } from '../../shared';
 import {
   TrendingDown,
@@ -273,6 +274,9 @@ export const RecommendationsView: React.FC = () => {
             </div>
           </div>
         )}
+
+        {/* Interactive RAG Energy Advisor */}
+        <RagAssistant isBangla={isBangla} />
 
         {/* Honesty & Range Rules Notice */}
         <div className="p-3 bg-teal-50 border border-teal-200 rounded-xl text-xs text-teal-900 flex items-start gap-2.5">

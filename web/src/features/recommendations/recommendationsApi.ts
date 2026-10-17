@@ -1,4 +1,4 @@
-import { Recommendation, RecommendationStatus, EvidenceGrade } from './types';
+import { Recommendation, RecommendationStatus, EvidenceGrade, RagAskResponse, RagCorpusSummary } from './types';
 import { apiFetch } from '../../lib/apiClient';
 
 export const mockRecommendationsList: Recommendation[] = [
@@ -247,3 +247,22 @@ export async function recalculateRecommendations(): Promise<boolean> {
     return false;
   }
 }
+
+export async function askRagRecommendations(
+  query: string,
+  topK = 4
+): Promise<RagAskResponse> {
+  return await apiFetch<RagAskResponse>('/api/v1/recommendations/rag/ask', {
+    method: 'POST',
+    body: JSON.stringify({ query, topK }),
+  });
+}
+
+export async function fetchRagCorpusSummary(): Promise<RagCorpusSummary | null> {
+  try {
+    return await apiFetch<RagCorpusSummary>('/api/v1/recommendations/rag/corpus-summary');
+  } catch {
+    return null;
+  }
+}
+
