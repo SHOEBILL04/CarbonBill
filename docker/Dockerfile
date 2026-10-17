@@ -50,9 +50,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     sqlite3 \
     && rm -rf /var/lib/apt/lists/*
 
-# Create persistent data volume directory
+# Create persistent data volume directory (mountable via volumes)
 RUN mkdir -p /data && chmod 777 /data
-VOLUME /data
 
 COPY --from=build /app/publish .
 

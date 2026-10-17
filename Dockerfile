@@ -71,9 +71,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Create persistent storage folder for SQLite and file uploads
+# Create persistent storage folder for SQLite and file uploads (mountable via Railway/Docker volumes)
 RUN mkdir -p /data && chmod 777 /data
-VOLUME ["/data"]
 
 # Copy published .NET 8 application
 COPY --from=backend-build /app/publish .
