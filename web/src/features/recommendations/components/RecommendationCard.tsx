@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { Recommendation, EvidenceGrade } from '../types';
+import { Recommendation } from '../types';
 import { toBanglaDigits, formatBdt } from '../../../shared';
 import {
   TrendingDown,
-  Award,
   ExternalLink,
   ChevronDown,
   ChevronUp,
@@ -28,29 +27,6 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({
   onUpdateStatus,
 }) => {
   const [showWhy, setShowWhy] = useState<boolean>(false);
-
-  const gradeColor: Record<EvidenceGrade, { bg: string; text: string; labelBn: string; labelEn: string }> = {
-    A: {
-      bg: 'bg-emerald-100 border-emerald-300',
-      text: 'text-emerald-900',
-      labelBn: 'গ্রেড A (বাস্তব কারখানার ডেটা)',
-      labelEn: 'Grade A (Empirical Factory Data)',
-    },
-    B: {
-      bg: 'bg-sky-100 border-sky-300',
-      text: 'text-sky-900',
-      labelBn: 'গ্রেড B (জাতীয় নির্দেশিকা)',
-      labelEn: 'Grade B (National Sector Guide)',
-    },
-    C: {
-      bg: 'bg-slate-100 border-slate-300',
-      text: 'text-slate-700',
-      labelBn: 'গ্রেড C (আন্তর্জাতিক মডেল)',
-      labelEn: 'Grade C (International Model)',
-    },
-  };
-
-  const currentGrade = gradeColor[rec.evidenceGrade];
 
   // Format ranges with BDT and Bangla numerals
   const savingsRangeFormatted = `${formatBdt(rec.savingsBdtRange.low, {
@@ -85,27 +61,9 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({
       {/* Top Header */}
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-3">
         <div className="space-y-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span
-              className={`text-[11px] font-bold px-2.5 py-0.5 rounded-md border flex items-center gap-1 ${currentGrade.bg} ${currentGrade.text}`}
-            >
-              <Award size={13} /> {isBangla ? currentGrade.labelBn : currentGrade.labelEn}
-            </span>
-            <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
-              {rec.category}
-            </span>
-            <span className="text-[10px] font-mono text-slate-400 font-bold">
-              #{rec.measureCode}
-            </span>
-            {rec.isAiEnriched && (
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-violet-100 text-violet-800 border border-violet-200 flex items-center gap-1">
-                <Sparkles size={11} className="text-violet-600" />
-                {isBangla ? 'এআই ক্যালিব্রেটেড' : 'AI Calibrated'}
-              </span>
-            )}
-          </div>
-          <h3 className="font-bold text-slate-900 text-base md:text-lg">
-            {isBangla ? rec.titleBn : rec.titleEn}
+          <h3 className="font-bold text-slate-900 text-base md:text-lg flex items-center gap-2">
+            <Sparkles size={16} className="text-teal-700 shrink-0" />
+            <span>{isBangla ? rec.titleBn : rec.titleEn}</span>
           </h3>
           {/* Active Flag Resolution Badges */}
           {rec.addressedFlags && rec.addressedFlags.length > 0 && (

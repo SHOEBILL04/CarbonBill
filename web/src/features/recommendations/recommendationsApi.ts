@@ -1,4 +1,4 @@
-import { Recommendation, RecommendationStatus, EvidenceGrade, RagAskResponse, RagCorpusSummary } from './types';
+import { Recommendation, RecommendationStatus, EvidenceGrade, RagAskResponse, RagCorpusSummary, DedicatedBreakdownResponse } from './types';
 import { apiFetch } from '../../lib/apiClient';
 
 export const mockRecommendationsList: Recommendation[] = [
@@ -261,6 +261,14 @@ export async function askRagRecommendations(
 export async function fetchRagCorpusSummary(): Promise<RagCorpusSummary | null> {
   try {
     return await apiFetch<RagCorpusSummary>('/api/v1/recommendations/rag/corpus-summary');
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchDedicatedRagBreakdown(): Promise<DedicatedBreakdownResponse | null> {
+  try {
+    return await apiFetch<DedicatedBreakdownResponse>('/api/v1/recommendations/rag/breakdown');
   } catch {
     return null;
   }

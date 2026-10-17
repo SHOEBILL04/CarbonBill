@@ -180,6 +180,23 @@ public static class RecommendationsEndpoints
         .WithName("GetRagCorpusSummary")
         .WithSummary("Get summary statistics of indexed RAG corpus items (bills, flags, measures, profile).");
 
+        // GET /api/v1/recommendations/rag/breakdown
+        group.MapGet("/recommendations/rag/breakdown", async (
+            ITenantContext tenantContext,
+            IRagRecommendationService ragService,
+            CancellationToken ct) =>
+        {
+            if (!tenantContext.IsAuthenticated || !tenantContext.CurrentOrgId.HasValue)
+            {
+                return Results.Unauthorized();
+            }
+
+            var breakdown = await ragService.GetDedicatedBreakdownAsync(tenantContext.CurrentOrgId.Value, ct);
+            return Results.Ok(breakdown);
+        })
+        .WithName("GetDedicatedRagBreakdown")
+        .WithSummary("Get overall and individual category recommendations (electricity, transport, diesel, gas) grounded in factory data.");
+
         return endpoints;
     }
 }

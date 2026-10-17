@@ -86,3 +86,23 @@ export interface RagCorpusSummary {
   lastIndexedAtUtc: string;
 }
 
+export interface CategoryAdviceDto {
+  key: string;
+  titleEn: string;
+  titleBn: string;
+  switchActionEn: string;
+  switchActionBn: string;
+  savingsBdt: string;
+  capexBdt: string;
+  payback: string;
+  co2Avoided: string;
+  keyStepsEn: string;
+  keyStepsBn: string;
+}
+
+export interface DedicatedBreakdownResponse {
+  overallStrategyEn: string;
+  overallStrategyBn: string;
+  categories: CategoryAdviceDto[];
+}
+

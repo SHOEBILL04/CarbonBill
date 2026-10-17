@@ -6,6 +6,7 @@ import { RecommendationCard } from './components/RecommendationCard';
 import { MaccChart } from './components/MaccChart';
 import { StatusChangeModal } from './components/StatusChangeModal';
 import { RagAssistant } from './components/RagAssistant';
+import { DedicatedRecommendationBox } from './components/DedicatedRecommendationBox';
 import { toBanglaDigits, formatBdt } from '../../shared';
 import {
   TrendingDown,
@@ -267,30 +268,17 @@ export const RecommendationsView: React.FC = () => {
           </div>
         )}
 
-        {/* AI Executive Decarbonization Brief */}
-        {payload?.executiveBrief && (
-          <div className="p-4 bg-gradient-to-r from-violet-900 via-indigo-900 to-slate-900 text-white rounded-2xl shadow-sm space-y-2.5">
-            <div className="flex items-center justify-between gap-2 flex-wrap">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-white/10 rounded-lg">
-                  <Sparkles size={16} className="text-violet-300" />
-                </div>
-                <h3 className="text-sm font-bold text-violet-100">
-                  {isBangla ? 'এআই ডিকার্বনাইজেশন নির্বাহী বিশ্লেষণ' : 'AI Executive Decarbonization Brief'}
-                </h3>
-              </div>
-              <span className="text-[10px] font-semibold text-violet-200 bg-white/10 px-2 py-0.5 rounded-full">
-                {isBangla ? 'কারখানার ডেটা চালিত এআই' : 'Factory Data-Driven AI'}
-              </span>
-            </div>
-            <div className="text-xs text-slate-200 leading-relaxed space-y-1 whitespace-pre-line font-sans">
-              {payload.executiveBrief}
-            </div>
-          </div>
-        )}
+        {/* Dedicated Recommendation Box (Overall and Category Breakdown: Electricity, Transport, Diesel, Gas) */}
+        <DedicatedRecommendationBox
+          isBangla={isBangla}
+          recalculateSignal={ragRecalculateSignal}
+        />
 
-        {/* Interactive RAG Energy Advisor */}
-        <RagAssistant isBangla={isBangla} recalculateSignal={ragRecalculateSignal} />
+        {/* Interactive Chat with AI Advisor */}
+        <RagAssistant
+          isBangla={isBangla}
+          recalculateSignal={ragRecalculateSignal}
+        />
 
         {/* Honesty & Range Rules Notice */}
         <div className="p-3 bg-teal-50 border border-teal-200 rounded-xl text-xs text-teal-900 flex items-start gap-2.5">
