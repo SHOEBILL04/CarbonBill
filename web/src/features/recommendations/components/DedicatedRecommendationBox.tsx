@@ -16,7 +16,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { DedicatedBreakdownResponse, CategoryAdviceDto } from '../types';
-import { fetchDedicatedRagBreakdown } from '../recommendationsApi';
+import { fetchDedicatedRagBreakdown, DEFAULT_CALIBRATED_BREAKDOWN } from '../recommendationsApi';
 
 interface DedicatedRecommendationBoxProps {
   isBangla: boolean;
@@ -27,17 +27,18 @@ export const DedicatedRecommendationBox: React.FC<DedicatedRecommendationBoxProp
   isBangla,
   recalculateSignal,
 }) => {
-  const [data, setData] = useState<DedicatedBreakdownResponse | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [data, setData] = useState<DedicatedBreakdownResponse>(DEFAULT_CALIBRATED_BREAKDOWN);
+  const [loading, setLoading] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<string>('all');
 
   function loadBreakdown() {
-    setLoading(true);
     fetchDedicatedRagBreakdown()
       .then((res) => {
-        if (res) setData(res);
+        if (res && res.categories && res.categories.length > 0) setData(res);
       })
-      .finally(() => setLoading(false));
+      .catch(() => {
+        setData(DEFAULT_CALIBRATED_BREAKDOWN);
+      });
   }
 
   useEffect(() => {

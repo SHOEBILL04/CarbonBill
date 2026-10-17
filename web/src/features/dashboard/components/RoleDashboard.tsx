@@ -279,7 +279,7 @@ export const RoleDashboard: React.FC<RoleDashboardProps> = ({
                 onClick={() => onNavigateTab('recommendations')}
                 className="text-xs font-bold text-emerald-700 hover:text-emerald-800 hover:underline cursor-pointer"
               >
-                {isBangla ? 'মেজার লাইব্রেরি' : 'Measure Library'}
+                {isBangla ? 'আরএজি ও জ্বালানি রূপান্তর' : 'RAG & Fuel Switch'}
               </button>
             </div>
 

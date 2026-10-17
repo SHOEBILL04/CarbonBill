@@ -221,7 +221,7 @@ export default function DashboardView({ user, onGoToFloor, onGoToReview, onLogou
               }`}
             >
               <TrendingDown size={14} />
-              {isBangla ? 'সাশ্রয়ী পদক্ষেপ (MACC)' : 'Recommendations (MACC)'}
+              {isBangla ? 'এআই ও আরএজি সুপারিশমালা' : 'AI Recommendations & RAG'}
             </button>
 
             <button
