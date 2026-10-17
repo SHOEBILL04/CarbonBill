@@ -175,6 +175,8 @@ function mapDtoToRecommendation(dto: any): Recommendation {
     financingNoteEn: dto.financingNoteEn || '',
     realisedSavingBdt: dto.realisedSavingBdt ? Number(dto.realisedSavingBdt) : undefined,
     addressedFlags: dto.addressedFlags || [],
+    nextStepEn: dto.nextStepEn || undefined,
+    nextStepBn: dto.nextStepBn || undefined,
     aiAdviceEn: dto.aiAdviceEn || undefined,
     aiAdviceBn: dto.aiAdviceBn || undefined,
     aiRoadmapEn: dto.aiRoadmapEn || undefined,

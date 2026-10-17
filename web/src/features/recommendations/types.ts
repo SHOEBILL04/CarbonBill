@@ -31,6 +31,8 @@ export interface Recommendation {
   financingNoteEn: string;
   realisedSavingBdt?: number;
   addressedFlags?: string[];
+  nextStepEn?: string;
+  nextStepBn?: string;
   aiAdviceEn?: string;
   aiAdviceBn?: string;
   aiRoadmapEn?: string;

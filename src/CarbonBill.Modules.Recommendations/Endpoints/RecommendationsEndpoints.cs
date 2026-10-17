@@ -72,6 +72,23 @@ public static class RecommendationsEndpoints
         .WithName("UpdateRecommendationStatus")
         .WithSummary("Update recommendation status to Planned, Done, or NotFeasible (with mandatory reason).");
 
+        // GET /api/v1/profile/facility
+        group.MapGet("/profile/facility", async (
+            ITenantContext tenantContext,
+            RecommendationsService service,
+            CancellationToken ct) =>
+        {
+            if (!tenantContext.IsAuthenticated || !tenantContext.CurrentOrgId.HasValue)
+            {
+                return Results.Unauthorized();
+            }
+
+            var profile = await service.GetOrCreateProfileAsync(tenantContext.CurrentOrgId.Value, null, ct);
+            return Results.Ok(profile);
+        })
+        .WithName("GetFacilityProfile")
+        .WithSummary("Get current facility profile and equipment setup for the organization.");
+
         // POST /api/v1/profile/facility (Shared with Onboarding, agreed via handoff)
         group.MapPost("/profile/facility", async (
             [FromBody] UpdateFacilityProfileRequest request,

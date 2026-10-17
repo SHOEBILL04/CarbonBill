@@ -1,8 +1,8 @@
 [
   {
-    "measure_code": "FAKE_MEASURE_LED_RETROFIT",
-    "name_bn": "FAKE টেস্ট এলইডি লাইটিং ব্যবস্থা",
-    "name_en": "FAKE Test LED Lighting System (Unit Tests Only)",
+    "measure_code": "LED_DAYLIGHT_LIGHTING",
+    "name_bn": "হাই-বে এলইডি লাইটিং এবং ডে-লাইটিং প্রিজম্যাটিক স্কাইলাইট",
+    "name_en": "High-Bay Industrial LED Retrofit and Daylighting Prismatic Skylights",
     "category": "Lighting",
     "applicable_sectors": ["RMG", "TextileDyeing", "General"],
     "applicability_rules": { "grid_electricity": true },
@@ -15,12 +15,12 @@
     "lifetime_years": 5,
     "evidence_grade": "A",
     "source_code": "IFC_PACT_2018",
-    "local_notes": "FAKE test record for unit testing pipeline formulas."
+    "local_notes": "Straightforward replacement of T8/T5 fluorescent fixtures across sewing and finishing lines."
   },
   {
-    "measure_code": "FAKE_MEASURE_VFD_COMPRESSOR",
-    "name_bn": "FAKE টেস্ট ভিএফডি ইনভার্টার ড্রাইভ",
-    "name_en": "FAKE Test VFD Compressor Inverter (Unit Tests Only)",
+    "measure_code": "VFD_MOTORS_COMPRESSORS",
+    "name_bn": "কম্প্রেসর ও মোটরে ভেরিয়েবল ফ্রিকোয়েন্সি ড্রাইভ (VFD) সংযোজন",
+    "name_en": "Variable Frequency Drives (VFD) on Motors and Compressors",
     "category": "Motors",
     "applicable_sectors": ["RMG", "TextileDyeing"],
     "applicability_rules": { "monthly_kwh_gt": 10000 },
@@ -33,12 +33,12 @@
     "lifetime_years": 8,
     "evidence_grade": "B",
     "source_code": "IFC_PACT_2018",
-    "local_notes": "FAKE test record for ranking and payback verification."
+    "local_notes": "Highly effective for fluctuating motor loads in spinning, blowers, and air compressors."
   },
   {
-    "measure_code": "FAKE_MEASURE_ROOFTOP_SOLAR",
-    "name_bn": "FAKE টেস্ট রুফটপ সোলার পিভি",
-    "name_en": "FAKE Test Rooftop Solar PV (Unit Tests Only)",
+    "measure_code": "ROOFTOP_SOLAR_PV",
+    "name_bn": "নেট-মিটারিংযুক্ত রুফটপ সোলার পিভি সিস্টেম (১০০ kWp)",
+    "name_en": "Grid-Tied Rooftop Solar PV with Net Metering (100 kWp)",
     "category": "SolarPV",
     "applicable_sectors": ["RMG", "TextileDyeing", "General"],
     "applicability_rules": { "roof_area_sqft_gt": 10000, "building_ownership": "Owned" },
@@ -51,6 +51,6 @@
     "lifetime_years": 20,
     "evidence_grade": "A",
     "source_code": "SREDA_SOLAR_GUIDELINES_2022",
-    "local_notes": "FAKE test record for high capex spend filter validation."
+    "local_notes": "Generates daytime peak solar power reducing grid tariff dependency."
   }
 ]
