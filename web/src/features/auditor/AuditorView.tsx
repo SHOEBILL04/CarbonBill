@@ -154,15 +154,15 @@ export const AuditorView: React.FC<AuditorViewProps> = ({ token }) => {
   return (
     <div className="space-y-6">
       {/* Top Auditor Verified Header Banner */}
-      <div className="bg-white p-6 rounded-2xl border border-slate-200/90 shadow-sm space-y-4">
+      <div className="bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-teal-900 text-white rounded-2xl shadow-sm">
+            <div className="p-3 bg-slate-900 text-white rounded-2xl shadow-xs">
               <ShieldCheck size={28} />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-md">
+                <span className="text-[10px] font-bold px-2.5 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg">
                   ✓ {isBangla ? 'যাচাইকৃত অডিট ভিউ (Read-Only)' : 'Verified Auditor Access'}
                 </span>
                 <span className="text-xs font-semibold text-slate-500">
@@ -189,7 +189,7 @@ export const AuditorView: React.FC<AuditorViewProps> = ({ token }) => {
                   setMethodologyTab('grading');
                   setMethodologyOpen(true);
                 }}
-                className="text-xs font-bold text-teal-700 hover:text-teal-900 underline flex items-center gap-1 cursor-pointer"
+                className="text-xs font-bold text-slate-900 hover:text-emerald-700 underline flex items-center gap-1 cursor-pointer"
                 title={isBangla ? 'গ্রেড নির্ণয় পদ্ধতি ও মানদণ্ড দেখুন' : 'View Grade Calculation Engine'}
               >
                 <HelpCircle size={13} />
@@ -202,10 +202,10 @@ export const AuditorView: React.FC<AuditorViewProps> = ({ token }) => {
                 setMethodologyTab('grading');
                 setMethodologyOpen(true);
               }}
-              className="text-xl font-black text-teal-800 hover:text-teal-950 transition cursor-pointer flex items-center gap-1.5"
+              className="text-xl font-black text-slate-900 hover:text-emerald-700 transition cursor-pointer flex items-center gap-1.5"
             >
               <span>{snapshot.dqsGrade} ({((snapshot.dataQualityScore ?? 0) * 100).toFixed(0)}% DQS)</span>
-              <span className="text-xs font-bold px-2 py-0.5 bg-teal-100 text-teal-900 rounded-md">
+              <span className="text-xs font-bold px-2 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-md">
                 {isBangla ? 'বিস্তারিত' : 'View'}
               </span>
             </button>
@@ -217,7 +217,7 @@ export const AuditorView: React.FC<AuditorViewProps> = ({ token }) => {
               }}
               className="mt-1 px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-xs transition cursor-pointer flex items-center gap-1.5"
             >
-              <BookOpen size={13} className="text-teal-700" />
+              <BookOpen size={13} className="text-emerald-600" />
               {isBangla ? 'স্কোপ ও গ্রেড গাইডলাইন' : 'Scopes & Grading Guide'}
             </button>
           </div>
@@ -227,7 +227,7 @@ export const AuditorView: React.FC<AuditorViewProps> = ({ token }) => {
         <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1 text-xs">
           <div className="flex items-center justify-between text-[11px] text-slate-500">
             <span className="font-bold text-slate-700 flex items-center gap-1.5">
-              <Fingerprint size={14} className="text-teal-700" />
+              <Fingerprint size={14} className="text-emerald-600" />
               {isBangla ? 'ক্রিপ্টোগ্রাফিক স্ন্যাপশট হ্যাশ (SHA-256):' : 'Cryptographic Hash Stamp (SHA-256):'}
             </span>
             <span>

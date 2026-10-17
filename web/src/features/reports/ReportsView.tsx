@@ -164,15 +164,15 @@ export const ReportsView: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Top Header & Duration Selector Bar */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-teal-800 text-white rounded-2xl shadow-sm">
+          <div className="p-2.5 bg-slate-900 text-white rounded-2xl shadow-xs">
             <FileText size={22} />
           </div>
           <div>
             <h2 className="text-base md:text-lg font-black text-slate-900 flex items-center gap-2">
               {isBangla ? 'আন্তর্জাতিক ক্রেতা GHG অডিট প্রতিবেদন' : 'Buyer ESG & GHG Audit Reporting'}
-              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 border border-teal-200">
+              <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
                 Higg FEM 4.0 / Inditex Aligned
               </span>
             </h2>
@@ -187,18 +187,18 @@ export const ReportsView: React.FC = () => {
         {/* Duration / Period Selection Pills */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
           <span className="text-xs font-bold text-slate-600 flex items-center gap-1.5 shrink-0">
-            <Clock size={14} className="text-teal-700" />
+            <Clock size={14} className="text-emerald-600" />
             {isBangla ? 'প্রতিবেদনের সময়কাল (Duration):' : 'Reporting Duration:'}
           </span>
-          <div className="grid grid-cols-2 sm:flex bg-slate-100/90 p-1 rounded-xl text-xs font-semibold gap-1">
+          <div className="grid grid-cols-2 sm:flex bg-slate-100 p-1 rounded-xl text-xs font-semibold gap-1 border border-slate-200">
             {REPORT_DURATIONS.map((dur) => (
               <button
                 key={dur.key}
                 onClick={() => setSelectedDuration(dur.key)}
                 className={`px-3 py-1.5 rounded-lg transition text-center cursor-pointer ${
                   selectedDuration === dur.key
-                    ? 'bg-teal-800 text-white shadow-xs font-bold'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                    ? 'bg-slate-900 text-white shadow-xs font-bold'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200'
                 }`}
                 title={isBangla ? dur.normStandardBn : dur.normStandardEn}
               >
@@ -209,7 +209,7 @@ export const ReportsView: React.FC = () => {
 
           <button
             onClick={loadData}
-            className="p-2 text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-xl transition cursor-pointer self-end sm:self-auto"
+            className="p-2 text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-xl transition cursor-pointer self-end sm:self-auto"
             title={isBangla ? 'পুনরায় লোড করুন' : 'Refresh audit data'}
           >
             <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
@@ -218,8 +218,8 @@ export const ReportsView: React.FC = () => {
       </div>
 
       {loading ? (
-        <div className="p-16 text-center text-slate-500 text-xs font-semibold bg-white rounded-2xl border border-slate-200">
-          <RefreshCw size={24} className="animate-spin mx-auto text-teal-700 mb-2" />
+        <div className="p-16 text-center text-slate-500 text-xs font-semibold bg-white rounded-2xl border border-slate-200/90 shadow-xs">
+          <RefreshCw size={24} className="animate-spin mx-auto text-emerald-600 mb-2" />
           {isBangla ? 'নিরীক্ষা প্রতিবেদন ও ডিজিটাল রেকর্ড লোড হচ্ছে...' : 'Loading verified audit reports & line items...'}
         </div>
       ) : (

@@ -157,29 +157,29 @@ export function ReviewWorkspace({ onBack }: ReviewWorkspaceProps) {
   }, [handleNextDocument]);
 
   return (
-    <div className="flex flex-col h-screen bg-slate-100 text-slate-900 font-sans overflow-hidden">
+    <div className="flex flex-col h-screen bg-slate-50 text-slate-900 font-sans overflow-hidden">
       {/* Workspace Top Header */}
-      <header className="h-14 bg-white border-b border-slate-200 px-6 flex items-center justify-between shadow-xs shrink-0 z-10">
+      <header className="h-14 bg-slate-900 border-b border-slate-800 px-6 flex items-center justify-between shadow-sm shrink-0 z-10 text-white">
         <div className="flex items-center gap-3">
           {onBack && (
             <button
               onClick={onBack}
-              className="p-1.5 -ml-1 text-slate-600 hover:bg-slate-100 rounded-lg transition"
+              className="p-1.5 -ml-1 text-slate-300 hover:bg-slate-800 rounded-lg transition cursor-pointer"
               title={isBangla ? 'ফিরে যান' : 'Go Back'}
             >
               <ArrowLeft size={18} />
             </button>
           )}
-          <div className="w-8 h-8 rounded-lg bg-teal-950/5 border border-teal-800/10 flex items-center justify-center p-1 shadow-2xs">
+          <div className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center p-1 shadow-inner">
             <img src="/logo-icon.png" alt="CarbonBill" className="w-6 h-6 object-contain" />
           </div>
           <div>
-            <h1 className="text-base font-black text-slate-900 tracking-tight">
+            <h1 className="text-base font-black text-white tracking-tight">
               {isBangla
                 ? 'চালান ও বিল পর্যালোচনা ওয়ার্কস্পেস'
                 : 'Review & Verification Workspace'}
             </h1>
-            <p className="text-[11px] text-slate-500 font-medium">
+            <p className="text-[11px] text-slate-400 font-medium">
               {isBangla
                 ? 'হিসাবরক্ষক ও কমপ্লায়েন্সের জন্য অপটিমাইজড ডুয়াল ভিউ'
                 : 'Dual-pane verification workspace for accounts & compliance'}
@@ -189,8 +189,8 @@ export function ReviewWorkspace({ onBack }: ReviewWorkspaceProps) {
 
         <div className="flex items-center gap-2">
           {bannerMessage && (
-            <div className="bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1.5 animate-fade-in shadow-xs">
-              <CheckCircle2 size={15} className="text-emerald-600" />
+            <div className="bg-slate-800 border border-slate-700 text-slate-200 text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1.5 animate-fade-in shadow-xs">
+              <CheckCircle2 size={15} className="text-emerald-400" />
               {bannerMessage}
             </div>
           )}
@@ -198,7 +198,7 @@ export function ReviewWorkspace({ onBack }: ReviewWorkspaceProps) {
           {/* Language Switcher */}
           <button
             onClick={() => i18n.changeLanguage(isBangla ? 'en' : 'bn')}
-            className="text-xs font-semibold px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg border border-slate-200 transition"
+            className="text-xs font-semibold px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 transition cursor-pointer"
             title={isBangla ? 'Switch to English' : 'বাংলায় পরিবর্তন করুন'}
           >
             {isBangla ? 'English' : 'বাংলা'}
@@ -207,9 +207,9 @@ export function ReviewWorkspace({ onBack }: ReviewWorkspaceProps) {
           <button
             onClick={loadData}
             title={isBangla ? 'রিফ্রেশ করুন' : 'Refresh Queue'}
-            className="p-2 text-slate-600 hover:bg-slate-100 rounded-xl transition"
+            className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition cursor-pointer"
           >
-            <RefreshCw size={16} className={isLoading ? 'animate-spin text-emerald-600' : ''} />
+            <RefreshCw size={16} className={isLoading ? 'animate-spin text-emerald-400' : ''} />
           </button>
         </div>
       </header>

@@ -51,19 +51,19 @@ export const IntensityChart: React.FC<IntensityChartProps> = ({ data, isBangla }
   const isMedian = vInt > p25 && vInt <= p50;
 
   return (
-    <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-xs space-y-5">
+    <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs space-y-5">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-100 pb-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
         <div>
           <div className="flex items-center gap-2">
-            <span className="p-1.5 rounded-lg bg-[#e6ede6] text-[#2d3c2d] border border-[#cfddcf]">
+            <span className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
               <Gauge size={15} />
             </span>
-            <h3 className="font-bold text-stone-900 text-sm md:text-base">
+            <h3 className="font-bold text-slate-900 text-sm md:text-base">
               {isBangla ? 'পোশাক প্রতি কার্বন ঘনত্ব ও বেঞ্চমার্ক' : 'Garment Intensity & Benchmark'}
             </h3>
           </div>
-          <p className="text-[11px] text-stone-500 mt-0.5">
+          <p className="text-[11px] text-slate-500 mt-0.5">
             {isBangla
               ? 'আন্তর্জাতিক ক্রেতাদের (H&M, Inditex) অডিটে প্রয়োজনীয় পোশাক প্রতি নির্গমন মান'
               : 'Per-piece footprint required for global buyer disclosures (H&M, Inditex)'}
@@ -73,16 +73,16 @@ export const IntensityChart: React.FC<IntensityChartProps> = ({ data, isBangla }
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowSimulator(!showSimulator)}
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border transition ${
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border transition cursor-pointer ${
               showSimulator
-                ? 'bg-[#e6ede6] text-[#2d3c2d] border-[#cfddcf]'
-                : 'bg-white text-stone-600 border-stone-200 hover:bg-stone-50'
+                ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
             }`}
           >
             <Sliders size={12} />
             <span>{isBangla ? 'সিমুলেটর' : 'Simulate'}</span>
           </button>
-          <span className="text-[10px] font-bold px-2 py-1 bg-[#e6ede6] text-[#2d3c2d] rounded-lg border border-[#cfddcf] uppercase">
+          <span className="text-[10px] font-bold px-2 py-1 bg-emerald-50 text-emerald-800 rounded-lg border border-emerald-200 uppercase">
             {unit}
           </span>
         </div>
@@ -90,13 +90,13 @@ export const IntensityChart: React.FC<IntensityChartProps> = ({ data, isBangla }
 
       {/* Production Output Simulator Drawer */}
       {showSimulator && (
-        <div className="p-3.5 bg-stone-50 border border-stone-200 rounded-xl space-y-2">
+        <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-stone-700 flex items-center gap-1.5">
-              <Sliders size={13} className="text-[#2d3c2d]" />
+            <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+              <Sliders size={13} className="text-emerald-700" />
               {isBangla ? 'মাসিক উৎপাদন সংখ্যা পরীক্ষা করুন:' : 'Adjust Monthly Production Volume:'}
             </span>
-            <span className="text-xs font-black text-[#2d3c2d] bg-white px-2.5 py-0.5 rounded border border-stone-200">
+            <span className="text-xs font-black text-emerald-800 bg-white px-2.5 py-0.5 rounded border border-slate-200">
               {isBangla ? toBanglaDigits(simulatedQty.toLocaleString('en-US')) : simulatedQty.toLocaleString('en-US')} pcs
             </span>
           </div>
@@ -107,9 +107,9 @@ export const IntensityChart: React.FC<IntensityChartProps> = ({ data, isBangla }
             step={5000}
             value={simulatedQty}
             onChange={(e) => setSimulatedQty(Number(e.target.value))}
-            className="w-full h-1.5 bg-stone-200 rounded-lg appearance-none cursor-pointer accent-[#2d3c2d]"
+            className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600"
           />
-          <div className="flex justify-between text-[10px] text-stone-400">
+          <div className="flex justify-between text-[10px] text-slate-400">
             <span>10k pcs</span>
             <span>100k pcs</span>
             <span>250k pcs</span>
@@ -121,25 +121,25 @@ export const IntensityChart: React.FC<IntensityChartProps> = ({ data, isBangla }
       {/* Main Intensity Highlight Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Verified Card */}
-        <div className="p-4 bg-[#f4f7f4] border border-[#cfddcf] rounded-xl space-y-1.5">
+        <div className="p-4 bg-emerald-50/60 border border-emerald-200/80 rounded-xl space-y-1.5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-stone-900 flex items-center gap-1">
-              <ShieldCheck size={14} className="text-[#2d3c2d]" />
+            <span className="text-xs font-bold text-slate-900 flex items-center gap-1">
+              <ShieldCheck size={14} className="text-emerald-700" />
               {isBangla ? 'যাচাইকৃত কার্বন ঘনত্ব' : 'Verified Carbon Intensity'}
             </span>
-            <span className="text-[10px] font-bold px-2 py-0.5 bg-[#e6ede6] text-[#2d3c2d] border border-[#cfddcf] rounded">
+            <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-200 rounded">
               {isBangla ? 'অডিট গ্রেড' : 'Audit Ready'}
             </span>
           </div>
 
           <div className="flex items-baseline gap-2 pt-0.5">
-            <span className="text-3xl font-black text-stone-900 tracking-tight">
+            <span className="text-3xl font-black text-slate-900 tracking-tight">
               {isBangla ? toBanglaDigits(formatIntensityVal(vInt)) : formatIntensityVal(vInt)}
             </span>
-            <span className="text-xs font-bold text-[#3f593f]">kg CO₂e / {unit}</span>
+            <span className="text-xs font-bold text-emerald-700">kg CO₂e / {unit}</span>
           </div>
 
-          <p className="text-[11px] text-[#3f593f]">
+          <p className="text-[11px] text-emerald-700">
             ✓ {isBangla
               ? 'শুধুমাত্র আপলোডকৃত মূল বিলের প্রমাণের ভিত্তিতে গণনাকৃত।'
               : 'Strictly calculated from confirmed primary energy receipts.'}
@@ -147,9 +147,9 @@ export const IntensityChart: React.FC<IntensityChartProps> = ({ data, isBangla }
         </div>
 
         {/* Incl. Estimates Card */}
-        <div className="p-4 bg-stone-50 border border-stone-200 rounded-xl space-y-1.5">
+        <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-stone-800 flex items-center gap-1">
+            <span className="text-xs font-bold text-slate-800 flex items-center gap-1">
               <AlertTriangle size={14} className="text-amber-600" />
               {isBangla ? 'অনুমিতসহ মোট ঘনত্ব' : 'Incl. Estimates Intensity'}
             </span>
@@ -159,13 +159,13 @@ export const IntensityChart: React.FC<IntensityChartProps> = ({ data, isBangla }
           </div>
 
           <div className="flex items-baseline gap-2 pt-0.5">
-            <span className="text-3xl font-black text-stone-900 tracking-tight">
+            <span className="text-3xl font-black text-slate-900 tracking-tight">
               {isBangla ? toBanglaDigits(formatIntensityVal(iInt)) : formatIntensityVal(iInt)}
             </span>
-            <span className="text-xs font-bold text-stone-600">kg CO₂e / {unit}</span>
+            <span className="text-xs font-bold text-slate-600">kg CO₂e / {unit}</span>
           </div>
 
-          <p className="text-[11px] text-stone-600">
+          <p className="text-[11px] text-slate-600">
             {isBangla
               ? 'অনুপস্থিত বিলের জন্য স্ট্যান্ডার্ড ফলব্যাক প্রক্সি যুক্ত।'
               : 'Includes regulatory fallback proxy where utility bills are pending.'}
@@ -177,15 +177,15 @@ export const IntensityChart: React.FC<IntensityChartProps> = ({ data, isBangla }
       <div className="space-y-3 pt-1">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Award size={16} className="text-[#2d3c2d]" />
-            <h4 className="text-xs font-bold text-stone-900 md:text-sm">
+            <Award size={16} className="text-emerald-700" />
+            <h4 className="text-xs font-bold text-slate-900 md:text-sm">
               {isBangla
                 ? 'পোশাক খাতের তুলনামূলক বেঞ্চমার্ক (Bangladesh RMG PaCT Cluster)'
                 : 'Industry Peer Benchmark Distribution (Bangladesh RMG Cluster)'}
             </h4>
           </div>
           {hasBenchmark && benchmark && (
-            <span className="text-[11px] font-semibold text-stone-500">
+            <span className="text-[11px] font-semibold text-slate-500">
               {isBangla
                 ? `নমুনা: ${toBanglaDigits(benchmark.n)}টি কারখানা (${benchmark.year})`
                 : `Sample: ${benchmark.n} peer factories (${benchmark.year})`}
@@ -194,7 +194,7 @@ export const IntensityChart: React.FC<IntensityChartProps> = ({ data, isBangla }
         </div>
 
         {hasBenchmark && benchmark ? (
-          <div className="space-y-3 p-4 bg-stone-50 border border-stone-200 rounded-xl">
+          <div className="space-y-3 p-4 bg-slate-50 border border-slate-200 rounded-xl">
             {/* Visual Needle Spectrum */}
             <div className="space-y-2">
               <div className="relative pt-6">
@@ -206,30 +206,30 @@ export const IntensityChart: React.FC<IntensityChartProps> = ({ data, isBangla }
                   }}
                   className="absolute top-0 -translate-x-1/2 flex flex-col items-center z-10"
                 >
-                  <span className="bg-stone-900 text-white font-bold text-[10px] px-2 py-0.5 rounded-full shadow-md whitespace-nowrap flex items-center gap-1">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#698c69]"></span>
+                  <span className="bg-slate-900 text-white font-bold text-[10px] px-2 py-0.5 rounded-full shadow-md whitespace-nowrap flex items-center gap-1">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
                     {isBangla ? 'আপনার কারখানা' : 'Your Factory'}: {formatIntensityVal(vInt)}
                   </span>
-                  <div className="w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[5px] border-t-stone-900"></div>
+                  <div className="w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[5px] border-t-slate-900"></div>
                 </div>
 
                 {/* Multi-Stop Gradient Spectrum Bar */}
-                <div className="relative h-3.5 rounded-full overflow-hidden flex bg-stone-200">
-                  <div style={{ width: '25%' }} className="bg-[#2d3c2d]" title="Top 25% (P25)" />
-                  <div style={{ width: '25%' }} className="bg-[#425b42]" title="Median (P50)" />
+                <div className="relative h-3.5 rounded-full overflow-hidden flex bg-slate-200">
+                  <div style={{ width: '25%' }} className="bg-emerald-600" title="Top 25% (P25)" />
+                  <div style={{ width: '25%' }} className="bg-teal-500" title="Median (P50)" />
                   <div style={{ width: '25%' }} className="bg-amber-400" title="75th Percentile (P75)" />
                   <div style={{ width: '25%' }} className="bg-rose-500" title="90th Percentile (P90)" />
                 </div>
               </div>
 
               {/* Benchmark Reference Milestones */}
-              <div className="flex justify-between text-[10px] font-semibold text-stone-500 pt-1 font-mono">
+              <div className="flex justify-between text-[10px] font-semibold text-slate-500 pt-1 font-mono">
                 <div className="text-left">
-                  <span className="block text-[#2d3c2d] font-bold">P25 (Top 25%)</span>
+                  <span className="block text-emerald-700 font-bold">P25 (Top 25%)</span>
                   <span>{isBangla ? toBanglaDigits(p25.toFixed(2)) : p25.toFixed(2)}</span>
                 </div>
                 <div className="text-center">
-                  <span className="block text-[#425b42] font-bold">P50 (Median)</span>
+                  <span className="block text-teal-700 font-bold">P50 (Median)</span>
                   <span>{isBangla ? toBanglaDigits(p50.toFixed(2)) : p50.toFixed(2)}</span>
                 </div>
                 <div className="text-center">
@@ -244,18 +244,18 @@ export const IntensityChart: React.FC<IntensityChartProps> = ({ data, isBangla }
             </div>
 
             {/* Benchmark Insight Callout */}
-            <div className="pt-2 border-t border-stone-200 flex items-center justify-between text-xs text-stone-600">
+            <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-xs text-slate-600">
               <div className="flex items-center gap-2">
-                <CheckCircle2 size={16} className="text-[#2d3c2d] flex-shrink-0" />
+                <CheckCircle2 size={16} className="text-emerald-600 flex-shrink-0" />
                 <span>
                   {isLeader ? (
-                    <strong className="text-[#2d3c2d] font-bold">
+                    <strong className="text-emerald-800 font-bold">
                       {isBangla
                         ? 'অভিনন্দন! আপনার কারখানা শীর্ষ ২৫% পরিবেশবান্ধব কারখানার ক্যাটাগরিতে অন্তর্ভুক্ত।'
                         : 'Benchmark Leader: Your factory operates in the top 25% cleanest tier in Bangladesh.'}
                     </strong>
                   ) : isMedian ? (
-                    <strong className="text-[#3f593f] font-bold">
+                    <strong className="text-emerald-700 font-bold">
                       {isBangla
                         ? 'আপনার কারখানা জাতীয় মধ্যবর্তী মান (P50) সীমার মধ্যে পরিচালিত হচ্ছে।'
                         : 'Median Tier: Your factory operates within the normal industry benchmark range.'}
@@ -269,7 +269,7 @@ export const IntensityChart: React.FC<IntensityChartProps> = ({ data, isBangla }
                   )}
                 </span>
               </div>
-              <span className="text-[10px] text-stone-400 hidden sm:inline">
+              <span className="text-[10px] text-slate-400 hidden sm:inline">
                 {benchmark.source}
               </span>
             </div>

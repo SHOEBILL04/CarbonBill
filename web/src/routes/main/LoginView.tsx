@@ -247,23 +247,23 @@ export default function LoginView({ onLoginSuccess, onGoToFloor }: LoginViewProp
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-900 via-slate-900 to-teal-950 flex flex-col justify-center items-center p-4 font-sans text-slate-100">
-      <div className={`w-full bg-white rounded-3xl p-6 md:p-8 text-slate-900 shadow-2xl space-y-6 transition-all duration-300 ${tab === 'equipment_setup' ? 'max-w-2xl' : 'max-w-md'}`}>
+    <div className="min-h-screen bg-slate-50 flex flex-col justify-center items-center p-4 font-sans text-slate-900">
+      <div className={`w-full bg-white rounded-3xl p-6 md:p-8 text-slate-900 shadow-xl border border-slate-200/80 space-y-6 transition-all duration-300 ${tab === 'equipment_setup' ? 'max-w-2xl' : 'max-w-md'}`}>
         {/* Branding & Language */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-teal-950/5 border border-teal-800/10 flex items-center justify-center p-1.5 shadow-xs">
+            <div className="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center p-1.5 shadow-sm">
               <img src="/logo-icon.png" alt="CarbonBill Logo" className="w-9 h-9 object-contain" />
             </div>
             <div>
-              <h1 className="text-2xl font-black text-teal-900">{t('appName')}</h1>
+              <h1 className="text-2xl font-black text-slate-900 tracking-tight">{t('appName')}</h1>
               <p className="text-xs text-slate-500">{t('tagline')}</p>
             </div>
           </div>
 
           <button
             onClick={() => i18n.changeLanguage(i18n.language === 'bn' ? 'en' : 'bn')}
-            className="text-xs font-bold px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition"
+            className="text-xs font-bold px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg border border-slate-200 transition cursor-pointer"
           >
             {i18n.language === 'bn' ? 'English' : 'বাংলা'}
           </button>
@@ -271,12 +271,12 @@ export default function LoginView({ onLoginSuccess, onGoToFloor }: LoginViewProp
 
         {/* Tab Selector or Step Indicator */}
         {tab !== 'equipment_setup' ? (
-          <div className="flex bg-slate-100 p-1 rounded-2xl text-xs font-bold">
+          <div className="flex bg-slate-100 p-1 rounded-2xl text-xs font-bold border border-slate-200/80">
             <button
               type="button"
               onClick={() => { setTab('login'); setError(null); }}
-              className={`flex-1 py-2 rounded-xl transition-all ${
-                tab === 'login' ? 'bg-white shadow-xs text-teal-900' : 'text-slate-500 hover:text-slate-800'
+              className={`flex-1 py-2 rounded-xl transition-all cursor-pointer ${
+                tab === 'login' ? 'bg-slate-900 shadow-sm text-white' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               {i18n.language === 'bn' ? 'লগইন' : 'Sign In'}
@@ -284,8 +284,8 @@ export default function LoginView({ onLoginSuccess, onGoToFloor }: LoginViewProp
             <button
               type="button"
               onClick={() => { setTab('register'); setError(null); }}
-              className={`flex-1 py-2 rounded-xl transition-all ${
-                tab === 'register' ? 'bg-white shadow-xs text-teal-900' : 'text-slate-500 hover:text-slate-800'
+              className={`flex-1 py-2 rounded-xl transition-all cursor-pointer ${
+                tab === 'register' ? 'bg-slate-900 shadow-sm text-white' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               {i18n.language === 'bn' ? 'নতুন প্রতিষ্ঠান' : 'Register Org'}
@@ -294,8 +294,8 @@ export default function LoginView({ onLoginSuccess, onGoToFloor }: LoginViewProp
               <button
                 type="button"
                 onClick={() => { setTab('invite'); setError(null); }}
-                className={`flex-1 py-2 rounded-xl transition-all ${
-                  tab === 'invite' ? 'bg-white shadow-xs text-teal-900' : 'text-slate-500 hover:text-slate-800'
+                className={`flex-1 py-2 rounded-xl transition-all cursor-pointer ${
+                  tab === 'invite' ? 'bg-slate-900 shadow-sm text-white' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
                 {i18n.language === 'bn' ? 'আমন্ত্রণ গ্রহণ' : 'Join Org'}
@@ -303,13 +303,13 @@ export default function LoginView({ onLoginSuccess, onGoToFloor }: LoginViewProp
             )}
           </div>
         ) : (
-          <div className="flex items-center justify-between bg-slate-100 p-1.5 rounded-2xl text-xs font-bold text-slate-500">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-emerald-700 rounded-xl shadow-xs">
+          <div className="flex items-center justify-between bg-slate-100 p-1.5 rounded-2xl text-xs font-bold text-slate-600 border border-slate-200">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-emerald-700 rounded-xl shadow-xs border border-slate-200/60">
               <CheckCircle size={14} className="text-emerald-600" />
               <span>{i18n.language === 'bn' ? '১. প্রতিষ্ঠান সম্পন্ন' : '1. Org Created'}</span>
             </div>
             <ArrowRight size={14} className="text-slate-400" />
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-teal-800 text-white rounded-xl shadow-xs">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white rounded-xl shadow-xs">
               <Settings size={14} />
               <span>{i18n.language === 'bn' ? '২. যন্ত্রপাতি সেটআপ' : '2. Equipment Setup'}</span>
             </div>
@@ -318,9 +318,9 @@ export default function LoginView({ onLoginSuccess, onGoToFloor }: LoginViewProp
 
         {/* Quick Demo Accounts Helper */}
         {tab === 'login' && (
-          <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3 space-y-2">
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-teal-900">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-800">
                 ⚡ Apex Textiles Demo Team
               </span>
               <span className="text-[10px] text-slate-400">Click to fill</span>
@@ -340,13 +340,13 @@ export default function LoginView({ onLoginSuccess, onGoToFloor }: LoginViewProp
                     setPassword(acc.pass);
                     setError(null);
                   }}
-                  className={`p-2 rounded-xl text-left border transition-all text-xs ${
+                  className={`p-2 rounded-xl text-left border transition-all text-xs cursor-pointer ${
                     loginIdentifier === acc.email
-                      ? 'bg-teal-50 border-teal-500 ring-1 ring-teal-500'
-                      : 'bg-white border-slate-200 hover:border-teal-300'
+                      ? 'bg-emerald-50 border-emerald-500 ring-1 ring-emerald-500'
+                      : 'bg-white border-slate-200 hover:border-slate-300'
                   }`}
                 >
-                  <div className="font-bold text-slate-800 text-[11px] leading-tight">{acc.name}</div>
+                  <div className="font-bold text-slate-900 text-[11px] leading-tight">{acc.name}</div>
                   <div className="text-[10px] text-slate-500 truncate">{acc.email}</div>
                 </button>
               ))}
@@ -384,7 +384,7 @@ export default function LoginView({ onLoginSuccess, onGoToFloor }: LoginViewProp
                   value={loginIdentifier}
                   onChange={e => setLoginIdentifier(e.target.value)}
                   placeholder="owner@apex.local or 01700000000"
-                  className="w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-teal-600"
+                  className="w-full pl-10 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-slate-900"
                 />
               </div>
             </div>
@@ -401,7 +401,7 @@ export default function LoginView({ onLoginSuccess, onGoToFloor }: LoginViewProp
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-teal-600"
+                  className="w-full pl-10 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-slate-900"
                 />
               </div>
             </div>
@@ -409,7 +409,7 @@ export default function LoginView({ onLoginSuccess, onGoToFloor }: LoginViewProp
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-teal-700 hover:bg-teal-800 text-white font-bold rounded-xl shadow-lg transition-all active:scale-98"
+              className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-sm transition-all active:scale-98 cursor-pointer"
             >
               {loading ? (i18n.language === 'bn' ? 'প্রবেশ করা হচ্ছে...' : 'Signing In...') : (i18n.language === 'bn' ? 'প্রবেশ করুন' : 'Sign In')}
             </button>
@@ -431,7 +431,7 @@ export default function LoginView({ onLoginSuccess, onGoToFloor }: LoginViewProp
                   value={regOrgName}
                   onChange={e => setRegOrgName(e.target.value)}
                   placeholder={i18n.language === 'bn' ? 'যেমন: বেঙ্গল ফ্যাশন লিমিটেড' : 'e.g. Bengal Fashion Ltd'}
-                  className="w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-teal-600"
+                  className="w-full pl-10 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-slate-900"
                 />
               </div>
             </div>
@@ -448,7 +448,7 @@ export default function LoginView({ onLoginSuccess, onGoToFloor }: LoginViewProp
                   value={regFullName}
                   onChange={e => setRegFullName(e.target.value)}
                   placeholder={i18n.language === 'bn' ? 'যেমন: মোহাম্মদ রফিক' : 'e.g. Rafiqul Islam'}
-                  className="w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-teal-600"
+                  className="w-full pl-10 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-slate-900"
                 />
               </div>
             </div>
@@ -465,7 +465,7 @@ export default function LoginView({ onLoginSuccess, onGoToFloor }: LoginViewProp
                   value={regEmail}
                   onChange={e => setRegEmail(e.target.value)}
                   placeholder="rafiq@bengalfashion.com"
-                  className="w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-teal-600"
+                  className="w-full pl-10 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-slate-900"
                 />
               </div>
             </div>
@@ -477,7 +477,7 @@ export default function LoginView({ onLoginSuccess, onGoToFloor }: LoginViewProp
               <select
                 value={regFacilityType}
                 onChange={e => setRegFacilityType(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-teal-600"
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-slate-900"
               >
                 <option value="RMG_Woven">{i18n.language === 'bn' ? 'ওভেন পোশাক (RMG Woven)' : 'RMG Woven Apparel'}</option>
                 <option value="RMG_Knit">{i18n.language === 'bn' ? 'নিটওয়্যার পোশাক (RMG Knit)' : 'RMG Knitwear'}</option>
@@ -499,7 +499,7 @@ export default function LoginView({ onLoginSuccess, onGoToFloor }: LoginViewProp
                   value={regPassword}
                   onChange={e => setRegPassword(e.target.value)}
                   placeholder={i18n.language === 'bn' ? 'কমপক্ষে ৮ অক্ষর (যেমন: Pass1234!)' : 'Minimum 8 characters (e.g. Pass1234!)'}
-                  className="w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-teal-600"
+                  className="w-full pl-10 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-slate-900"
                 />
               </div>
             </div>
@@ -507,7 +507,7 @@ export default function LoginView({ onLoginSuccess, onGoToFloor }: LoginViewProp
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-teal-700 hover:bg-teal-800 text-white font-bold rounded-xl shadow-lg transition-all"
+              className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-sm transition-all cursor-pointer"
             >
               {loading ? (i18n.language === 'bn' ? 'নিবন্ধন করা হচ্ছে...' : 'Creating Organization...') : (i18n.language === 'bn' ? 'প্রতিষ্ঠান শুরু করুন' : 'Create Organization')}
             </button>
@@ -517,7 +517,7 @@ export default function LoginView({ onLoginSuccess, onGoToFloor }: LoginViewProp
         {/* 3. Accept Teammate Invitation Form */}
         {tab === 'invite' && (
           <form onSubmit={handleAcceptInvite} className="space-y-3">
-            <div className="p-3 bg-teal-50 border border-teal-200 rounded-xl text-xs text-teal-800">
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800">
               {i18n.language === 'bn'
                 ? 'আপনাকে একটি প্রতিষ্ঠানে যোগদানের আমন্ত্রণ জানানো হয়েছে। আপনার নাম ও পাসওয়ার্ড সেট করুন।'
                 : 'You have been invited to join an organization with full access. Set your name and password.'}
@@ -532,7 +532,7 @@ export default function LoginView({ onLoginSuccess, onGoToFloor }: LoginViewProp
                 required
                 value={inviteToken}
                 onChange={e => setInviteToken(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono"
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-mono"
               />
             </div>
 
@@ -545,7 +545,7 @@ export default function LoginView({ onLoginSuccess, onGoToFloor }: LoginViewProp
                 required
                 value={inviteFullName}
                 onChange={e => setInviteFullName(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs"
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs"
               />
             </div>
 
@@ -558,14 +558,14 @@ export default function LoginView({ onLoginSuccess, onGoToFloor }: LoginViewProp
                 required
                 value={invitePassword}
                 onChange={e => setInvitePassword(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs"
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs"
               />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-teal-700 hover:bg-teal-800 text-white font-bold rounded-xl shadow-lg transition-all"
+              className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-sm transition-all cursor-pointer"
             >
               {loading ? (i18n.language === 'bn' ? 'যুক্ত হওয়া হচ্ছে...' : 'Joining...') : (i18n.language === 'bn' ? 'দলে যোগ দিন' : 'Join Team')}
             </button>
@@ -813,7 +813,7 @@ export default function LoginView({ onLoginSuccess, onGoToFloor }: LoginViewProp
                 <button
                   type="submit"
                   disabled={setupSaving}
-                  className="w-full py-3 bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs hover:shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   {setupSaving ? (
                     <span>{i18n.language === 'bn' ? 'সংরক্ষণ করা হচ্ছে...' : 'Saving & Recalculating...'}</span>
@@ -829,7 +829,7 @@ export default function LoginView({ onLoginSuccess, onGoToFloor }: LoginViewProp
                   <button
                     type="button"
                     onClick={onLoginSuccess}
-                    className="text-xs text-slate-400 hover:text-slate-600 underline font-medium cursor-pointer"
+                    className="text-xs text-stone-400 hover:text-stone-600 underline font-medium cursor-pointer"
                   >
                     {i18n.language === 'bn' ? 'এখনই বাদ দিন (পরে প্রোফাইল থেকে সেটআপ করব)' : 'Skip for now (configure later in profile)'}
                   </button>
@@ -840,10 +840,10 @@ export default function LoginView({ onLoginSuccess, onGoToFloor }: LoginViewProp
         )}
 
         {/* Quick link to Floor capture view */}
-        <div className="pt-2 border-t text-center">
+        <div className="pt-2 border-t border-slate-200 text-center">
           <button
             onClick={onGoToFloor}
-            className="text-xs text-teal-700 font-bold hover:underline inline-flex items-center gap-1"
+            className="text-xs text-slate-700 hover:text-emerald-700 font-bold inline-flex items-center gap-1 transition-colors cursor-pointer"
           >
             📱 {i18n.language === 'bn' ? 'ফ্লোর ক্যামেরা ক্যাপচার মোড' : 'Floor Camera Capture Mode'} <ArrowRight size={12} />
           </button>

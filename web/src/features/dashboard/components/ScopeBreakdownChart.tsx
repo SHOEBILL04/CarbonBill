@@ -44,9 +44,9 @@ export const ScopeBreakdownChart: React.FC<ScopeBreakdownChartProps> = ({
         {
           data: [s1, s2, s3],
           backgroundColor: [
-            effectiveScope === null || effectiveScope === 1 ? '#c2410c' : '#fed7aa',
-            effectiveScope === null || effectiveScope === 2 ? '#3f593f' : '#cfddcf',
-            effectiveScope === null || effectiveScope === 3 ? '#78716c' : '#e7e5e4',
+            effectiveScope === null || effectiveScope === 1 ? '#ea580c' : '#fed7aa',
+            effectiveScope === null || effectiveScope === 2 ? '#059669' : '#a7f3d0',
+            effectiveScope === null || effectiveScope === 3 ? '#64748b' : '#e2e8f0',
           ],
           borderWidth: 3,
           borderColor: '#ffffff',
@@ -124,19 +124,19 @@ export const ScopeBreakdownChart: React.FC<ScopeBreakdownChartProps> = ({
   }, [effectiveScope, s1, s2, s3, total, s1Pct, s2Pct, s3Pct, isBangla]);
 
   return (
-    <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-xs space-y-4">
+    <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
         <div>
           <div className="flex items-center gap-2">
-            <span className="p-1.5 rounded-lg bg-[#e6ede6] text-[#2d3c2d]">
+            <span className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700">
               <PieChart size={15} />
             </span>
-            <h3 className="font-bold text-stone-900 text-sm md:text-base">
+            <h3 className="font-bold text-slate-900 text-sm md:text-base">
               {isBangla ? 'স্কোপভিত্তিক নির্গমন বিভাজন' : 'Scope Breakdown'}
             </h3>
           </div>
-          <p className="text-[11px] text-stone-500 mt-0.5">
+          <p className="text-[11px] text-slate-500 mt-0.5">
             {isBangla
               ? 'GHG প্রোটোকল কর্পোরেট স্ট্যান্ডার্ড অনুযায়ী'
               : 'GHG Protocol Corporate Standard classification'}
@@ -146,7 +146,7 @@ export const ScopeBreakdownChart: React.FC<ScopeBreakdownChartProps> = ({
         {activeScope !== null && (
           <button
             onClick={() => setActiveScope(null)}
-            className="text-[11px] font-semibold text-stone-600 hover:text-stone-900 bg-stone-100 px-2.5 py-1 rounded-lg border border-stone-200"
+            className="text-[11px] font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200 cursor-pointer"
           >
             {isBangla ? 'রিসেট' : 'Reset'}
           </button>
@@ -159,17 +159,17 @@ export const ScopeBreakdownChart: React.FC<ScopeBreakdownChartProps> = ({
 
         {/* Center Hub */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="w-28 h-28 rounded-full border border-stone-200 bg-white/95 shadow-xs flex flex-col items-center justify-center">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-stone-400">
+          <div className="w-28 h-28 rounded-full border border-slate-200 bg-white/95 shadow-xs flex flex-col items-center justify-center">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
               {centerValue.label}
             </span>
-            <span className="text-2xl font-black text-stone-900 tracking-tight mt-0.5">
+            <span className="text-2xl font-black text-slate-900 tracking-tight mt-0.5">
               {isBangla ? toBanglaDigits(centerValue.val.toFixed(2)) : centerValue.val.toFixed(2)}
             </span>
             <div className="flex items-center gap-1 mt-0.5">
-              <span className="text-[10px] font-bold text-[#354935]">tCO₂e</span>
+              <span className="text-[10px] font-bold text-emerald-700">tCO₂e</span>
               {activeScope !== null && (
-                <span className="text-[10px] font-bold px-1.5 py-0.2 bg-[#e6ede6] text-[#2d3c2d] rounded">
+                <span className="text-[10px] font-bold px-1.5 py-0.2 bg-emerald-50 text-emerald-800 rounded">
                   {isBangla ? toBanglaDigits(centerValue.pct.toFixed(0)) : centerValue.pct.toFixed(0)}%
                 </span>
               )}
@@ -179,14 +179,14 @@ export const ScopeBreakdownChart: React.FC<ScopeBreakdownChartProps> = ({
       </div>
 
       {/* Scope Breakdown Rows */}
-      <div className="space-y-2 pt-1 border-t border-stone-100">
+      <div className="space-y-2 pt-1 border-t border-slate-100">
         {/* Scope 1 */}
         <div
           onClick={() => setActiveScope(activeScope === 1 ? null : 1)}
           className={`p-2.5 rounded-xl border transition cursor-pointer flex flex-col gap-1.5 ${
             effectiveScope === 1
               ? 'bg-amber-50/70 border-amber-300 ring-1 ring-amber-200'
-              : 'bg-stone-50 border-stone-200 hover:bg-stone-100/60'
+              : 'bg-slate-50 border-slate-200 hover:bg-slate-100/60'
           }`}
         >
           <div className="flex items-center justify-between text-xs">
@@ -194,21 +194,21 @@ export const ScopeBreakdownChart: React.FC<ScopeBreakdownChartProps> = ({
               <span className="p-1 rounded-md bg-amber-100 text-amber-800">
                 <Flame size={12} />
               </span>
-              <span className="font-bold text-stone-800">
+              <span className="font-bold text-slate-800">
                 {isBangla ? 'স্কোপ ১: প্রত্যক্ষ জ্বালানি (ডিজেল ও গ্যাস)' : 'Scope 1: Direct Fuels (Diesel & Gas)'}
               </span>
             </div>
             <div className="flex items-center gap-1.5 font-mono">
-              <span className="font-bold text-stone-900">
+              <span className="font-bold text-slate-900">
                 {isBangla ? toBanglaDigits(s1.toFixed(2)) : s1.toFixed(2)}
               </span>
-              <span className="text-[10px] text-stone-400">tCO₂e</span>
+              <span className="text-[10px] text-slate-400">tCO₂e</span>
               <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">
                 {isBangla ? toBanglaDigits(s1Pct.toFixed(1)) : s1Pct.toFixed(1)}%
               </span>
             </div>
           </div>
-          <div className="w-full h-1.5 bg-stone-200 rounded-full overflow-hidden">
+          <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
             <div
               style={{ width: `${s1Pct}%` }}
               className="h-full bg-amber-600 rounded-full transition-all duration-500"
@@ -221,33 +221,33 @@ export const ScopeBreakdownChart: React.FC<ScopeBreakdownChartProps> = ({
           onClick={() => setActiveScope(activeScope === 2 ? null : 2)}
           className={`p-2.5 rounded-xl border transition cursor-pointer flex flex-col gap-1.5 ${
             effectiveScope === 2
-              ? 'bg-[#f4f7f4] border-[#aec5ae] ring-1 ring-[#cfddcf]'
-              : 'bg-stone-50 border-stone-200 hover:bg-stone-100/60'
+              ? 'bg-emerald-50/70 border-emerald-300 ring-1 ring-emerald-200'
+              : 'bg-slate-50 border-slate-200 hover:bg-slate-100/60'
           }`}
         >
           <div className="flex items-center justify-between text-xs">
             <div className="flex items-center gap-2">
-              <span className="p-1 rounded-md bg-[#e6ede6] text-[#2d3c2d]">
+              <span className="p-1 rounded-md bg-emerald-100 text-emerald-800">
                 <Zap size={12} />
               </span>
-              <span className="font-bold text-stone-800">
+              <span className="font-bold text-slate-800">
                 {isBangla ? 'স্কোপ ২: গ্রিড বিদ্যুৎ (DESCO / PHED)' : 'Scope 2: Grid Power (DESCO)'}
               </span>
             </div>
             <div className="flex items-center gap-1.5 font-mono">
-              <span className="font-bold text-stone-900">
+              <span className="font-bold text-slate-900">
                 {isBangla ? toBanglaDigits(s2.toFixed(2)) : s2.toFixed(2)}
               </span>
-              <span className="text-[10px] text-stone-400">tCO₂e</span>
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#e6ede6] text-[#2d3c2d]">
+              <span className="text-[10px] text-slate-400">tCO₂e</span>
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">
                 {isBangla ? toBanglaDigits(s2Pct.toFixed(1)) : s2Pct.toFixed(1)}%
               </span>
             </div>
           </div>
-          <div className="w-full h-1.5 bg-stone-200 rounded-full overflow-hidden">
+          <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
             <div
               style={{ width: `${s2Pct}%` }}
-              className="h-full bg-[#425b42] rounded-full transition-all duration-500"
+              className="h-full bg-emerald-600 rounded-full transition-all duration-500"
             />
           </div>
         </div>
@@ -257,33 +257,33 @@ export const ScopeBreakdownChart: React.FC<ScopeBreakdownChartProps> = ({
           onClick={() => setActiveScope(activeScope === 3 ? null : 3)}
           className={`p-2.5 rounded-xl border transition cursor-pointer flex flex-col gap-1.5 ${
             effectiveScope === 3
-              ? 'bg-stone-100 border-stone-400 ring-1 ring-stone-300'
-              : 'bg-stone-50 border-stone-200 hover:bg-stone-100/60'
+              ? 'bg-slate-100 border-slate-400 ring-1 ring-slate-300'
+              : 'bg-slate-50 border-slate-200 hover:bg-slate-100/60'
           }`}
         >
           <div className="flex items-center justify-between text-xs">
             <div className="flex items-center gap-2">
-              <span className="p-1 rounded-md bg-stone-200 text-stone-700">
+              <span className="p-1 rounded-md bg-slate-200 text-slate-700">
                 <Truck size={12} />
               </span>
-              <span className="font-bold text-stone-800">
+              <span className="font-bold text-slate-800">
                 {isBangla ? 'স্কোপ ৩: পরিবহন ও ফ্রেইট' : 'Scope 3: Freight & Logistics'}
               </span>
             </div>
             <div className="flex items-center gap-1.5 font-mono">
-              <span className="font-bold text-stone-900">
+              <span className="font-bold text-slate-900">
                 {isBangla ? toBanglaDigits(s3.toFixed(2)) : s3.toFixed(2)}
               </span>
-              <span className="text-[10px] text-stone-400">tCO₂e</span>
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-stone-200 text-stone-800">
+              <span className="text-[10px] text-slate-400">tCO₂e</span>
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-200 text-slate-800">
                 {isBangla ? toBanglaDigits(s3Pct.toFixed(1)) : s3Pct.toFixed(1)}%
               </span>
             </div>
           </div>
-          <div className="w-full h-1.5 bg-stone-200 rounded-full overflow-hidden">
+          <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
             <div
               style={{ width: `${s3Pct}%` }}
-              className="h-full bg-stone-500 rounded-full transition-all duration-500"
+              className="h-full bg-slate-500 rounded-full transition-all duration-500"
             />
           </div>
         </div>

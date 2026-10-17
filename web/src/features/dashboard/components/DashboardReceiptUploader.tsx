@@ -94,15 +94,15 @@ export const DashboardReceiptUploader: React.FC<DashboardReceiptUploaderProps> =
   };
 
   return (
-    <div className="bg-white p-4 sm:p-5 rounded-2xl border border-stone-200/90 shadow-xs space-y-3">
+    <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs space-y-3">
       {/* Header & Category Pills */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
         <div>
-          <h3 className="font-bold text-stone-900 text-sm flex items-center gap-2">
-            <Upload size={16} className="text-[#3f593f]" />
+          <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+            <Upload size={16} className="text-emerald-700" />
             {isBangla ? 'রসিদ বা চালান জমা দিন' : 'Quick Ingest: Energy Receipt or Bill'}
           </h3>
-          <p className="text-[11px] text-stone-500 pt-0.5">
+          <p className="text-[11px] text-slate-500 pt-0.5">
             {isBangla
               ? 'বিদ্যুৎ, গ্যাস বা জ্বালানির বিল আপলোড করুন — এআই সাথে সাথে পদচিহ্ন আপডেট করবে।'
               : 'Upload utility bills or slips — AI extracts metrics and updates your footprint dynamically.'}
@@ -119,10 +119,10 @@ export const DashboardReceiptUploader: React.FC<DashboardReceiptUploaderProps> =
                 key={c.key}
                 type="button"
                 onClick={() => setSelectedCategory(c.key)}
-                className={`text-[10px] font-bold px-2 py-1 rounded-lg border transition flex items-center gap-1 ${
+                className={`text-[10px] font-bold px-2 py-1 rounded-lg border transition flex items-center gap-1 cursor-pointer ${
                   isSelected
-                    ? 'bg-[#2d3c2d] text-white border-[#2d3c2d] shadow-2xs'
-                    : 'bg-stone-100 text-stone-700 border-stone-200 hover:bg-stone-200'
+                    ? 'bg-slate-900 text-white border-slate-900 shadow-2xs'
+                    : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
                 }`}
               >
                 <Icon size={11} />
@@ -141,10 +141,10 @@ export const DashboardReceiptUploader: React.FC<DashboardReceiptUploaderProps> =
         onClick={() => !isUploading && fileInputRef.current?.click()}
         className={`border-2 border-dashed rounded-xl py-4 px-4 text-center cursor-pointer transition flex items-center justify-center gap-3 ${
           isDragging
-            ? 'border-[#3f593f] bg-[#f4f7f4] ring-2 ring-[#cfddcf]'
+            ? 'border-emerald-600 bg-emerald-50/50 ring-2 ring-emerald-200'
             : isUploading
-            ? 'border-stone-300 bg-stone-50 cursor-wait'
-            : 'border-stone-300/80 hover:border-[#3f593f] hover:bg-[#f4f7f4]/40'
+            ? 'border-slate-300 bg-slate-50 cursor-wait'
+            : 'border-slate-300 hover:border-emerald-500 hover:bg-emerald-50/20'
         }`}
       >
         <input
@@ -162,23 +162,23 @@ export const DashboardReceiptUploader: React.FC<DashboardReceiptUploaderProps> =
 
         {isUploading ? (
           <div className="flex items-center gap-2.5 py-1">
-            <RefreshCw size={20} className="text-[#3f593f] animate-spin" />
-            <p className="text-xs font-bold text-stone-700">
+            <RefreshCw size={20} className="text-emerald-600 animate-spin" />
+            <p className="text-xs font-bold text-slate-700">
               {isBangla ? 'Groq Vision/LLM তথ্য নিষ্কাশন করছে...' : 'Groq AI extracting bill metrics...'}
             </p>
           </div>
         ) : (
           <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 text-center sm:text-left">
-            <div className="p-2 bg-[#e6ede6] text-[#2d3c2d] rounded-lg shrink-0">
+            <div className="p-2 bg-emerald-50 text-emerald-700 rounded-lg shrink-0">
               <Upload size={18} strokeWidth={2.2} />
             </div>
             <div>
-              <p className="text-xs font-bold text-stone-800">
+              <p className="text-xs font-bold text-slate-800">
                 {isBangla
                   ? 'বিল বা চালানের ছবি / পিডিএফ এখানে ড্রপ করুন অথবা নির্বাচন করুন'
                   : 'Drop bill image or PDF here, or click to browse'}
               </p>
-              <p className="text-[10px] text-stone-400">
+              <p className="text-[10px] text-slate-400">
                 DESCO, BPDB, Padma Oil, Titas Gas (PDF, PNG, JPG)
               </p>
             </div>
@@ -191,19 +191,19 @@ export const DashboardReceiptUploader: React.FC<DashboardReceiptUploaderProps> =
         <div
           className={`p-2.5 rounded-xl border text-xs flex items-center justify-between gap-3 ${
             statusMessage.type === 'success'
-              ? 'bg-[#f4f7f4] border-[#cfddcf] text-[#2d3c2d]'
+              ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
               : statusMessage.type === 'error'
               ? 'bg-rose-50 border-rose-200 text-rose-900'
-              : 'bg-stone-100 border-stone-200 text-stone-900'
+              : 'bg-slate-100 border-slate-200 text-slate-900'
           }`}
         >
           <div className="flex items-center gap-2">
             {statusMessage.type === 'success' ? (
-              <CheckCircle2 size={15} className="text-[#3f593f] shrink-0" />
+              <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
             ) : statusMessage.type === 'error' ? (
               <AlertCircle size={15} className="text-rose-600 shrink-0" />
             ) : (
-              <RefreshCw size={15} className="text-[#3f593f] animate-spin shrink-0" />
+              <RefreshCw size={15} className="text-emerald-600 animate-spin shrink-0" />
             )}
             <span className="font-semibold text-[11px]">{statusMessage.text}</span>
           </div>
@@ -212,7 +212,7 @@ export const DashboardReceiptUploader: React.FC<DashboardReceiptUploaderProps> =
             <button
               type="button"
               onClick={() => onGoToReview(statusMessage.docId)}
-              className="px-2.5 py-1 bg-white text-[#2d3c2d] border border-[#cfddcf] rounded-lg font-bold text-[10px] hover:bg-stone-50 transition shrink-0"
+              className="px-2.5 py-1 bg-white text-emerald-800 border border-emerald-200 rounded-lg font-bold text-[10px] hover:bg-emerald-50 transition shrink-0 cursor-pointer"
             >
               {isBangla ? 'রিভিউ কিউ' : 'Review Queue'}
             </button>

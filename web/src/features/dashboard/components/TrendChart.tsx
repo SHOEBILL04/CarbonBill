@@ -49,14 +49,14 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, isBangla }) => {
           backgroundColor: (context: any) => {
             const chart = context.chart;
             const { ctx, chartArea } = chart;
-            if (!chartArea) return '#425b42';
+            if (!chartArea) return '#059669';
             const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
-            gradient.addColorStop(0, '#2d3c2d');
-            gradient.addColorStop(0.5, '#425b42');
-            gradient.addColorStop(1, '#698c69');
+            gradient.addColorStop(0, '#047857');
+            gradient.addColorStop(0.5, '#059669');
+            gradient.addColorStop(1, '#10b981');
             return gradient;
           },
-          borderColor: '#374a37',
+          borderColor: '#047857',
           borderWidth: 1,
           borderRadius: 8,
           borderSkipped: false,
@@ -92,44 +92,44 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, isBangla }) => {
         {
           label: isBangla ? 'মোট পদচিহ্ন (Total Trend)' : 'Total Footprint',
           data: totalValues,
-          borderColor: '#374a37',
+          borderColor: '#059669',
           borderWidth: 2.5,
           tension: 0.4,
           pointRadius: 4,
           pointHoverRadius: 8,
           pointBackgroundColor: '#ffffff',
-          pointBorderColor: '#374a37',
+          pointBorderColor: '#059669',
           pointBorderWidth: 2,
           pointHoverBorderColor: '#ffffff',
           pointHoverBorderWidth: 2,
-          pointHoverBackgroundColor: '#425b42',
+          pointHoverBackgroundColor: '#047857',
           fill: true,
           backgroundColor: (context: any) => {
             const chart = context.chart;
             const { ctx, chartArea } = chart;
-            if (!chartArea) return 'rgba(55, 74, 55, 0.12)';
+            if (!chartArea) return 'rgba(5, 150, 105, 0.12)';
             const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-            gradient.addColorStop(0, 'rgba(66, 91, 66, 0.35)');
-            gradient.addColorStop(0.6, 'rgba(66, 91, 66, 0.10)');
-            gradient.addColorStop(1, 'rgba(66, 91, 66, 0.0)');
+            gradient.addColorStop(0, 'rgba(5, 150, 105, 0.35)');
+            gradient.addColorStop(0.6, 'rgba(5, 150, 105, 0.10)');
+            gradient.addColorStop(1, 'rgba(5, 150, 105, 0.0)');
             return gradient;
           },
         },
         {
           label: isBangla ? 'শুধুমাত্র যাচাইকৃত (Verified Only)' : 'Verified Only',
           data: verifiedValues,
-          borderColor: '#78716c',
+          borderColor: '#64748b',
           borderWidth: 2,
           borderDash: [5, 5],
           tension: 0.4,
           pointRadius: 3,
           pointHoverRadius: 7,
           pointBackgroundColor: '#ffffff',
-          pointBorderColor: '#78716c',
+          pointBorderColor: '#64748b',
           pointBorderWidth: 2,
           pointHoverBorderColor: '#ffffff',
           pointHoverBorderWidth: 2,
-          pointHoverBackgroundColor: '#78716c',
+          pointHoverBackgroundColor: '#475569',
           fill: false,
         },
       ],
@@ -250,19 +250,19 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, isBangla }) => {
   const hasHatchedPoint = data.some((d) => d.hatchFlag);
 
   return (
-    <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-xs space-y-4">
+    <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs space-y-4">
       {/* Header with Title and Mode Switcher */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-100 pb-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
         <div>
           <div className="flex items-center gap-2">
-            <span className="p-1.5 rounded-lg bg-[#e6ede6] text-[#2d3c2d]">
+            <span className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700">
               <Sparkles size={15} />
             </span>
-            <h3 className="font-bold text-stone-900 text-sm md:text-base">
+            <h3 className="font-bold text-slate-900 text-sm md:text-base">
               {isBangla ? 'মাসিক নির্গমন ট্রেন্ড ও গতিপথ' : 'Emissions Trajectory'}
             </h3>
           </div>
-          <p className="text-[11px] text-stone-500 mt-0.5">
+          <p className="text-[11px] text-slate-500 mt-0.5">
             {isBangla
               ? 'স্কোপ ১, ২ ও ৩ এর সম্মিলিত বিশ্লেষণ (যাচাইকৃত বনাম প্রক্সি অনুমিত)'
               : 'Multi-period emissions trajectory (verified vs proxy estimated)'}
@@ -271,13 +271,13 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, isBangla }) => {
 
         {/* View Toggle Pill */}
         <div className="flex items-center gap-2 self-start sm:self-center">
-          <div className="bg-stone-100 p-0.5 rounded-xl flex items-center border border-stone-200">
+          <div className="bg-slate-100 p-0.5 rounded-xl flex items-center border border-slate-200">
             <button
               onClick={() => setChartType('bar')}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition ${
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
                 chartType === 'bar'
-                  ? 'bg-white text-stone-900 shadow-xs font-bold'
-                  : 'text-stone-500 hover:text-stone-900'
+                  ? 'bg-white text-slate-900 shadow-xs font-bold'
+                  : 'text-slate-500 hover:text-slate-900'
               }`}
             >
               <BarChart3 size={13} />
@@ -285,10 +285,10 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, isBangla }) => {
             </button>
             <button
               onClick={() => setChartType('area')}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition ${
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
                 chartType === 'area'
-                  ? 'bg-white text-stone-900 shadow-xs font-bold'
-                  : 'text-stone-500 hover:text-stone-900'
+                  ? 'bg-white text-slate-900 shadow-xs font-bold'
+                  : 'text-slate-500 hover:text-slate-900'
               }`}
             >
               <LineChart size={13} />
@@ -300,37 +300,37 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, isBangla }) => {
 
       {/* Stable Micro KPI Bar */}
       <div className="grid grid-cols-3 gap-2 py-0.5">
-        <div className="bg-stone-50 border border-stone-200 rounded-xl p-2.5">
-          <span className="text-[10px] font-semibold uppercase text-stone-400 block tracking-wider">
+        <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5">
+          <span className="text-[10px] font-semibold uppercase text-slate-400 block tracking-wider">
             {isBangla ? 'সর্বোচ্চ নির্গমন' : 'Peak Period'}
           </span>
           <div className="flex items-baseline gap-1 mt-0.5">
-            <span className="text-base font-black text-stone-900">
+            <span className="text-base font-black text-slate-900">
               {isBangla ? toBanglaDigits(stats.peak.toFixed(1)) : stats.peak.toFixed(1)}
             </span>
-            <span className="text-[10px] font-semibold text-stone-500">tCO₂e</span>
+            <span className="text-[10px] font-semibold text-slate-500">tCO₂e</span>
           </div>
         </div>
 
-        <div className="bg-stone-50 border border-stone-200 rounded-xl p-2.5">
-          <span className="text-[10px] font-semibold uppercase text-stone-400 block tracking-wider">
+        <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5">
+          <span className="text-[10px] font-semibold uppercase text-slate-400 block tracking-wider">
             {isBangla ? 'মাসিক গড়' : 'Monthly Avg'}
           </span>
           <div className="flex items-baseline gap-1 mt-0.5">
-            <span className="text-base font-black text-stone-900">
+            <span className="text-base font-black text-slate-900">
               {isBangla ? toBanglaDigits(stats.avg.toFixed(1)) : stats.avg.toFixed(1)}
             </span>
-            <span className="text-[10px] font-semibold text-stone-500">tCO₂e</span>
+            <span className="text-[10px] font-semibold text-slate-500">tCO₂e</span>
           </div>
         </div>
 
-        <div className="bg-stone-50 border border-stone-200 rounded-xl p-2.5">
-          <span className="text-[10px] font-semibold uppercase text-stone-400 block tracking-wider">
+        <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5">
+          <span className="text-[10px] font-semibold uppercase text-slate-400 block tracking-wider">
             {isBangla ? 'চলতি প্রবণতা' : 'Period Shift'}
           </span>
           <div className="flex items-center gap-1 mt-0.5">
             {stats.momDiff <= 0 ? (
-              <span className="inline-flex items-center text-xs font-bold text-[#354935]">
+              <span className="inline-flex items-center text-xs font-bold text-emerald-700">
                 <TrendingDown size={14} className="mr-0.5" />
                 {isBangla ? toBanglaDigits(Math.abs(stats.momDiff).toFixed(1)) : Math.abs(stats.momDiff).toFixed(1)}%
               </span>
@@ -340,7 +340,7 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, isBangla }) => {
                 +{isBangla ? toBanglaDigits(stats.momDiff.toFixed(1)) : stats.momDiff.toFixed(1)}%
               </span>
             )}
-            <span className="text-[10px] text-stone-400">MoM</span>
+            <span className="text-[10px] text-slate-400">MoM</span>
           </div>
         </div>
       </div>
