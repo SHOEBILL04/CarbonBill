@@ -51,41 +51,38 @@ export const IntensityChart: React.FC<IntensityChartProps> = ({ data, isBangla }
   const isMedian = vInt > p25 && vInt <= p50;
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm hover:shadow-md transition-all duration-300 space-y-6">
-      {/* Top Ambient Glow */}
-      <div className="absolute top-0 right-0 w-80 h-40 bg-gradient-to-bl from-emerald-100/40 via-teal-50/20 to-transparent pointer-events-none rounded-tr-3xl" />
-
+    <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs space-y-5">
       {/* Header */}
-      <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
         <div>
           <div className="flex items-center gap-2">
-            <span className="p-2 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200/60 shadow-sm">
-              <Gauge size={16} />
+            <span className="p-1.5 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200/60">
+              <Gauge size={15} />
             </span>
-            <h3 className="font-bold text-slate-900 text-base md:text-lg tracking-tight">
-              {isBangla ? 'পোশাক প্রতি কার্বন ঘনত্ব ও পিয়ার বেঞ্চমার্ক' : 'Garment Emission Intensity & Benchmark'}
+            <h3 className="font-bold text-slate-900 text-sm md:text-base">
+              {isBangla ? 'পোশাক প্রতি কার্বন ঘনত্ব ও বেঞ্চমার্ক' : 'Garment Intensity & Benchmark'}
             </h3>
           </div>
-          <p className="text-xs text-slate-500 mt-1 pl-9">
+          <p className="text-[11px] text-slate-500 mt-0.5">
             {isBangla
-              ? 'আন্তর্জাতিক ক্রেতাদের (H&M, Inditex) অডিটে বাধ্যতামূলক পোশাক প্রতি নির্গমন মান'
-              : 'Per-piece footprint required for global buyer audit disclosure (H&M, Inditex, PVH)'}
+              ? 'আন্তর্জাতিক ক্রেতাদের (H&M, Inditex) অডিটে প্রয়োজনীয় পোশাক প্রতি নির্গমন মান'
+              : 'Per-piece footprint required for global buyer disclosures (H&M, Inditex)'}
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowSimulator(!showSimulator)}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border transition ${
               showSimulator
                 ? 'bg-teal-50 text-teal-900 border-teal-300'
                 : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
             }`}
           >
-            <Sliders size={13} />
-            <span>{isBangla ? 'উৎপাদন সিমুলেটর' : 'Simulate Output'}</span>
+            <Sliders size={12} />
+            <span>{isBangla ? 'সিমুলেটর' : 'Simulate'}</span>
           </button>
-          <span className="text-[11px] font-bold px-3 py-1.5 bg-teal-50 text-teal-800 rounded-xl border border-teal-200 uppercase tracking-wider">
+          <span className="text-[10px] font-bold px-2 py-1 bg-teal-50 text-teal-800 rounded-lg border border-teal-200 uppercase">
             {unit}
           </span>
         </div>
@@ -93,13 +90,13 @@ export const IntensityChart: React.FC<IntensityChartProps> = ({ data, isBangla }
 
       {/* Production Output Simulator Drawer */}
       {showSimulator && (
-        <div className="p-4 bg-slate-50/90 border border-teal-200/80 rounded-2xl space-y-3 animate-fadeIn">
+        <div className="p-3.5 bg-slate-50 border border-teal-200/80 rounded-xl space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-              <Sliders size={14} className="text-teal-700" />
-              {isBangla ? 'মাসিক উৎপাদন সংখ্যা পরীক্ষা করুন:' : 'Adjust Monthly Garment Production:'}
+              <Sliders size={13} className="text-teal-700" />
+              {isBangla ? 'মাসিক উৎপাদন সংখ্যা পরীক্ষা করুন:' : 'Adjust Monthly Production Volume:'}
             </span>
-            <span className="text-xs font-black text-teal-900 bg-white px-3 py-1 rounded-lg border border-teal-200">
+            <span className="text-xs font-black text-teal-900 bg-white px-2.5 py-0.5 rounded border border-teal-200">
               {isBangla ? toBanglaDigits(simulatedQty.toLocaleString('en-US')) : simulatedQty.toLocaleString('en-US')} pcs
             </span>
           </div>
@@ -110,11 +107,11 @@ export const IntensityChart: React.FC<IntensityChartProps> = ({ data, isBangla }
             step={5000}
             value={simulatedQty}
             onChange={(e) => setSimulatedQty(Number(e.target.value))}
-            className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-teal-700"
+            className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-teal-700"
           />
-          <div className="flex justify-between text-[10px] text-slate-400 font-medium">
+          <div className="flex justify-between text-[10px] text-slate-400">
             <span>10k pcs</span>
-            <span>100k pcs (Default)</span>
+            <span>100k pcs</span>
             <span>250k pcs</span>
             <span>500k pcs</span>
           </div>
@@ -124,62 +121,60 @@ export const IntensityChart: React.FC<IntensityChartProps> = ({ data, isBangla }
       {/* Main Intensity Highlight Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Verified Card */}
-        <div className="relative overflow-hidden p-5 bg-gradient-to-br from-emerald-50/60 to-teal-50/30 border border-emerald-200/80 rounded-2xl space-y-2 shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all duration-300">
+        <div className="p-4 bg-emerald-50/50 border border-emerald-200/80 rounded-xl space-y-1.5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-emerald-900 flex items-center gap-1">
+            <span className="text-xs font-bold text-emerald-950 flex items-center gap-1">
               <ShieldCheck size={14} className="text-emerald-700" />
               {isBangla ? 'যাচাইকৃত কার্বন ঘনত্ব' : 'Verified Carbon Intensity'}
             </span>
-            <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-md border border-emerald-200 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded">
               {isBangla ? 'অডিট গ্রেড' : 'Audit Ready'}
             </span>
           </div>
 
-          <div className="flex items-baseline gap-2 pt-1">
-            <span className="text-4xl font-black text-emerald-950 tracking-tight transition-all duration-300">
+          <div className="flex items-baseline gap-2 pt-0.5">
+            <span className="text-3xl font-black text-emerald-950 tracking-tight">
               {isBangla ? toBanglaDigits(formatIntensityVal(vInt)) : formatIntensityVal(vInt)}
             </span>
             <span className="text-xs font-bold text-emerald-800">kg CO₂e / {unit}</span>
           </div>
 
-          <p className="text-[11px] text-emerald-800 font-medium pt-1">
+          <p className="text-[11px] text-emerald-800">
             ✓ {isBangla
-              ? 'শুধুমাত্র আপলোডকৃত মূল বিল ও চালানের প্রমাণের ভিত্তিতে গণনাকৃত।'
+              ? 'শুধুমাত্র আপলোডকৃত মূল বিলের প্রমাণের ভিত্তিতে গণনাকৃত।'
               : 'Strictly calculated from confirmed primary energy receipts.'}
           </p>
         </div>
 
         {/* Incl. Estimates Card */}
-        <div className="relative overflow-hidden p-5 bg-gradient-to-br from-amber-50/50 to-orange-50/20 border border-amber-200/80 rounded-2xl space-y-2 shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all duration-300">
+        <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-amber-900 flex items-center gap-1">
-              <AlertTriangle size={14} className="text-amber-700" />
+            <span className="text-xs font-bold text-slate-800 flex items-center gap-1">
+              <AlertTriangle size={14} className="text-amber-600" />
               {isBangla ? 'অনুমিতসহ মোট ঘনত্ব' : 'Incl. Estimates Intensity'}
             </span>
-            <span className="text-[10px] font-bold px-2 py-0.5 bg-amber-100 text-amber-900 rounded-md border border-amber-200 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+            <span className="text-[10px] font-bold px-2 py-0.5 bg-amber-100 text-amber-900 rounded">
               {isBangla ? 'প্রক্সি সহ' : 'Includes Proxy'}
             </span>
           </div>
 
-          <div className="flex items-baseline gap-2 pt-1">
-            <span className="text-4xl font-black text-slate-800 tracking-tight transition-all duration-300">
+          <div className="flex items-baseline gap-2 pt-0.5">
+            <span className="text-3xl font-black text-slate-800 tracking-tight">
               {isBangla ? toBanglaDigits(formatIntensityVal(iInt)) : formatIntensityVal(iInt)}
             </span>
             <span className="text-xs font-bold text-slate-600">kg CO₂e / {unit}</span>
           </div>
 
-          <p className="text-[11px] text-amber-800 font-medium pt-1">
-            ⚠️ {isBangla
-              ? 'অনুপস্থিত বা অপর্যাপ্ত বিলের জন্য স্ট্যান্ডার্ড ফলব্যাক প্রক্সি যুক্ত।'
+          <p className="text-[11px] text-slate-600">
+            {isBangla
+              ? 'অনুপস্থিত বিলের জন্য স্ট্যান্ডার্ড ফলব্যাক প্রক্সি যুক্ত।'
               : 'Includes regulatory fallback proxy where utility bills are pending.'}
           </p>
         </div>
       </div>
 
       {/* Peer Benchmark Distribution Spectrum */}
-      <div className="space-y-3 pt-2">
+      <div className="space-y-3 pt-1">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Award size={16} className="text-teal-700" />
@@ -199,41 +194,36 @@ export const IntensityChart: React.FC<IntensityChartProps> = ({ data, isBangla }
         </div>
 
         {hasBenchmark && benchmark ? (
-          <div className="space-y-4 p-5 bg-slate-50/80 border border-slate-200/80 rounded-2xl shadow-inner">
+          <div className="space-y-3 p-4 bg-slate-50 border border-slate-200/80 rounded-xl">
             {/* Visual Needle Spectrum */}
             <div className="space-y-2">
               <div className="relative pt-6">
-                {/* Floating Needle Indicator with Spring Physics */}
+                {/* Needle Indicator */}
                 <div
                   style={{
                     left: `${gaugePercent}%`,
-                    transition: 'left 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                    transition: 'left 0.5s ease-out',
                   }}
-                  className="absolute top-0 -translate-x-1/2 flex flex-col items-center z-10 animate-float"
+                  className="absolute top-0 -translate-x-1/2 flex flex-col items-center z-10"
                 >
-                  <span className="bg-slate-900 text-white font-black text-[10px] px-2.5 py-0.5 rounded-full shadow-xl whitespace-nowrap flex items-center gap-1.5 border border-white/20">
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                    </span>
+                  <span className="bg-slate-900 text-white font-bold text-[10px] px-2 py-0.5 rounded-full shadow-md whitespace-nowrap flex items-center gap-1">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
                     {isBangla ? 'আপনার কারখানা' : 'Your Factory'}: {formatIntensityVal(vInt)}
                   </span>
-                  <div className="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[6px] border-t-slate-900"></div>
+                  <div className="w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[5px] border-t-slate-900"></div>
                 </div>
 
-                {/* Multi-Stop Gradient Spectrum Bar with Shimmer */}
-                <div className="relative h-4 rounded-full overflow-hidden shadow-inner flex bg-slate-200">
-                  <div style={{ width: '25%' }} className="bg-gradient-to-r from-emerald-500 to-teal-500" title="Top 25% (P25) Cleanest" />
-                  <div style={{ width: '25%' }} className="bg-gradient-to-r from-teal-500 to-amber-400" title="Median (P50)" />
-                  <div style={{ width: '25%' }} className="bg-gradient-to-r from-amber-400 to-orange-500" title="75th Percentile (P75)" />
-                  <div style={{ width: '25%' }} className="bg-gradient-to-r from-orange-500 to-rose-500" title="90th Percentile (P90) Laggards" />
-                  {/* Sliding Shimmer Beam */}
-                  <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent animate-shimmer pointer-events-none" />
+                {/* Multi-Stop Gradient Spectrum Bar */}
+                <div className="relative h-3.5 rounded-full overflow-hidden flex bg-slate-200">
+                  <div style={{ width: '25%' }} className="bg-emerald-500" title="Top 25% (P25)" />
+                  <div style={{ width: '25%' }} className="bg-teal-500" title="Median (P50)" />
+                  <div style={{ width: '25%' }} className="bg-amber-400" title="75th Percentile (P75)" />
+                  <div style={{ width: '25%' }} className="bg-rose-500" title="90th Percentile (P90)" />
                 </div>
               </div>
 
               {/* Benchmark Reference Milestones */}
-              <div className="flex justify-between text-[11px] font-semibold text-slate-500 pt-1 font-mono">
+              <div className="flex justify-between text-[10px] font-semibold text-slate-500 pt-1 font-mono">
                 <div className="text-left">
                   <span className="block text-emerald-700 font-bold">P25 (Top 25%)</span>
                   <span>{isBangla ? toBanglaDigits(p25.toFixed(2)) : p25.toFixed(2)}</span>
