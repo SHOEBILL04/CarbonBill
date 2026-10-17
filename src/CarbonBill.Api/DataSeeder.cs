@@ -183,33 +183,60 @@ public static class DataSeeder
                     foreach (var prop in entityType.GetProperties())
                     {
                         var colName = prop.GetColumnName();
-                        if (string.IsNullOrEmpty(colName) || tableCols.Contains(colName)) continue;
+                        if (string.IsNullOrEmpty(colName)) continue;
 
-                        var colType = prop.GetColumnType();
-                        if (string.IsNullOrWhiteSpace(colType))
+                        if (!tableCols.Contains(colName))
+                        {
+                            var colType = prop.GetColumnType();
+                            if (string.IsNullOrWhiteSpace(colType))
+                            {
+                                var clr = Nullable.GetUnderlyingType(prop.ClrType) ?? prop.ClrType;
+                                if (clr == typeof(int) || clr == typeof(long) || clr == typeof(short) || clr == typeof(bool) || clr.IsEnum)
+                                    colType = "INTEGER";
+                                else if (clr == typeof(decimal) || clr == typeof(double) || clr == typeof(float))
+                                    colType = "NUMERIC";
+                                else if (clr == typeof(byte[]))
+                                    colType = "BLOB";
+                                else
+                                    colType = "TEXT";
+                            }
+
+                            try
+                            {
+#pragma warning disable EF1002
+                                var alterSql = $"ALTER TABLE \"{tableName}\" ADD COLUMN \"{colName}\" {colType} NULL;";
+                                await ctx.Database.ExecuteSqlRawAsync(alterSql);
+#pragma warning restore EF1002
+                                logger.LogInformation("Added missing column {Column} ({Type}) to table {Table}", colName, colType, tableName);
+                                tableCols.Add(colName);
+                            }
+                            catch (Exception ex)
+                            {
+                                logger.LogDebug("Could not add column {Col} to {Table}: {Msg}", colName, tableName, ex.Message);
+                            }
+                        }
+
+                        // Backfill defaults for non-nullable properties to prevent EF Core NullOrdinal reading exceptions
+                        if (!prop.IsNullable)
                         {
                             var clr = Nullable.GetUnderlyingType(prop.ClrType) ?? prop.ClrType;
-                            if (clr == typeof(int) || clr == typeof(long) || clr == typeof(short) || clr == typeof(bool) || clr.IsEnum)
-                                colType = "INTEGER";
-                            else if (clr == typeof(decimal) || clr == typeof(double) || clr == typeof(float))
-                                colType = "NUMERIC";
-                            else if (clr == typeof(byte[]))
-                                colType = "BLOB";
-                            else
-                                colType = "TEXT";
-                        }
-
-                        try
-                        {
+                            try
+                            {
 #pragma warning disable EF1002
-                            var alterSql = $"ALTER TABLE \"{tableName}\" ADD COLUMN \"{colName}\" {colType} NULL;";
-                            await ctx.Database.ExecuteSqlRawAsync(alterSql);
+                                if (clr == typeof(bool) || clr == typeof(int) || clr == typeof(long) || clr == typeof(short) || clr.IsEnum)
+                                {
+                                    await ctx.Database.ExecuteSqlRawAsync($"UPDATE \"{tableName}\" SET \"{colName}\" = 0 WHERE \"{colName}\" IS NULL;");
+                                }
+                                else if (clr == typeof(decimal) || clr == typeof(double) || clr == typeof(float))
+                                {
+                                    await ctx.Database.ExecuteSqlRawAsync($"UPDATE \"{tableName}\" SET \"{colName}\" = 0 WHERE \"{colName}\" IS NULL;");
+                                }
 #pragma warning restore EF1002
-                            logger.LogInformation("Added missing column {Column} ({Type}) to table {Table}", colName, colType, tableName);
-                        }
-                        catch (Exception ex)
-                        {
-                            logger.LogDebug("Could not add column {Col} to {Table}: {Msg}", colName, tableName, ex.Message);
+                            }
+                            catch
+                            {
+                                // Ignore if table is in flux
+                            }
                         }
                     }
                 }
@@ -562,9 +589,9 @@ public static class DataSeeder
         // Seed Recommendations Measures and Sources
         await recommendationsSeedLoader.SeedDefaultMeasuresAsync();
 
-        // Run Recommendations Pipeline for apexOrg
+        // Run Recommendations Pipeline for apexOrg if not already seeded
         var recService = scope.ServiceProvider.GetService<CarbonBill.Modules.Recommendations.Services.RecommendationsService>();
-        if (recService != null)
+        if (recService != null && !await recommendationsDb.Recommendations.IgnoreQueryFilters().AnyAsync(r => r.OrgId == apexOrg.Id))
         {
             try
             {
