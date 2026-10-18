@@ -14,7 +14,7 @@ import {
 import { DocumentImageViewer } from './DocumentImageViewer';
 import { ReviewFieldsForm } from './ReviewFieldsForm';
 import { ReviewQueueSidebar } from './ReviewQueueSidebar';
-import { ArrowLeft, RefreshCw, CheckCircle2, AlertTriangle, Languages } from 'lucide-react';
+import { ArrowLeft, RefreshCw, CheckCircle2, AlertTriangle, Languages, Layers, FileText, Eye } from 'lucide-react';
 
 interface ReviewWorkspaceProps {
   onBack?: () => void;
@@ -32,6 +32,7 @@ export function ReviewWorkspace({ onBack }: ReviewWorkspaceProps) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isReprocessing, setIsReprocessing] = useState<boolean>(false);
   const [bannerMessage, setBannerMessage] = useState<string | null>(null);
+  const [mobileTab, setMobileTab] = useState<'queue' | 'viewer' | 'form'>('form');
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
@@ -192,27 +193,27 @@ export function ReviewWorkspace({ onBack }: ReviewWorkspaceProps) {
   return (
     <div className="flex flex-col h-screen bg-slate-50 text-slate-900 font-sans overflow-hidden">
       {/* Workspace Top Header */}
-      <header className="h-14 bg-slate-900 border-b border-slate-800 px-6 flex items-center justify-between shadow-sm shrink-0 z-10 text-white">
-        <div className="flex items-center gap-3">
+      <header className="h-14 bg-slate-900 border-b border-slate-800 px-3 sm:px-6 flex items-center justify-between shadow-sm shrink-0 z-10 text-white">
+        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
           {onBack && (
             <button
               onClick={onBack}
-              className="p-1.5 -ml-1 text-slate-300 hover:bg-slate-800 rounded-lg transition cursor-pointer"
+              className="p-1.5 -ml-1 text-slate-300 hover:bg-slate-800 rounded-lg transition cursor-pointer shrink-0"
               title={isBangla ? 'ফিরে যান' : 'Go Back'}
             >
               <ArrowLeft size={18} />
             </button>
           )}
-          <div className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center p-1 shadow-inner">
+          <div className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center p-1 shadow-inner shrink-0">
             <img src="/logo-icon.png" alt="CarbonBill" className="w-6 h-6 object-contain" />
           </div>
-          <div>
-            <h1 className="text-base font-black text-white tracking-tight">
+          <div className="min-w-0">
+            <h1 className="text-xs sm:text-base font-black text-white tracking-tight truncate">
               {isBangla
-                ? 'চালান ও বিল পর্যালোচনা ওয়ার্কস্পেস'
-                : 'Review & Verification Workspace'}
+                ? 'চালান ও বিল পর্যালোচনা'
+                : 'Review & Verification'}
             </h1>
-            <p className="text-[11px] text-slate-400 font-medium">
+            <p className="text-[10px] sm:text-[11px] text-slate-400 font-medium hidden sm:block truncate">
               {isBangla
                 ? 'হিসাবরক্ষক ও কমপ্লায়েন্সের জন্য অপটিমাইজড ডুয়াল ভিউ'
                 : 'Dual-pane verification workspace for accounts & compliance'}
@@ -220,18 +221,18 @@ export function ReviewWorkspace({ onBack }: ReviewWorkspaceProps) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {bannerMessage && (
-            <div className="bg-slate-800 border border-slate-700 text-slate-200 text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1.5 animate-fade-in shadow-xs">
-              <CheckCircle2 size={15} className="text-emerald-400" />
-              {bannerMessage}
+            <div className="bg-slate-800 border border-slate-700 text-slate-200 text-xs font-bold px-2.5 py-1 rounded-xl flex items-center gap-1.5 animate-fade-in shadow-xs max-w-[180px] sm:max-w-none truncate">
+              <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
+              <span className="truncate">{bannerMessage}</span>
             </div>
           )}
 
           {/* Language Switcher */}
           <button
             onClick={() => i18n.changeLanguage(isBangla ? 'en' : 'bn')}
-            className="text-xs font-semibold px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 transition cursor-pointer"
+            className="text-xs font-semibold px-2 sm:px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 transition cursor-pointer"
             title={isBangla ? 'Switch to English' : 'বাংলায় পরিবর্তন করুন'}
           >
             {isBangla ? 'English' : 'বাংলা'}
@@ -240,23 +241,62 @@ export function ReviewWorkspace({ onBack }: ReviewWorkspaceProps) {
           <button
             onClick={loadData}
             title={isBangla ? 'রিফ্রেশ করুন' : 'Refresh Queue'}
-            className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition cursor-pointer"
+            className="p-1.5 sm:p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition cursor-pointer"
           >
-            <RefreshCw size={16} className={isLoading ? 'animate-spin text-emerald-400' : ''} />
+            <RefreshCw size={15} className={isLoading ? 'animate-spin text-emerald-400' : ''} />
           </button>
         </div>
       </header>
 
-      {/* Main 3-Column Review Layout */}
-      <div className="flex-1 grid grid-cols-12 gap-4 p-4 overflow-hidden">
-        {/* Leftmost Column: Review Queue (3 cols) */}
-        <div className="col-span-12 lg:col-span-3 h-full overflow-hidden">
+      {/* Mobile/Tablet Pane Switcher Tabs (Only visible on screens < lg) */}
+      <div className="lg:hidden flex bg-slate-200/90 p-1 mx-3 mt-2 rounded-2xl text-xs font-bold text-slate-600 border border-slate-300 shrink-0 shadow-2xs">
+        <button
+          type="button"
+          onClick={() => setMobileTab('queue')}
+          className={`flex-1 py-1.5 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer ${
+            mobileTab === 'queue' ? 'bg-slate-900 text-white shadow-xs' : 'hover:text-slate-900'
+          }`}
+        >
+          <Layers size={13} />
+          <span>{isBangla ? 'কিউ' : 'Queue'}</span>
+          <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${mobileTab === 'queue' ? 'bg-emerald-500 text-slate-950 font-black' : 'bg-slate-300 text-slate-800'}`}>
+            {queue.length}
+          </span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setMobileTab('viewer')}
+          className={`flex-1 py-1.5 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer ${
+            mobileTab === 'viewer' ? 'bg-slate-900 text-white shadow-xs' : 'hover:text-slate-900'
+          }`}
+        >
+          <FileText size={13} />
+          <span>{isBangla ? 'চালানের ছবি' : 'Bill Viewer'}</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setMobileTab('form')}
+          className={`flex-1 py-1.5 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer ${
+            mobileTab === 'form' ? 'bg-emerald-600 text-white shadow-xs' : 'hover:text-slate-900'
+          }`}
+        >
+          <CheckCircle2 size={13} />
+          <span>{isBangla ? 'যাচাই ও অনুমোদন' : 'Verify'}</span>
+        </button>
+      </div>
+
+      {/* Main Review Layout: 3 columns on lg+, single active pane on < lg */}
+      <div className="flex-1 lg:grid lg:grid-cols-12 gap-3 sm:gap-4 p-3 sm:p-4 overflow-hidden min-h-0 flex flex-col">
+        {/* Column 1: Review Queue (3 cols on lg) */}
+        <div className={`col-span-12 lg:col-span-3 h-full overflow-hidden ${mobileTab === 'queue' ? 'flex-1 flex flex-col' : 'hidden lg:flex lg:flex-col'}`}>
           <ReviewQueueSidebar
             queue={queue}
             selectedDocumentId={currentDoc?.documentId || null}
             onSelectDocument={(doc) => {
               setSelectedDocId(doc.documentId);
               setActiveField(null);
+              // On mobile, auto-switch to form view upon selection
+              setMobileTab('form');
             }}
             selectedFilter={filterType}
             onFilterChange={(filter) => {
@@ -270,8 +310,8 @@ export function ReviewWorkspace({ onBack }: ReviewWorkspaceProps) {
           />
         </div>
 
-        {/* Center Column: Original Document Image Viewer (5 cols) */}
-        <div className="col-span-12 lg:col-span-5 h-full overflow-hidden">
+        {/* Column 2: Original Document Image Viewer (5 cols on lg) */}
+        <div className={`col-span-12 lg:col-span-5 h-full overflow-hidden ${mobileTab === 'viewer' ? 'flex-1 flex flex-col' : 'hidden lg:flex lg:flex-col'}`}>
           {currentDoc ? (
             <DocumentImageViewer
               documentId={currentDoc.documentId}
@@ -288,8 +328,8 @@ export function ReviewWorkspace({ onBack }: ReviewWorkspaceProps) {
           )}
         </div>
 
-        {/* Right Column: Extracted Fields Editor (4 cols) */}
-        <div className="col-span-12 lg:col-span-4 h-full overflow-hidden">
+        {/* Column 3: Extracted Fields Editor (4 cols on lg) */}
+        <div className={`col-span-12 lg:col-span-4 h-full overflow-hidden ${mobileTab === 'form' ? 'flex-1 flex flex-col' : 'hidden lg:flex lg:flex-col'}`}>
           {currentDoc ? (
             <ReviewFieldsForm
               document={currentDoc}

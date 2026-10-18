@@ -168,7 +168,7 @@ export const DashboardFeature: React.FC<DashboardFeatureProps> = ({
 
       {/* Clean Segmented Section Controller */}
       <div className="flex items-center justify-between border-b border-slate-200 pb-1">
-        <div className="flex items-center gap-1 overflow-x-auto py-0.5">
+        <div className="flex items-center gap-1 overflow-x-auto py-0.5 no-scrollbar scroll-smooth">
           <button
             onClick={() => setActiveSection('overview')}
             className={`px-3 py-1.5 text-xs font-bold rounded-xl transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${

@@ -247,23 +247,23 @@ export default function LoginView({ onLoginSuccess, onGoToFloor }: LoginViewProp
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center items-center p-4 font-sans text-slate-900">
-      <div className={`w-full bg-white rounded-3xl p-6 md:p-8 text-slate-900 shadow-xl border border-slate-200/80 space-y-6 transition-all duration-300 ${tab === 'equipment_setup' ? 'max-w-2xl' : 'max-w-md'}`}>
+    <div className="min-h-screen bg-slate-50 flex flex-col justify-center items-center p-3 sm:p-4 font-sans text-slate-900">
+      <div className={`w-full bg-white rounded-3xl p-4 sm:p-6 md:p-8 text-slate-900 shadow-xl border border-slate-200/80 space-y-5 sm:space-y-6 transition-all duration-300 ${tab === 'equipment_setup' ? 'max-w-2xl' : 'max-w-md'}`}>
         {/* Branding & Language */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center p-1.5 shadow-sm">
-              <img src="/logo-icon.png" alt="CarbonBill Logo" className="w-9 h-9 object-contain" />
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center p-1.5 shadow-sm shrink-0">
+              <img src="/logo-icon.png" alt="CarbonBill Logo" className="w-7 h-7 sm:w-9 sm:h-9 object-contain" />
             </div>
-            <div>
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight">{t('appName')}</h1>
-              <p className="text-xs text-slate-500">{t('tagline')}</p>
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight truncate">{t('appName')}</h1>
+              <p className="text-[11px] sm:text-xs text-slate-500 truncate">{t('tagline')}</p>
             </div>
           </div>
 
           <button
             onClick={() => i18n.changeLanguage(i18n.language === 'bn' ? 'en' : 'bn')}
-            className="text-xs font-bold px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg border border-slate-200 transition cursor-pointer"
+            className="text-xs font-bold px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg border border-slate-200 transition cursor-pointer shrink-0 ml-2"
           >
             {i18n.language === 'bn' ? 'English' : 'বাংলা'}
           </button>
@@ -304,28 +304,28 @@ export default function LoginView({ onLoginSuccess, onGoToFloor }: LoginViewProp
           </div>
         ) : (
           <div className="flex items-center justify-between bg-slate-100 p-1.5 rounded-2xl text-xs font-bold text-slate-600 border border-slate-200">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-emerald-700 rounded-xl shadow-xs border border-slate-200/60">
-              <CheckCircle size={14} className="text-emerald-600" />
-              <span>{i18n.language === 'bn' ? '১. প্রতিষ্ঠান সম্পন্ন' : '1. Org Created'}</span>
+            <div className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-white text-emerald-700 rounded-xl shadow-xs border border-slate-200/60">
+              <CheckCircle size={14} className="text-emerald-600 shrink-0" />
+              <span className="truncate">{i18n.language === 'bn' ? '১. প্রতিষ্ঠান সম্পন্ন' : '1. Org Created'}</span>
             </div>
-            <ArrowRight size={14} className="text-slate-400" />
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white rounded-xl shadow-xs">
-              <Settings size={14} />
-              <span>{i18n.language === 'bn' ? '২. যন্ত্রপাতি সেটআপ' : '2. Equipment Setup'}</span>
+            <ArrowRight size={14} className="text-slate-400 shrink-0" />
+            <div className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-slate-900 text-white rounded-xl shadow-xs">
+              <Settings size={14} className="shrink-0" />
+              <span className="truncate">{i18n.language === 'bn' ? '২. যন্ত্রপাতি সেটআপ' : '2. Equipment Setup'}</span>
             </div>
           </div>
         )}
 
         {/* Quick Demo Accounts Helper */}
         {tab === 'login' && (
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-2">
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3 sm:p-3.5 space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-800">
                 ⚡ Apex Textiles Demo Team
               </span>
               <span className="text-[10px] text-slate-400">Click to fill</span>
             </div>
-            <div className="grid grid-cols-2 gap-1.5 text-left">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-left">
               {[
                 { name: 'Kabir Ahmed', email: 'owner@apex.local', pass: 'Pass1234!' },
                 { name: 'Rahim Mia', email: 'accountant@apex.local', pass: 'Pass1234!' },

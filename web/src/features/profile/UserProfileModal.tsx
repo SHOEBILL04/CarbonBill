@@ -335,70 +335,70 @@ export function UserProfileModal({
     SYSTEM_ROLES.find((r) => r.key === selectedRole) || SYSTEM_ROLES[1];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white border border-slate-200 rounded-3xl shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/70 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white border border-slate-200 rounded-3xl shadow-2xl max-w-3xl w-full max-h-[96vh] sm:max-h-[90vh] flex flex-col overflow-hidden">
         {/* Modal Header */}
-        <div className="bg-gradient-to-r from-teal-900 via-teal-800 to-emerald-900 p-6 text-white relative shrink-0">
+        <div className="bg-gradient-to-r from-teal-900 via-teal-800 to-emerald-900 p-4 sm:p-6 text-white relative shrink-0">
           <button
             onClick={onClose}
-            className="absolute top-5 right-5 p-2 rounded-full text-teal-200 hover:text-white hover:bg-white/10 transition cursor-pointer"
+            className="absolute top-3.5 right-3.5 sm:top-5 sm:right-5 p-1.5 sm:p-2 rounded-full text-teal-200 hover:text-white hover:bg-white/10 transition cursor-pointer"
             title={isBangla ? 'বন্ধ করুন' : 'Close'}
           >
             <X size={20} />
           </button>
 
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-xl font-black text-white shadow-inner">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0 pr-8">
+            <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-lg sm:text-xl font-black text-white shadow-inner shrink-0">
               {currentUser.fullName
                 ? currentUser.fullName.slice(0, 2).toUpperCase()
                 : 'CB'}
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-xl font-black tracking-tight text-white">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                <h2 className="text-base sm:text-xl font-black tracking-tight text-white truncate">
                   {currentUser.fullName}
                 </h2>
-                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-400 text-teal-950 shadow-2xs">
+                <span className="text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-400 text-teal-950 shadow-2xs shrink-0">
                   {currentRoleDef ? (isBangla ? currentRoleDef.nameBn : currentRoleDef.nameEn) : selectedRole}
                 </span>
               </div>
-              <p className="text-xs text-teal-200 flex items-center gap-2 mt-1">
-                <span className="flex items-center gap-1">
-                  <Mail size={12} /> {currentUser.email}
+              <p className="text-[11px] sm:text-xs text-teal-200 flex items-center gap-2 mt-0.5 sm:mt-1 flex-wrap">
+                <span className="flex items-center gap-1 truncate">
+                  <Mail size={12} className="shrink-0" /> <span className="truncate">{currentUser.email}</span>
                 </span>
-                <span>•</span>
-                <span className="flex items-center gap-1 font-semibold">
-                  <Building size={12} /> {currentUser.activeOrgName || 'Apex Textile & Garments Ltd.'}
+                <span className="hidden sm:inline">•</span>
+                <span className="flex items-center gap-1 font-semibold truncate">
+                  <Building size={12} className="shrink-0" /> <span className="truncate">{currentUser.activeOrgName || 'Apex Textile & Garments Ltd.'}</span>
                 </span>
               </p>
             </div>
           </div>
 
           {/* Navigation Tabs */}
-          <div className="flex items-center gap-2 mt-6 border-b border-white/10 pb-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 mt-4 sm:mt-6 border-b border-white/10 pb-0 overflow-x-auto no-scrollbar scroll-smooth">
             <button
               type="button"
               onClick={() => setActiveTab('profile')}
-              className={`px-4 py-2 text-xs font-bold rounded-t-xl transition flex items-center gap-2 border-b-2 cursor-pointer ${
+              className={`px-3 sm:px-4 py-2 text-xs font-bold rounded-t-xl transition flex items-center gap-1.5 sm:gap-2 border-b-2 cursor-pointer shrink-0 whitespace-nowrap ${
                 activeTab === 'profile'
                   ? 'bg-white text-teal-950 border-white'
                   : 'text-teal-200 hover:text-white hover:bg-white/5 border-transparent'
               }`}
             >
-              <User size={15} />
-              {isBangla ? 'আমার প্রোফাইল ও ভূমিকা' : 'My Profile & Role'}
+              <User size={14} />
+              <span>{isBangla ? 'আমার প্রোফাইল ও ভূমিকা' : 'My Profile & Role'}</span>
             </button>
             <button
               type="button"
               onClick={() => setActiveTab('team')}
-              className={`px-4 py-2 text-xs font-bold rounded-t-xl transition flex items-center gap-2 border-b-2 cursor-pointer ${
+              className={`px-3 sm:px-4 py-2 text-xs font-bold rounded-t-xl transition flex items-center gap-1.5 sm:gap-2 border-b-2 cursor-pointer shrink-0 whitespace-nowrap ${
                 activeTab === 'team'
                   ? 'bg-white text-teal-950 border-white'
                   : 'text-teal-200 hover:text-white hover:bg-white/5 border-transparent'
               }`}
             >
-              <Users size={15} />
-              {isBangla ? 'টিম সদস্য ও দায়িত্ব নির্ধারণ' : 'Team Roles Management'}
+              <Users size={14} />
+              <span>{isBangla ? 'টিম সদস্য ও দায়িত্ব' : 'Team Roles Management'}</span>
               <span className="px-1.5 py-0.2 bg-teal-700 text-teal-100 rounded-full text-[10px]">
                 {teamMembers.length}
               </span>
@@ -406,20 +406,20 @@ export function UserProfileModal({
             <button
               type="button"
               onClick={() => setActiveTab('facility')}
-              className={`px-4 py-2 text-xs font-bold rounded-t-xl transition flex items-center gap-2 border-b-2 cursor-pointer ${
+              className={`px-3 sm:px-4 py-2 text-xs font-bold rounded-t-xl transition flex items-center gap-1.5 sm:gap-2 border-b-2 cursor-pointer shrink-0 whitespace-nowrap ${
                 activeTab === 'facility'
                   ? 'bg-white text-teal-950 border-white'
                   : 'text-teal-200 hover:text-white hover:bg-white/5 border-transparent'
               }`}
             >
-              <Factory size={15} />
-              {isBangla ? 'কারখানা ও যন্ত্রপাতি' : 'Facility & Equipment'}
+              <Factory size={14} />
+              <span>{isBangla ? 'কারখানা ও যন্ত্রপাতি' : 'Facility & Equipment'}</span>
             </button>
           </div>
         </div>
 
         {/* Modal Body */}
-        <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-5 sm:space-y-6">
           {/* Toast Notification Alert */}
           {toastMessage && (
             <div className="p-3.5 rounded-xl bg-teal-50 border border-teal-200 text-teal-900 text-xs font-semibold flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-200 shadow-sm">

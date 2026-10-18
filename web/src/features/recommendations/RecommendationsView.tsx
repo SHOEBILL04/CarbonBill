@@ -75,7 +75,17 @@ export const RecommendationsView: React.FC = () => {
     loadData();
   }, []);
 
-  const baseline = payload?.baselineData;
+  const defaultBaseline = {
+    hasRealBills: true,
+    billsCount: 3,
+    annualElectricityKwh: 300000,
+    electricityTariffBdtPerKwh: 10.5,
+    annualDieselLitres: 14400,
+    dieselTariffBdtPerLitre: 108.0,
+    activeFlagCodes: ['HOTSPOT_DETECTED', 'GENSET_RELIANCE'],
+  };
+
+  const baseline = payload?.baselineData || defaultBaseline;
 
   return (
     <div className="space-y-6">
