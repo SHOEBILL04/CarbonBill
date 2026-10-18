@@ -621,6 +621,32 @@ public class RagRecommendationService(
         request.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
 
         using var response = await httpClient.SendAsync(request, ct);
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound && _groqModel != "qwen/qwen3.8-27b")
+        {
+            logger.LogInformation("Groq model {Model} returned 404, retrying with active model qwen/qwen3.8-27b...", _groqModel);
+            var fbPayload = new
+            {
+                model = "qwen/qwen3.8-27b",
+                messages = payload.messages,
+                temperature = 0.25,
+                max_tokens = 950
+            };
+            using var fbReq = new HttpRequestMessage(HttpMethod.Post, url);
+            fbReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _groqApiKey);
+            fbReq.Content = new StringContent(JsonSerializer.Serialize(fbPayload), Encoding.UTF8, "application/json");
+            using var fbRes = await httpClient.SendAsync(fbReq, ct);
+            if (fbRes.IsSuccessStatusCode)
+            {
+                var fbJson = await fbRes.Content.ReadAsStringAsync(ct);
+                using var fbDoc = JsonDocument.Parse(fbJson);
+                return fbDoc.RootElement
+                    .GetProperty("choices")[0]
+                    .GetProperty("message")
+                    .GetProperty("content")
+                    .GetString()?.Trim();
+            }
+        }
+
         if (!response.IsSuccessStatusCode)
         {
             var err = await response.Content.ReadAsStringAsync(ct);
@@ -706,9 +732,9 @@ public class RagRecommendationService(
     private static string ResolveGroqModel(IConfiguration configuration)
     {
         var model = configuration["VisionLlm:Model"] ?? configuration["GROQ_MODEL"];
-        if (string.IsNullOrWhiteSpace(model) || model.StartsWith("openai/", StringComparison.OrdinalIgnoreCase))
+        if (string.IsNullOrWhiteSpace(model) || model.Contains("llama-3.3-70b-versatile", StringComparison.OrdinalIgnoreCase))
         {
-            return "llama-3.3-70b-versatile";
+            return "openai/gpt-oss-120b";
         }
         return model;
     }

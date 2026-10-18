@@ -107,6 +107,18 @@ export async function requestRetake(
   }
 }
 
+export async function reprocessDocument(
+  documentId: string
+): Promise<boolean> {
+  try {
+    await apiClient.post(`/api/v1/documents/${documentId}/reprocess`);
+    return true;
+  } catch (err) {
+    console.error('Reprocess document failed:', err);
+    return false;
+  }
+}
+
 export async function fetchReviewSettings(): Promise<OrgReviewSettings> {
   try {
     return await apiClient.get<OrgReviewSettings>('/api/v1/review/settings');

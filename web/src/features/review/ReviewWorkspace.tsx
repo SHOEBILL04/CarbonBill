@@ -5,6 +5,7 @@ import {
   confirmDocument,
   bulkConfirmDocuments,
   requestRetake,
+  reprocessDocument,
   fetchReviewSettings,
   ReviewQueueItem,
   ReviewField,
@@ -29,6 +30,7 @@ export function ReviewWorkspace({ onBack }: ReviewWorkspaceProps) {
   const [filterType, setFilterType] = useState<string>('');
   const [isBulkEnabled, setIsBulkEnabled] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isReprocessing, setIsReprocessing] = useState<boolean>(false);
   const [bannerMessage, setBannerMessage] = useState<string | null>(null);
   const [mobileTab, setMobileTab] = useState<'queue' | 'viewer' | 'form'>('form');
 
@@ -119,6 +121,37 @@ export function ReviewWorkspace({ onBack }: ReviewWorkspaceProps) {
     },
     [currentDoc, isBangla]
   );
+
+  const handleReprocessCurrent = useCallback(async () => {
+    if (!currentDoc) return;
+    setIsReprocessing(true);
+    setBannerMessage(
+      isBangla
+        ? 'এআই ভিশন দিয়ে পুনরায় এক্সট্রাক্ট করা হচ্ছে...'
+        : 'Re-extracting fields with AI Vision...'
+    );
+    try {
+      await reprocessDocument(currentDoc.documentId);
+      setTimeout(async () => {
+        await loadData();
+        setIsReprocessing(false);
+        setBannerMessage(
+          isBangla
+            ? 'এক্সট্রাকশন সফলভাবে সম্পন্ন হয়েছে!'
+            : 'AI extraction completed successfully!'
+        );
+        setTimeout(() => setBannerMessage(null), 3000);
+      }, 2000);
+    } catch {
+      setIsReprocessing(false);
+      setBannerMessage(
+        isBangla
+          ? 'পুনরায় এক্সট্রাক্ট করতে সমস্যা হয়েছে।'
+          : 'Failed to reprocess document.'
+      );
+      setTimeout(() => setBannerMessage(null), 3000);
+    }
+  }, [currentDoc, isBangla, loadData]);
 
   const handleBulkConfirm = useCallback(async () => {
     const highConfIds = queue
@@ -304,6 +337,8 @@ export function ReviewWorkspace({ onBack }: ReviewWorkspaceProps) {
               onSelectField={setActiveField}
               onConfirm={handleConfirmCurrent}
               onRejectRetake={handleRejectRetake}
+              onReprocess={handleReprocessCurrent}
+              isReprocessing={isReprocessing}
               onNextDocument={handleNextDocument}
               isBangla={isBangla}
             />

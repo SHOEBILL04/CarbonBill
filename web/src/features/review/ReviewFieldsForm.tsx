@@ -19,6 +19,8 @@ interface ReviewFieldsFormProps {
   onSelectField: (field: ReviewField) => void;
   onConfirm: (payload: ConfirmRequest) => Promise<void>;
   onRejectRetake: (reason: string) => Promise<void>;
+  onReprocess?: () => Promise<void>;
+  isReprocessing?: boolean;
   onNextDocument: () => void;
   isBangla?: boolean;
 }
@@ -29,6 +31,8 @@ export function ReviewFieldsForm({
   onSelectField,
   onConfirm,
   onRejectRetake,
+  onReprocess,
+  isReprocessing = false,
   onNextDocument,
   isBangla = false,
 }: ReviewFieldsFormProps) {
@@ -307,22 +311,38 @@ export function ReviewFieldsForm({
           </button>
         </div>
 
-        <button
-          type="button"
-          onClick={() =>
-            onRejectRetake(
-              isBangla
-                ? 'ছবি অস্পষ্ট বা কাটা পড়েছে'
-                : 'Image is blurry or damaged; please retake'
-            )
-          }
-          className="w-full py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs rounded-lg transition flex items-center justify-center gap-1.5"
-        >
-          <RotateCcw size={14} />
-          {isBangla
-            ? 'ফ্লোরে পুনরায় তোলার অনুরোধ পাঠান (Retake Request)'
-            : 'Request Photo Retake from Floor'}
-        </button>
+        <div className="flex items-center gap-2">
+          {onReprocess && (
+            <button
+              type="button"
+              onClick={onReprocess}
+              disabled={isReprocessing}
+              className="flex-1 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs rounded-lg transition flex items-center justify-center gap-1.5 disabled:opacity-50"
+            >
+              <Sparkles size={14} className={isReprocessing ? 'animate-spin' : ''} />
+              {isReprocessing
+                ? (isBangla ? 'এক্সট্রাক্ট করা হচ্ছে...' : 'Re-extracting...')
+                : (isBangla ? 'পুনরায় এআই এক্সট্রাক্ট' : 'Re-extract with AI')}
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={() =>
+              onRejectRetake(
+                isBangla
+                  ? 'ছবি অস্পষ্ট বা কাটা পড়েছে'
+                  : 'Image is blurry or damaged; please retake'
+              )
+            }
+            className="flex-1 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs rounded-lg transition flex items-center justify-center gap-1.5"
+          >
+            <RotateCcw size={14} />
+            {isBangla
+              ? 'ফ্লোরে রিটেক পাঠান'
+              : 'Request Retake'}
+          </button>
+        </div>
       </div>
     </form>
   );

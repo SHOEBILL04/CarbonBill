@@ -23,7 +23,11 @@ public interface ITokenService
 
 public class TokenService(IConfiguration configuration) : ITokenService
 {
-    private readonly string _jwtKey = configuration["Jwt:Key"] ?? "CarbonBill-SuperSecret-Development-Key-2026-VeryLongKeyNeeded";
+    private readonly string _jwtKey = configuration["Jwt:Secret"]
+        ?? configuration["JWT_SECRET"]
+        ?? configuration["JWT__SECRET"]
+        ?? configuration["Jwt:Key"]
+        ?? "CarbonBill-SuperSecret-Development-Key-2026-VeryLongKeyNeeded";
     private readonly string _issuer = configuration["Jwt:Issuer"] ?? "CarbonBill";
     private readonly string _audience = configuration["Jwt:Audience"] ?? "CarbonBillClients";
     private readonly int _expiryMinutes = int.TryParse(configuration["Jwt:ExpiryMinutes"], out var exp) ? exp : 15;

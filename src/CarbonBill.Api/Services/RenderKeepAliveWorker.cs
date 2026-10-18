@@ -17,8 +17,10 @@ public class RenderKeepAliveWorker(
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        // Render sets RENDER_EXTERNAL_URL automatically (e.g., https://carbonbill.onrender.com)
+        // Render sets RENDER_EXTERNAL_URL automatically; Railway sets RAILWAY_PUBLIC_DOMAIN / RAILWAY_STATIC_URL
         var externalUrl = configuration["RENDER_EXTERNAL_URL"]
+            ?? ResolveCloudUrl(configuration["RAILWAY_PUBLIC_DOMAIN"])
+            ?? ResolveCloudUrl(configuration["RAILWAY_STATIC_URL"])
             ?? configuration["KEEP_ALIVE_URL"]
             ?? configuration["Render:ExternalUrl"];
 
@@ -26,7 +28,7 @@ public class RenderKeepAliveWorker(
 
         if (string.IsNullOrWhiteSpace(externalUrl) && !isExplicitlyEnabled)
         {
-            logger.LogInformation("[KeepAlive] Render anti-sleep worker is dormant (RENDER_EXTERNAL_URL not set).");
+            logger.LogInformation("[KeepAlive] Anti-sleep worker is dormant (no cloud external URL configured).");
             return;
         }
 
@@ -78,5 +80,14 @@ public class RenderKeepAliveWorker(
                 break;
             }
         }
+    }
+
+    private static string? ResolveCloudUrl(string? rawDomain)
+    {
+        if (string.IsNullOrWhiteSpace(rawDomain)) return null;
+        var trimmed = rawDomain.Trim();
+        return trimmed.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+            ? trimmed
+            : $"https://{trimmed}";
     }
 }

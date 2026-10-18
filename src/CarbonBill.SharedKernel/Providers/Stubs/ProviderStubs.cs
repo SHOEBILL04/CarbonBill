@@ -89,7 +89,15 @@ public class FakeGeminiVisionOcrProvider(ILogger<FakeGeminiVisionOcrProvider> lo
 public class LocalOrR2FileStoreStub(ILogger<LocalOrR2FileStoreStub> logger) : IFileStore
 {
     private readonly Dictionary<string, byte[]> _memoryStorage = new(StringComparer.OrdinalIgnoreCase);
-    private readonly string _storageDir = Path.Combine(AppContext.BaseDirectory, "filestore");
+    private readonly string _storageDir = ResolveStorageDir();
+
+    private static string ResolveStorageDir()
+    {
+        var custom = Environment.GetEnvironmentVariable("FILE_STORAGE_PATH");
+        if (!string.IsNullOrWhiteSpace(custom)) return custom;
+        if (Directory.Exists("/data")) return Path.Combine("/data", "filestore");
+        return Path.Combine(AppContext.BaseDirectory, "filestore");
+    }
 
     private string GetFullPath(string storagePath)
     {
