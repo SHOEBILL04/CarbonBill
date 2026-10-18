@@ -585,60 +585,60 @@ export function CaptureScreen({
 
       {/* Top PC Web Navigation Bar */}
       <header className="sticky top-0 z-30 bg-slate-900 border-b border-slate-800 shadow-sm text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             {onBack && (
               <button
                 onClick={onBack}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-200 bg-slate-800 hover:bg-slate-700 rounded-xl border border-slate-700 transition cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-bold text-slate-200 bg-slate-800 hover:bg-slate-700 rounded-xl border border-slate-700 transition cursor-pointer shrink-0"
                 title={isBangla ? 'ড্যাশবোর্ডে ফিরে যান' : 'Back to Dashboard'}
               >
                 <ArrowLeft size={16} />
-                <span className="hidden sm:inline">{isBangla ? 'ফিরে যান' : 'Back'}</span>
+                <span className="hidden md:inline">{isBangla ? 'ফিরে যান' : 'Back'}</span>
               </button>
             )}
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center p-1 shadow-inner">
-                <img src="/logo-icon.png" alt="CarbonBill" className="w-8 h-8 object-contain" />
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center p-1 shadow-inner shrink-0">
+                <img src="/logo-icon.png" alt="CarbonBill" className="w-6 h-6 sm:w-8 sm:h-8 object-contain" />
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xl font-black text-white tracking-tight">
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <span className="text-base sm:text-xl font-black text-white tracking-tight truncate">
                     {isBangla ? 'কার্বনবিল' : 'CarbonBill'}
                   </span>
                   <span className="hidden sm:inline text-xs font-bold px-2 py-0.5 bg-slate-800 text-slate-300 rounded-md border border-slate-700">
-                    {isBangla ? 'ইনজেশন পোর্টাল' : 'Ingestion Portal'}
+                    {isBangla ? 'ইনজেশন' : 'Ingestion'}
                   </span>
                 </div>
-                <p className="text-xs font-medium text-slate-400">
+                <p className="text-[11px] sm:text-xs font-medium text-slate-400 hidden sm:block truncate">
                   {isBangla ? 'ফ্যাক্টরি ফ্লোর চালান ও ইউটিলিটি বিল ইনজেশন' : 'Factory Floor Challan & Utility Bill Ingestion'}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             {/* Language Switcher */}
             <button
               onClick={() => i18n.changeLanguage(isBangla ? 'en' : 'bn')}
-              className="text-xs font-semibold px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl border border-slate-700 transition cursor-pointer"
+              className="text-xs font-semibold px-2 sm:px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl border border-slate-700 transition cursor-pointer"
               title="Switch Language / ভাষা পরিবর্তন"
             >
-              {isBangla ? 'English' : 'বাংলা'}
+              {isBangla ? 'EN' : 'বাং'}
             </button>
 
             {/* Batch Mode Switch */}
             <button
               onClick={() => setIsBatchMode(!isBatchMode)}
-              className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer ${
+              className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer ${
                 isBatchMode
                   ? 'bg-emerald-600 text-white border border-emerald-500'
                   : 'bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700'
               }`}
               title={isBangla ? 'একের পর এক একাধিক চালান স্ক্যান করতে ব্যাচ মোড ব্যবহার করুন' : 'Enable batch mode to capture multiple challans sequentially'}
             >
-              <Layers size={15} />
-              <span>{isBangla ? 'ব্যাচ মোড' : 'Batch Mode'}</span>
+              <Layers size={14} />
+              <span className="hidden sm:inline">{isBangla ? 'ব্যাচ মোড' : 'Batch'}</span>
               {isBatchMode && (
                 <span className="bg-slate-950 text-emerald-300 text-[10px] px-1.5 py-0.2 rounded-full font-mono">
                   {formatLocalizedNumber(batchCount, isBangla)}
@@ -649,28 +649,30 @@ export function CaptureScreen({
             {/* Manual Mode Toggle */}
             <button
               onClick={() => setIsManualMode(!isManualMode)}
-              className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer ${
+              className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer ${
                 isManualMode
                   ? 'bg-amber-600 text-white shadow-amber-200'
                   : 'bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700'
               }`}
+              title={isManualMode ? (isBangla ? 'স্ক্যান মোডে ফিরুন' : 'Back to Scan Mode') : (isBangla ? 'ম্যানুয়াল এন্ট্রি' : 'Manual Entry')}
             >
-              <FileText size={15} />
-              <span>
+              <FileText size={14} />
+              <span className="hidden sm:inline">
                 {isManualMode
-                  ? (isBangla ? 'স্ক্যান মোডে ফিরুন' : 'Back to Scan Mode')
-                  : (isBangla ? 'ম্যানুয়াল এন্ট্রি' : 'Manual Entry')}
+                  ? (isBangla ? 'স্ক্যান মোড' : 'Scan')
+                  : (isBangla ? 'ম্যানুয়াল' : 'Manual')}
               </span>
             </button>
 
             {/* Online/Offline Status Badge */}
             <span
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold shadow-xs ${
+              className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-xl text-xs font-semibold shadow-xs ${
                 isOnline ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'
               }`}
+              title={isOnline ? 'Online' : 'Offline'}
             >
-              {isOnline ? <Wifi size={14} className="text-emerald-600" /> : <WifiOff size={14} className="text-rose-600" />}
-              <span className="hidden sm:inline">
+              {isOnline ? <Wifi size={13} className="text-emerald-600" /> : <WifiOff size={13} className="text-rose-600" />}
+              <span className="hidden md:inline">
                 {isOnline ? (isBangla ? 'অনলাইন' : 'Online') : (isBangla ? 'অফলাইন' : 'Offline')}
               </span>
             </span>
@@ -680,9 +682,9 @@ export function CaptureScreen({
               onClick={triggerSync}
               disabled={isProcessing}
               title={isBangla ? 'সার্ভারের সাথে সিঙ্ক করুন' : 'Sync with Server'}
-              className="p-2 text-slate-600 hover:bg-slate-100 border border-slate-200 rounded-xl transition"
+              className="p-1.5 sm:p-2 text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl transition cursor-pointer"
             >
-              <RefreshCw size={16} className={isProcessing ? 'animate-spin text-emerald-600' : ''} />
+              <RefreshCw size={15} className={isProcessing ? 'animate-spin text-emerald-400' : ''} />
             </button>
 
             {/* Push Notification Setup */}
@@ -690,7 +692,7 @@ export function CaptureScreen({
               <button
                 onClick={handleSubscribePush}
                 title={isBangla ? 'পুশ নোটিফিকেশন চালু করুন' : 'Enable Push Notifications'}
-                className="hidden md:flex p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs items-center gap-1.5 font-medium transition"
+                className="hidden lg:flex p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs items-center gap-1.5 font-medium transition cursor-pointer border border-slate-700"
               >
                 <Bell size={15} />
               </button>

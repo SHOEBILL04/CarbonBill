@@ -391,15 +391,15 @@ export const AuditorView: React.FC<AuditorViewProps> = ({ token }) => {
             </p>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap">
-            <div className="relative">
+          <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
+            <div className="relative flex-1 sm:flex-initial">
               <Search size={14} className="absolute left-3 top-2.5 text-slate-400" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder={isBangla ? 'কোম্পানি, বিল বা বিভাগ খুঁজুন...' : 'Filter by bill, company, division...'}
-                className="pl-8 pr-3 py-1.5 text-xs border border-slate-300 rounded-xl bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-teal-600"
+                className="w-full sm:w-64 pl-8 pr-3 py-1.5 text-xs border border-slate-300 rounded-xl bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-teal-600"
               />
             </div>
 
